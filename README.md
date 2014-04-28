@@ -5,6 +5,7 @@ fabfile for chef
 いろいろと未完成
 
 ## TODO
+* chef-serverへのアップロード機能?
 * cookbookのfabric版
 * web ui(githubみたいなファイル管理できる感じで)
 * client fabfile ?
