@@ -1,11 +1,13 @@
-# fabfile for chef
+# chefric
+
+fabfile for chef
+
+いろいろと未完成
 
 ## TODO
-* taskごとにドキュメント用意する
 * cookbookのfabric版
 * web ui(githubみたいなファイル管理できる感じで)
 * client fabfile ?
-* ログ機能
 * proxy複数切り替えられるようにする(nodeごとで使いたいproxy違うかも)
 
 ## 利用条件
@@ -13,6 +15,23 @@
 * knife soloがインストールされている
 * fabricがインストールされている
 * chef-repoの直下にこのfabfileを置いて使用
+
+## 初期設定
+``` bash
+# chef-repo直下で以下を実行してください
+$ git clone git@github.com:syunkitada/chefric.git fabfile
+
+# fab commandが実行できたら成功です
+$ fab -l
+Available commands:
+
+    cook
+    host
+    node
+    prepare
+    role
+    test
+```
 
 ## 使い方
 ### ホスト名の指定について
