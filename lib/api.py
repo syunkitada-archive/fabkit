@@ -10,6 +10,13 @@ api.env.cmd_history = []
 # with settings(warn_only=True): をやろうとすると失敗する (sudo: export command not found)
 # warn_onlyを利用する場合は、run(cmd, warn_only=True) でやる
 
+def cmd(cmd):
+    if api.env.is_test:
+        api.env.cmd_history.append(cmd)
+        return cmd
+    else:
+        return commands.getoutput(cmd)
+
 def run(cmd, **kwargs):
     log_cmd = 'run> ' + cmd
     api.env.cmd_history.append(log_cmd)

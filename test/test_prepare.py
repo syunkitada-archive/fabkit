@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import unittest
-import conf
+import conf, testtools
 from fabric.api import *
 from prepare import prepare
 
@@ -10,7 +10,7 @@ class TestSequenceFunctions(unittest.TestCase):
         env.password = 'test'
 
     def test_prepare(self):
-        conf.init_test_conf()
+        testtools.init_conf()
         env.cmd_history = []
         prepare('p')
         cmd_history = [

@@ -1,61 +1,149 @@
-from fabric.api import *
-import re, os, json, commands, sys
+from fabric.api import env, task
+import re, os, json, sys
 from types import *
 import datetime
-import util, conf
+import util, conf, testtools
+from api import *
+
+RE_UPTIME = re.compile('^.*up (.+),.*user.*$')
 
 @task
-def node(host_pattern='*', edit_target=None, edit_value=None):
-    if host_pattern == 'create':
-        if not edit_target:
-            edit_target = raw_input('enter hostname: ')
+def node(option=None, host_pattern=None, edit_key=None, edit_value=None):
+    if option == 'create':
+        host_pattern = check_host_pattern(host_pattern)
+        env.hosts = util.get_expanded_hosts(host_pattern)
+        print env.hosts
 
-        for hostname in util.expand_hostname(edit_target):
-            if not util.exists_json(hostname):
-                util.dump_json(conf.template_json, hostname)
-            else:
-                print '%s is already created.' % hostname
-
-        host_pattern = edit_target
-        edit_target = None
-
-    if host_pattern == 'remove':
-        if not edit_target:
-            edit_target = raw_input('enter hostname: ')
-        for hostname in util.get_available_hosts(edit_target):
-            util.remove_json(hostname)
+        if util.confirm('Are you sure you want to create above nodes?', 'Canceled'):
+            for host in env.hosts:
+                if not util.exists_json(host):
+                    util.dump_json(conf.get_initial_json(host), host)
+                else:
+                    print '%s is already created.' % host
+            print_hosts()
 
         return
 
-    hosts = util.get_available_hosts(host_pattern)
+    elif option == 'remove':
+        host_pattern = check_host_pattern(host_pattern)
+        env.hosts = util.get_available_hosts(host_pattern)
+        print env.hosts
 
+        if util.confirm('Are you sure you want to remove above nodes?', 'Canceled'):
+            for host in env.hosts:
+                util.remove_json(host)
+
+            print '%s removed.' % host_pattern
+
+        return
+
+    elif option == 'edit':
+        host_pattern = check_host_pattern(host_pattern)
+        env.hosts = util.get_available_hosts(host_pattern)
+        print_hosts()
+
+        print '\n\nEdit above nodes.'
+        if not edit_key and type(edit_value) is not StringType:
+            edit_key = raw_input('Enter key: ')
+
+        if not edit_value and type(edit_value) is not StringType:
+            edit_value = raw_input('Enter value: ')
+
+        for host in env.hosts:
+            host_json = util.load_json(host)
+            host_json.update({edit_key: edit_value})
+            util.dump_json(host_json, host)
+
+        print_hosts()
+
+    elif option == 'upload':
+        host_pattern = check_host_pattern(host_pattern)
+        env.hosts = util.get_available_hosts(host_pattern)
+        print_hosts()
+
+        if util.confirm('Are you sure you want to upload above nodes?', 'Canceled'):
+            for host in env.hosts:
+                if util.exists_json(host):
+                    cmd('knife node from file %s/%s.json' % (conf.node_path, host))
+        return
+
+    elif option == 'download':
+        host_pattern = check_host_pattern(host_pattern)
+        searched_nodes = cmd('knife search node "name:%s" -F json' % host_pattern)
+        if env.is_test:
+            searched_nodes = testtools.get_searched_nodes(host_pattern)
+
+        print searched_nodes
+
+        if util.confirm('Are you sure you want to save above nodes?', 'Canceled'):
+            nodes = json.loads(searched_nodes)['rows']
+            for node in nodes:
+                host = node['name']
+                node_json = util.load_json(host)
+                node_json.update(node)
+                util.dump_json(node_json, host)
+                print host
+
+            print '\nsaved %s\n' % host_pattern
+            env.hosts = util.get_available_hosts(host_pattern)
+            print_hosts()
+        return
+
+    else:
+        if option:
+            host_pattern = option
+        else:
+            host_pattern = '*'
+
+        env.hosts = util.get_available_hosts(host_pattern)
+        print_hosts()
+
+        is_sudo = False
+        is_remote_run = False
+        for task in env.tasks:
+            if task.find('prepare') != -1 or task.find('cook'):
+                is_sudo = True
+                is_remote_run = True
+
+                if task.find('cook') != -1:
+                    with cd(conf.chef_repo_path):
+                        with shell_env(PASSWORD=env.password):
+                            run('knife solo cook localhost --no-berkshelf --no-chef-check --ssh-password $PASSWORD')
+                    run('cp -r %s/* chef-solo/' % conf.node_path)
+                    run('tar -czf chef-solo.tar.gz chef-solo')
+
+        if is_remote_run:
+            if util.confirm('Are you sure you want to run task that follow on above nodes?', 'Canceled'):
+                if is_sudo:
+                    print 'enter your password\n'
+                    sudo('hostname')
+
+        return
+
+
+def check_host_pattern(host_pattern):
+    while not host_pattern or host_pattern == '':
+        host_pattern = raw_input('Please enter host: ')
+    return host_pattern
+
+def print_hosts():
     host = 'hostname'
     uptime = 'uptime'
     last_cook = 'last_cook'
     run_list = 'run_list'
     print '%(host)-40s%(uptime)-15s%(last_cook)-25s%(run_list)s' % locals()
     print '-------------------------------------------------------------------------------------------'
-    for host in hosts:
-        path = '%s/%s.json' % (conf.node_path, host)
-        with open(path, 'r') as f:
-            host_json = json.load(f)
-        ip_address = host_json.get('ip_address')
+
+    for host in env.hosts:
+        host_json = util.load_json(host)
+
         uptime = host_json.get('uptime', '')
-        prog = re.compile('^.*up (.+),.*user.*$')
-        progs = prog.search(uptime)
-        if progs:
-            uptime = progs.group(1)
+        uptimes = RE_UPTIME.search(uptime)
+        if uptimes:
+            uptime = uptimes.group(1)
         last_cook = host_json.get('last_cook')
         run_list = host_json.get('run_list')
+
         print '%(host)-40s%(uptime)-15s%(last_cook)-25s%(run_list)s' % locals()
 
-    if edit_target and type(edit_target) is StringType:
-        if not edit_value and type(edit_value) is not StringType:
-            print '\nedit "%s" of above nodes. if you leave, press ^C.' % edit_target
-            edit_value = raw_input('enter value: ')
-
-        for host in hosts:
-            host_json = util.load_json(host)
-            host_json.update({edit_target: edit_value})
-            util.dump_json(host_json, host)
 

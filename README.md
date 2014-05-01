@@ -5,10 +5,8 @@ fabfile for chef
 いろいろと未完成
 
 ## TODO
-* chef-serverへのアップロード機能?
+* chef-serverとの連携, chef-serverのprepare
 * cookbookのfabric版
-* web ui(githubみたいなファイル管理できる感じで)
-* client fabfile ?
 * proxy複数切り替えられるようにする(nodeごとで使いたいproxy違うかも)
 
 ## 利用条件
@@ -16,6 +14,7 @@ fabfile for chef
 * knife soloがインストールされている
 * fabricがインストールされている
 * chef-repoの直下にこのfabfileを置いて使用
+* chef-serverはオプションで利用
 
 ## 初期設定
 ``` bash
@@ -27,7 +26,6 @@ $ fab -l
 Available commands:
 
     cook
-    host
     node
     prepare
     role
@@ -55,20 +53,31 @@ test[1-2]host[4+7]
 
 ### nodeタスク
 nodeの登録、nodeの閲覧、nodeの編集、nodeの削除が行えます。
+また、続くタスクのセットアップ対象のnodeを設定します。
 ``` bash
-# nodeの登録
-$ fab node:create
-enter hostname: [host_pattern]
-
-# nodeの削除
-$ fab node:remove
-enter hostname: [host_pattern]
-
 # nodeの閲覧
 $ fab node:[host_pattern]
 
+# nodeの登録
+$ fab node:create[,host_pattern]
+enter hostname: [host_pattern]
+
+# nodeの削除
+$ fab node:remove[,host_pattern]
+enter hostname: [host_pattern]
+
 # nodeの編集
-$ fab node:[host_pattern],[edit_target]
+$ fab node:edit[,host_pattern,edit_target,edit_value]
+enter hostname: [host_pattern]
+enter edit target: [target]
+
+# chefサーバへnodeのアップロード
+$ fab node:upload[,host_pattern]
+enter hostname: [host_pattern]
+
+# chefサーバからnodeのダウンロード
+$ fab node:download[,host_pattern]
+enter hostname: [host_pattern]
 ```
 
 ### roleタスク
@@ -78,11 +87,6 @@ roleファイルの編集はサポートしません。
 $ fab role:[reguler exception]
 ```
 
-### hostタスク
-セットアップ対象のnodeを設定します。
-``` bash
-$ fab host:[host_pattern]
-```
 
 ### prepareタスク
 セットアップ対象のnodeに、chefをインストールします。  

@@ -15,7 +15,6 @@ env.forward_agent = True
 from test import test
 from node import node
 from role import role
-from host import host
 from prepare import prepare
 from cook import cook
 
