@@ -125,15 +125,16 @@ def check_host_pattern(host_pattern):
     return host_pattern
 
 def print_hosts():
-    host = 'hostname'
+    host_info = 'hostname(ipaddress)'
     uptime = 'uptime'
     last_cook = 'last_cook'
     run_list = 'run_list'
-    print '%(host)-40s%(uptime)-15s%(last_cook)-25s%(run_list)s' % locals()
-    print '-------------------------------------------------------------------------------------------'
+    print '%(host_info)-50s%(uptime)-15s%(last_cook)-25s%(run_list)s' % locals()
+    print '--------------------------------------------------------------------------------------------------------'
 
     for host in env.hosts:
         host_json = util.load_json(host)
+        host_info = '%s(%s)' % (host, host_json.get('ipaddress', ''))
 
         uptime = host_json.get('uptime', '')
         uptimes = RE_UPTIME.search(uptime)
@@ -142,6 +143,6 @@ def print_hosts():
         last_cook = host_json.get('last_cook')
         run_list = host_json.get('run_list')
 
-        print '%(host)-40s%(uptime)-15s%(last_cook)-25s%(run_list)s' % locals()
+        print '%(host_info)-50s%(uptime)-15s%(last_cook)-25s%(run_list)s' % locals()
 
 

@@ -45,7 +45,7 @@ class TestSequenceFunctions(unittest.TestCase):
             hosts = util.get_available_hosts(host_pattern)
             cmds = []
             for host in hosts:
-                cmds.append('knife node from file %s/%s.json' % (conf.node_path, host))
+                cmds.append('cmd> knife node from file %s/%s.json' % (conf.node_path, host))
             self.assertEqual(cmds, env.cmd_history)
 
         __test_upload('localhost')

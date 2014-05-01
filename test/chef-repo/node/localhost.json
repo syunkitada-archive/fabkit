@@ -1,1 +1,1 @@
-{"last_cook": "2014-05-02 04:37:35[0]", "name": "localhost", "run_list": "recipe[test]", "uptime": " 04:37:35 up 18:27,  1 user,  load average: 0.05, 0.07, 0.04"}
+{"uptime": " 06:20:16 up 20:09,  1 user,  load average: 0.00, 0.03, 0.00", "name": "localhost", "last_cook": "2014-05-02 06:20:16[0]", "ssh": "success", "run_list": "recipe[test]", "ipaddress": "failed"}

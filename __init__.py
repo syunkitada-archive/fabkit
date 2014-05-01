@@ -17,4 +17,5 @@ from node import node
 from role import role
 from prepare import prepare
 from cook import cook
+from check import check
 
