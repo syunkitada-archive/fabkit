@@ -101,3 +101,24 @@ $ fab host:[host_pattern] prepare
 $ fab host:[host_pattern] cook
 ```
 
+### checkタスク
+セットアップ対象のnodeの検証をします。  
+ping, ssh, uptimeを取得します。
+`` bash
+$ fab host:[host_pattern] cook
+```
+
+### testタスク
+各タスクのテストを行うためのタスクです。  
+タスクの修正を行った場合は、これを実行してエラーが出ないことを確認して下さい。  
+新規タスクを開発する場合は、そのテストコードをtest/__init__.pyに登録してください。
+``` bash
+$ fab test
+...
+Ran 15 tests in 0.291s
+
+OK
+
+Done.
+``
+
