@@ -47,7 +47,7 @@ if not os.path.exists(log_dir_path):
 
 env.is_proxy = False
 def is_proxy(option=None):
-    if option and option == 'p':
+    if option and option.find('p') != -1:
         if http_proxy and https_proxy:
             env.is_proxy = True
             return True
@@ -55,6 +55,15 @@ def is_proxy(option=None):
             raise Exception('http_proxy is bad')
     else:
         env.is_proxy = False
+        return False
+
+env.is_server = False
+def is_server(option=None):
+    if option and option.find('s') != -1:
+        env.is_server = True
+        return True
+    else:
+        env.is_server = False
         return False
 
 def get_initial_json(host):

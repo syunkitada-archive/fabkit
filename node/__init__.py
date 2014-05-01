@@ -1,4 +1,4 @@
-from fabric.api import env, task
+from fabric.api import env, task, hosts, cd
 import re, os, json, sys
 from types import *
 import datetime
@@ -8,6 +8,7 @@ from api import *
 RE_UPTIME = re.compile('^.*up (.+),.*user.*$')
 
 @task
+@hosts('localhost')
 def node(option=None, host_pattern=None, edit_key=None, edit_value=None):
     if option == 'create':
         host_pattern = check_host_pattern(host_pattern)
@@ -64,7 +65,7 @@ def node(option=None, host_pattern=None, edit_key=None, edit_value=None):
         if util.confirm('Are you sure you want to upload above nodes?', 'Canceled'):
             for host in env.hosts:
                 if util.exists_json(host):
-                    cmd('knife node from file %s/%s.json' % (conf.node_path, host))
+                    print cmd('knife node from file %s/%s.json' % (conf.node_path, host))
         return
 
     elif option == 'download':
@@ -98,27 +99,24 @@ def node(option=None, host_pattern=None, edit_key=None, edit_value=None):
         env.hosts = util.get_available_hosts(host_pattern)
         print_hosts()
 
-        is_sudo = False
-        is_remote_run = False
         for task in env.tasks:
-            if task.find('prepare') != -1 or task.find('cook'):
-                is_sudo = True
-                is_remote_run = True
+            is_prepare = task.find('prapare') != -1
+            is_cook = task.find('cook') != -1
 
-                if task.find('cook') != -1:
-                    with cd(conf.chef_repo_path):
-                        with shell_env(PASSWORD=env.password):
-                            run('knife solo cook localhost --no-berkshelf --no-chef-check --ssh-password $PASSWORD')
-                    run('cp -r %s/* chef-solo/' % conf.node_path)
-                    run('tar -czf chef-solo.tar.gz chef-solo')
-
-        if is_remote_run:
-            if util.confirm('Are you sure you want to run task that follow on above nodes?', 'Canceled'):
-                if is_sudo:
+            if is_prepare or is_cook:
+                if util.confirm('Are you sure you want to run task that follow on above nodes?', 'Canceled'):
                     print 'enter your password\n'
                     sudo('hostname')
+                else:
+                    return
 
-        return
+                if is_cook:
+                    if not conf.is_server(task[4:]):
+                        os.environ['PASSWORD'] = env.password
+                        local('cd %s && knife solo cook localhost --no-berkshelf --no-chef-check --ssh-password $PASSWORD' % conf.chef_repo_path)
+                        run('cp -r %s/* chef-solo/' % conf.node_path)
+                        run('tar -czf chef-solo.tar.gz chef-solo')
+                        os.environ['PASSWORD'] = ''
 
 
 def check_host_pattern(host_pattern):

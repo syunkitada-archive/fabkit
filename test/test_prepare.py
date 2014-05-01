@@ -32,11 +32,6 @@ class TestSequenceFunctions(unittest.TestCase):
         self.assertEqual(cmd_history, env.cmd_history)
         self.assertFalse(env.is_proxy)
 
-        env.cmd_history = []
-        prepare(1)
-        self.assertEqual(cmd_history, env.cmd_history)
-        self.assertFalse(env.is_proxy)
-
     def test_prepare_no_rpm(self):
         conf.chef_rpm_path = '/dev/null/chef.rpm'
         env.cmd_history = []

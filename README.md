@@ -5,9 +5,7 @@ fabfile for chef
 いろいろと未完成
 
 ## TODO
-* chef-serverとの連携, chef-serverのprepare
-* cookbookのfabric版
-* proxy複数切り替えられるようにする(nodeごとで使いたいproxy違うかも)
+* cookbookのfabric版みたいなの
 
 ## 利用条件
 * chefがインストールされている
