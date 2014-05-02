@@ -122,3 +122,42 @@ OK
 Done.
 ```
 
+## タスクの追加
+ユーザの独自のタスクを追加して利用できます。
+### 利用方法
+chef-repo直下にfabscriptフォルダを作成し、ここにタスクスクリプトを作成します。
+``` bash
+# 例
+$ cd chef-repo
+$ mkdir fabscript
+
+# __init__.pyでタスクのモジュールを登録する
+$ vim fabscript/__init__.py
+import helloworld
+
+# タスクの定義
+$ vim fabscript/helloworld.py
+from fabric.api import env, task
+from api import *
+import util, conf
+
+@task
+def hello():
+    host_json = util.load_json()
+    print host_json
+
+    cmd('hostname')
+    local('hostname')
+    run('hostname')
+    sudo('hostname')
+
+# 実行
+$ fab node:* helloworld.hello
+```
+
+### sys.path
+以下のパス配下のモジュールは自由に呼ぶことができます
+* chef-repo
+* fabfile(chefric)
+* fabfile(chefric)/lib
+
