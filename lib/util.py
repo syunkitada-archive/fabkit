@@ -3,6 +3,7 @@ from fabric.api import env
 import re, commands, json, datetime, os
 from types import *
 import conf
+from api import *
 
 def get_expanded_hosts(host=None):
     if not host or type(host) is not StringType:
@@ -95,3 +96,11 @@ def confirm(msg_ask, msg_cancel=None):
         if msg_cancel:
             print msg_cancel
         return False
+
+def get_data_bag(bagname, itemname):
+    result = cmd('knife solo data bag show %s %s -F json' % (bagname, itemname), True)
+    if result[0] == 0:
+        data_bag = json.loads(result[1])
+        return data_bag
+    else:
+        return None
