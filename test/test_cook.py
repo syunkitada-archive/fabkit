@@ -2,6 +2,7 @@ import unittest
 from cook import cook
 from fabric.api import env
 import conf, testtools
+import json
 
 class TestSequenceFunctions(unittest.TestCase):
     def test_cook(self):
@@ -11,7 +12,8 @@ class TestSequenceFunctions(unittest.TestCase):
                     'run> rm -rf chef-solo',
                     'local> scp ~/chef-solo.tar.gz %s:~/' % env.host,
                     'run> tar -xvf chef-solo.tar.gz',
-                    'sudo> chef-solo -c chef-solo/solo.rb -j chef-solo/%s.json' % env.host,
+                    'run> echo \'%s\' > chef-solo/solo.json' % conf.get_jsonstr_for_chefsolo(),
+                    'sudo> chef-solo -c chef-solo/solo.rb -j chef-solo/solo.json',
                     'run> uptime',
                 ]
         self.assertEqual(cmd_history, env.cmd_history)

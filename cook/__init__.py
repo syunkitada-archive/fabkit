@@ -12,8 +12,9 @@ def cook(option=None):
             run('rm -rf chef-solo')
             local('scp ~/chef-solo.tar.gz %s:~/' % (env.host))
             run('tar -xvf chef-solo.tar.gz')
+            run('echo \'%s\' > chef-solo/solo.json' % conf.get_jsonstr_for_chefsolo())
 
-        cmd_chef_solo = 'chef-solo -c chef-solo/solo.rb -j chef-solo/%s.json' % env.host
+        cmd_chef_solo = 'chef-solo -c chef-solo/solo.rb -j chef-solo/solo.json'
         cmd_chef_client = 'chef-client'
 
         if conf.is_proxy(option):

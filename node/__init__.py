@@ -114,7 +114,7 @@ def node(option=None, host_pattern=None, edit_key=None, edit_value=None):
                     if not conf.is_server(task[4:]):
                         os.environ['PASSWORD'] = env.password
                         local('cd %s && knife solo cook localhost --no-berkshelf --no-chef-check --ssh-password $PASSWORD' % conf.chef_repo_path)
-                        run('cp -r %s/* chef-solo/' % conf.node_path)
+                        #run('cp -r %s/* chef-solo/' % conf.node_path)
                         run('tar -czf chef-solo.tar.gz chef-solo')
                         os.environ['PASSWORD'] = ''
 

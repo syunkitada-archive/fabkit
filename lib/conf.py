@@ -72,4 +72,13 @@ def get_initial_json(host):
         'run_list': []
     }
 
+# chef-solo用のjson文字列を作成し、返します
+# chef-serverのjsonをマージすると、chef-soloで利用できなくなるため必要
+def get_jsonstr_for_chefsolo(host=None):
+    host_json = util.load_json(host)
+    json_obj = {
+        'run_list': host_json['run_list'],
+    }
+    return json.dumps(json_obj)
+
 
