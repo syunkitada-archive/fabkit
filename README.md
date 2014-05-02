@@ -5,7 +5,7 @@ fabfile for chef
 いろいろと未完成
 
 ## TODO
-* cookbookのfabric版みたいなの
+* fabscriptからのroleやdatabagの参照
 
 ## 利用条件
 * chefがインストールされている
