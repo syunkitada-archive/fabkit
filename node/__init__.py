@@ -100,7 +100,7 @@ def node(option=None, host_pattern=None, edit_key=None, edit_value=None):
         print_hosts()
 
         for task in env.tasks:
-            is_prepare = task.find('prapare') != -1
+            is_prepare = task.find('prepare') != -1
             is_cook = task.find('cook') != -1
 
             if is_prepare or is_cook:

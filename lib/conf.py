@@ -34,12 +34,15 @@ http_proxy     = inifile.get('common', 'http_proxy')
 https_proxy    = inifile.get('common', 'https_proxy')
 
 # chefric
-chefric_path       = inifile.get('chefric', 'chefric_path')
+chefric_path       = complement_path(inifile.get('chefric', 'chefric_path'))
 log_dir_path       = os.path.join(chefric_path, inifile.get('chefric', 'chefric_log'))
 chef_rpm           = inifile.get('chefric', 'chef_rpm')
-chef_rpm_path      = os.path.join(chefric_path, chef_rpm)
-tmp_chef_rpm       = inifile.get('chefric', 'tmp_chef_rpm')
+if chef_rpm != '':
+    chef_rpm_path      = os.path.join(chefric_path, chef_rpm)
+else:
+    chef_rpm_path = None
 
+tmp_chef_rpm       = inifile.get('chefric', 'tmp_chef_rpm')
 
 
 if not os.path.exists(log_dir_path):
