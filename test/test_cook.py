@@ -12,6 +12,7 @@ class TestSequenceFunctions(unittest.TestCase):
                     'run> rm -rf chef-solo',
                     'local> scp ~/chef-solo.tar.gz %s:~/' % env.host,
                     'run> tar -xvf chef-solo.tar.gz',
+                    'run> rm -f chef-solo.tar.gz',
                     'run> echo \'%s\' > chef-solo/solo.json' % conf.get_jsonstr_for_chefsolo(),
                     'sudo> chef-solo -c chef-solo/solo.rb -j chef-solo/solo.json',
                     'run> uptime',
