@@ -33,6 +33,7 @@ role_path      = complement_path(inifile.get('common', 'role_path'))
 http_proxy     = inifile.get('common', 'http_proxy')
 https_proxy    = inifile.get('common', 'https_proxy')
 
+
 # chefric
 chefric_path       = complement_path(inifile.get('chefric', 'chefric_path'))
 log_dir_path       = os.path.join(chefric_path, inifile.get('chefric', 'chefric_log'))
@@ -43,10 +44,15 @@ else:
     chef_rpm_path = None
 
 tmp_chef_rpm       = inifile.get('chefric', 'tmp_chef_rpm')
+fablib_names       = inifile.options('fablib')
+fablib = {}
+for name in fablib_names:
+    fablib.update({ name: inifile.get('fablib', name)})
 
 
 if not os.path.exists(log_dir_path):
     os.mkdir(log_dir_path)
+
 
 env.is_proxy = False
 def is_proxy(option=None):
