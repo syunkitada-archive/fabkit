@@ -98,6 +98,19 @@ def node(option=None, host_pattern=None, edit_key=None, edit_value=None):
 
         env.hosts = util.get_available_hosts(host_pattern)
         print_hosts()
+        RE_ROLE = re.compile('role\[(.+)\]')
+        print 'debug'
+        for host in env.hosts:
+            host_json = util.load_json(host)
+            for run_list in host_json['run_list']:
+                role = RE_ROLE.match(run_list)
+                if role:
+                    role_name = role.group(1)
+                    role_hosts = env.roledefs.get(role_name, [])
+                    role_hosts.append(host)
+                    env.roledefs.update({
+                        role_name: role_hosts
+                    })
 
         for task in env.tasks:
             is_prepare = task.find('prepare') != -1
