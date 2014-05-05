@@ -7,12 +7,17 @@ fabfile for chef
 ## TODO
 * fabscriptからのroleやdatabagの参照
 
-## 利用条件
+## Table of contents
+[Getting Started](#Getting Started)
+
+## Getting Started
 * chefがインストールされている
 * knife soloがインストールされている
 * fabricがインストールされている
 * chef-repoの直下にこのfabfileを置いて使用
 * chef-serverはオプションで利用
+
+
 
 ## 初期設定
 ``` bash
