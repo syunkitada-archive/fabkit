@@ -1,1 +1,8 @@
-{"name": "test01.host", "run_list": []}
+{
+    "ipaddress": "", 
+    "last_cook": "", 
+    "name": "test01.host", 
+    "run_list": [], 
+    "ssh": "", 
+    "uptime": ""
+}

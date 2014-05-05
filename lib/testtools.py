@@ -11,17 +11,7 @@ import json
 def get_searched_nodes_obj(host_pattern):
     hosts = []
     for host in util.get_expanded_hosts(host_pattern):
-        hosts.append({
-                "name": host,
-                "chef_environment": "_default",
-                "json_class": "Chef::Node",
-                "automatic": {},
-                "normal": {},
-                "chef_type": "node",
-                "default": {},
-                "override": {},
-                "run_list": [ "" ]
-            })
+        hosts.append(conf.get_initial_json(host))
 
     return { "results": len(hosts), "rows": hosts }
 

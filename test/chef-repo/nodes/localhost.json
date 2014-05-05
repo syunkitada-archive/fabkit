@@ -1,1 +1,8 @@
-{"uptime": " 03:58:20 up 2 days, 16:05,  1 user,  load average: 0.07, 0.08, 0.02", "name": "localhost", "last_cook": "2014-05-06 03:58:21[0]", "ssh": "success", "run_list": "recipe[test]", "ipaddress": "failed"}
+{
+    "ipaddress": "failed", 
+    "last_cook": "2014-05-06 06:29:02[0]", 
+    "name": "localhost", 
+    "run_list": "recipe[test]", 
+    "ssh": "success", 
+    "uptime": " 06:29:02 up 2 days, 18:36,  1 user,  load average: 0.00, 0.00, 0.00"
+}

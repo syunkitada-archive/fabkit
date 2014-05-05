@@ -1,1 +1,8 @@
-{"chef_type": "node", "name": "downloded.host", "normal": {}, "default": {}, "chef_environment": "_default", "run_list": [""], "override": {}, "json_class": "Chef::Node", "automatic": {}}
+{
+    "ipaddress": "", 
+    "last_cook": "", 
+    "name": "downloded.host", 
+    "run_list": [], 
+    "ssh": "", 
+    "uptime": ""
+}
