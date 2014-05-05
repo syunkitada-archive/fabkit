@@ -101,4 +101,4 @@ $ cat nodes/localhost.json
 
 ## CONGRATULATIONS! COMPLETE SET UP!
 
-### Next Step Is [Tutorial](https://github.com/syunkitada/chefric/blob/document/docs/TUTORIAL.md)
+### Next Step Is [Tutorial](https://github.com/syunkitada/chefric/blob/master/docs/TUTORIAL.md)
