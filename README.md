@@ -7,8 +7,8 @@ fabfile for chef
 ## TODO
 * fabscriptからのroleやdatabagの参照
 
-## Table of contents
-[Getting Started](#Getting Started)
+## Table Of Contents
+[Getting Started](Getting Started)
 
 ## Getting Started
 * chefがインストールされている
