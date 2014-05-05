@@ -1,0 +1,137 @@
+2014-05-06 03:58:20,836 - localhost - INFO - return> 0  out>
+yum install /tmp/4812861e-b409-4203-b8f5-4b03d1efdeab-chef-11.12.2-1.el6.x86_64.rpm -y
+2014-05-06 03:58:20,837 - localhost - INFO - run> rm -rf /tmp/4812861e-b409-4203-b8f5-4b03d1efdeab-chef-11.12.2-1.el6.x86_64.rpm
+2014-05-06 03:58:20,838 - localhost - INFO - return> 0  out>
+rm -rf /tmp/4812861e-b409-4203-b8f5-4b03d1efdeab-chef-11.12.2-1.el6.x86_64.rpm
+2014-05-06 03:58:20,839 - localhost - INFO - cmd> rm -f /home/owner/.4812861e-b409-4203-b8f5-4b03d1efdeab-localhost
+2014-05-06 03:58:20,840 - localhost - INFO - return> 0  out>
+rm -f /home/owner/.4812861e-b409-4203-b8f5-4b03d1efdeab-localhost
+2014-05-06 03:58:20,843 - localhost - INFO - cmd> ping localhost -c 1 -W 2
+2014-05-06 03:58:20,845 - localhost - INFO - return> 0  out>
+ping localhost -c 1 -W 2
+2014-05-06 03:58:20,845 - localhost - INFO - cmd> ssh localhost hostname
+2014-05-06 03:58:20,846 - localhost - INFO - return> 0  out>
+ssh localhost hostname
+2014-05-06 03:58:20,847 - localhost - INFO - run> uptime
+2014-05-06 03:58:20,854 - localhost - INFO - return> 0  out>
+ 03:58:20 up 2 days, 16:05,  1 user,  load average: 0.07, 0.08, 0.02
+2014-05-06 03:58:20,856 - localhost - INFO - local> scp /home/owner/chef-repo-test/fabfile/test/chef-repo/fabfile/storage/package/chef-11.12.2-1.el6.x86_64.rpm localhost:/tmp/4812861e-b409-4203-b8f5-4b03d1efdeab-chef-11.12.2-1.el6.x86_64.rpm
+2014-05-06 03:58:20,857 - localhost - INFO - return> 0
+2014-05-06 03:58:20,858 - localhost - INFO - sudo> yum install /tmp/4812861e-b409-4203-b8f5-4b03d1efdeab-chef-11.12.2-1.el6.x86_64.rpm -y
+2014-05-06 03:58:20,859 - localhost - INFO - return> 0  out>
+yum install /tmp/4812861e-b409-4203-b8f5-4b03d1efdeab-chef-11.12.2-1.el6.x86_64.rpm -y
+2014-05-06 03:58:20,860 - localhost - INFO - run> rm -rf /tmp/4812861e-b409-4203-b8f5-4b03d1efdeab-chef-11.12.2-1.el6.x86_64.rpm
+2014-05-06 03:58:20,861 - localhost - INFO - return> 0  out>
+rm -rf /tmp/4812861e-b409-4203-b8f5-4b03d1efdeab-chef-11.12.2-1.el6.x86_64.rpm
+2014-05-06 03:58:20,862 - localhost - INFO - cmd> rm -f /home/owner/.4812861e-b409-4203-b8f5-4b03d1efdeab-localhost
+2014-05-06 03:58:20,863 - localhost - INFO - return> 0  out>
+rm -f /home/owner/.4812861e-b409-4203-b8f5-4b03d1efdeab-localhost
+2014-05-06 03:58:20,866 - localhost - INFO - cmd> ping localhost -c 1 -W 2
+2014-05-06 03:58:20,867 - localhost - INFO - return> 0  out>
+ping localhost -c 1 -W 2
+2014-05-06 03:58:20,868 - localhost - INFO - cmd> ssh localhost hostname
+2014-05-06 03:58:20,869 - localhost - INFO - return> 0  out>
+ssh localhost hostname
+2014-05-06 03:58:20,870 - localhost - INFO - run> uptime
+2014-05-06 03:58:20,875 - localhost - INFO - return> 0  out>
+ 03:58:20 up 2 days, 16:05,  1 user,  load average: 0.07, 0.08, 0.02
+2014-05-06 03:58:20,878 - localhost - INFO - local> scp /home/owner/chef-repo-test/fabfile/test/chef-repo/fabfile/storage/package/chef-11.12.2-1.el6.x86_64.rpm localhost:/tmp/4812861e-b409-4203-b8f5-4b03d1efdeab-chef-11.12.2-1.el6.x86_64.rpm
+2014-05-06 03:58:20,879 - localhost - INFO - return> 0
+2014-05-06 03:58:20,879 - localhost - INFO - sudo> yum install /tmp/4812861e-b409-4203-b8f5-4b03d1efdeab-chef-11.12.2-1.el6.x86_64.rpm -y
+2014-05-06 03:58:20,880 - localhost - INFO - return> 0  out>
+yum install /tmp/4812861e-b409-4203-b8f5-4b03d1efdeab-chef-11.12.2-1.el6.x86_64.rpm -y
+2014-05-06 03:58:20,881 - localhost - INFO - run> rm -rf /tmp/4812861e-b409-4203-b8f5-4b03d1efdeab-chef-11.12.2-1.el6.x86_64.rpm
+2014-05-06 03:58:20,882 - localhost - INFO - return> 0  out>
+rm -rf /tmp/4812861e-b409-4203-b8f5-4b03d1efdeab-chef-11.12.2-1.el6.x86_64.rpm
+2014-05-06 03:58:20,883 - localhost - INFO - cmd> rm -f /home/owner/.4812861e-b409-4203-b8f5-4b03d1efdeab-localhost
+2014-05-06 03:58:20,884 - localhost - INFO - return> 0  out>
+rm -f /home/owner/.4812861e-b409-4203-b8f5-4b03d1efdeab-localhost
+2014-05-06 03:58:20,888 - localhost - INFO - cmd> ping localhost -c 1 -W 2
+2014-05-06 03:58:20,889 - localhost - INFO - return> 0  out>
+ping localhost -c 1 -W 2
+2014-05-06 03:58:20,890 - localhost - INFO - cmd> ssh localhost hostname
+2014-05-06 03:58:20,891 - localhost - INFO - return> 0  out>
+ssh localhost hostname
+2014-05-06 03:58:20,892 - localhost - INFO - run> uptime
+2014-05-06 03:58:20,899 - localhost - INFO - return> 0  out>
+ 03:58:20 up 2 days, 16:05,  1 user,  load average: 0.07, 0.08, 0.02
+2014-05-06 03:58:20,905 - localhost - INFO - cmd> ping localhost -c 1 -W 2
+2014-05-06 03:58:20,906 - localhost - INFO - return> 0  out>
+ping localhost -c 1 -W 2
+2014-05-06 03:58:20,908 - localhost - INFO - cmd> ssh localhost hostname
+2014-05-06 03:58:20,909 - localhost - INFO - return> 0  out>
+ssh localhost hostname
+2014-05-06 03:58:20,911 - localhost - INFO - run> uptime
+2014-05-06 03:58:20,918 - localhost - INFO - return> 0  out>
+ 03:58:20 up 2 days, 16:05,  1 user,  load average: 0.07, 0.08, 0.02
+2014-05-06 03:58:20,920 - localhost - INFO - local> knife solo prepare localhost --ssh-password `grep '^4812861e-b409-4203-b8f5-4b03d1efdeab ' /home/owner/.4812861e-b409-4203-b8f5-4b03d1efdeab-localhost | awk '{print $2;}'`
+2014-05-06 03:58:20,921 - localhost - INFO - return> 0
+2014-05-06 03:58:20,922 - localhost - INFO - cmd> rm -f /home/owner/.4812861e-b409-4203-b8f5-4b03d1efdeab-localhost
+2014-05-06 03:58:20,923 - localhost - INFO - return> 0  out>
+rm -f /home/owner/.4812861e-b409-4203-b8f5-4b03d1efdeab-localhost
+2014-05-06 03:58:20,926 - localhost - INFO - cmd> ping localhost -c 1 -W 2
+2014-05-06 03:58:20,927 - localhost - INFO - return> 0  out>
+ping localhost -c 1 -W 2
+2014-05-06 03:58:20,928 - localhost - INFO - cmd> ssh localhost hostname
+2014-05-06 03:58:20,929 - localhost - INFO - return> 0  out>
+ssh localhost hostname
+2014-05-06 03:58:20,930 - localhost - INFO - run> uptime
+2014-05-06 03:58:20,935 - localhost - INFO - return> 0  out>
+ 03:58:20 up 2 days, 16:05,  1 user,  load average: 0.07, 0.08, 0.02
+2014-05-06 03:58:20,937 - localhost - INFO - local> knife solo prepare localhost --ssh-password `grep '^4812861e-b409-4203-b8f5-4b03d1efdeab ' /home/owner/.4812861e-b409-4203-b8f5-4b03d1efdeab-localhost | awk '{print $2;}'`
+2014-05-06 03:58:20,938 - localhost - INFO - return> 0
+2014-05-06 03:58:20,939 - localhost - INFO - cmd> rm -f /home/owner/.4812861e-b409-4203-b8f5-4b03d1efdeab-localhost
+2014-05-06 03:58:20,941 - localhost - INFO - return> 0  out>
+rm -f /home/owner/.4812861e-b409-4203-b8f5-4b03d1efdeab-localhost
+2014-05-06 03:58:20,946 - localhost - INFO - cmd> ping localhost -c 1 -W 2
+2014-05-06 03:58:20,947 - localhost - INFO - return> 0  out>
+ping localhost -c 1 -W 2
+2014-05-06 03:58:20,948 - localhost - INFO - cmd> ssh localhost hostname
+2014-05-06 03:58:20,949 - localhost - INFO - return> 0  out>
+ssh localhost hostname
+2014-05-06 03:58:20,950 - localhost - INFO - run> uptime
+2014-05-06 03:58:20,957 - localhost - INFO - return> 0  out>
+ 03:58:20 up 2 days, 16:05,  1 user,  load average: 0.07, 0.08, 0.02
+2014-05-06 03:58:20,959 - localhost - INFO - run> rm -rf chef-solo
+2014-05-06 03:58:20,961 - localhost - INFO - return> 0  out>
+rm -rf chef-solo
+2014-05-06 03:58:20,964 - localhost - INFO - local> scp ~/chef-solo.tar.gz localhost:~/
+2014-05-06 03:58:20,965 - localhost - INFO - return> 0
+2014-05-06 03:58:20,966 - localhost - INFO - run> tar -xvf chef-solo.tar.gz
+2014-05-06 03:58:20,967 - localhost - INFO - return> 0  out>
+tar -xvf chef-solo.tar.gz
+2014-05-06 03:58:20,967 - localhost - INFO - run> rm -f chef-solo.tar.gz
+2014-05-06 03:58:20,968 - localhost - INFO - return> 0  out>
+rm -f chef-solo.tar.gz
+2014-05-06 03:58:20,970 - localhost - INFO - run> echo '{"run_list": "recipe[test]"}' > chef-solo/solo.json
+2014-05-06 03:58:20,971 - localhost - INFO - return> 0  out>
+echo '{"run_list": "recipe[test]"}' > chef-solo/solo.json
+2014-05-06 03:58:20,973 - localhost - INFO - sudo> chef-solo -c chef-solo/solo.rb -j chef-solo/solo.json
+2014-05-06 03:58:20,974 - localhost - INFO - return> 0  out>
+chef-solo -c chef-solo/solo.rb -j chef-solo/solo.json
+2014-05-06 03:58:20,979 - localhost - INFO - cmd> ping localhost -c 1 -W 2
+2014-05-06 03:58:20,980 - localhost - INFO - return> 0  out>
+ping localhost -c 1 -W 2
+2014-05-06 03:58:20,981 - localhost - INFO - cmd> ssh localhost hostname
+2014-05-06 03:58:20,982 - localhost - INFO - return> 0  out>
+ssh localhost hostname
+2014-05-06 03:58:20,983 - localhost - INFO - run> uptime
+2014-05-06 03:58:20,988 - localhost - INFO - return> 0  out>
+ 03:58:20 up 2 days, 16:05,  1 user,  load average: 0.07, 0.08, 0.02
+2014-05-06 03:58:20,990 - localhost - INFO - run> rm -rf chef-solo
+2014-05-06 03:58:20,991 - localhost - INFO - return> 0  out>
+rm -rf chef-solo
+2014-05-06 03:58:20,992 - localhost - INFO - local> scp ~/chef-solo.tar.gz localhost:~/
+2014-05-06 03:58:20,993 - localhost - INFO - return> 0
+2014-05-06 03:58:20,993 - localhost - INFO - run> tar -xvf chef-solo.tar.gz
+2014-05-06 03:58:20,995 - localhost - INFO - return> 0  out>
+tar -xvf chef-solo.tar.gz
+2014-05-06 03:58:20,996 - localhost - INFO - run> rm -f chef-solo.tar.gz
+2014-05-06 03:58:20,997 - localhost - INFO - return> 0  out>
+rm -f chef-solo.tar.gz
+2014-05-06 03:58:20,999 - localhost - INFO - run> echo '{"run_list": "recipe[test]"}' > chef-solo/solo.json
+2014-05-06 03:58:21,001 - localhost - INFO - return> 0  out>
+echo '{"run_list": "recipe[test]"}' > chef-solo/solo.json
+2014-05-06 03:58:21,002 - localhost - INFO - sudo> chef-solo -c chef-solo/solo.rb -j chef-solo/solo.json
+2014-05-06 03:58:21,005 - localhost - INFO - return> 0  out>
+chef-solo -c chef-solo/solo.rb -j chef-solo/solo.json

@@ -69,7 +69,7 @@ def dump_json(dict_obj, host=None):
         host = env.host
     path = '%s/%s.json' % (conf.NODE_DIR, host)
     with open(path, 'w') as f:
-        json.dump(dict_obj, f)
+        json.dump(conf.get_node_json(dict_obj), f, sort_keys=True, indent=4)
 
 def remove_json(host=None):
     if not host:
@@ -90,7 +90,7 @@ def get_timestamp():
 def confirm(msg_ask, msg_cancel=None):
     if env.is_test:
         return True
-    if raw_input('%s (y/n) ' % msg_ask) == 'y':
+    if raw_input('\n%s (y/n) ' % msg_ask) == 'y':
         return True
     else:
         if msg_cancel:

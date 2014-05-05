@@ -18,12 +18,12 @@ def check():
 
     with warn_only():
         host_json = util.load_json()
-        result = cmd(cmd_ping, True)
+        result = cmd(cmd_ping)
         if result[0] == 0:
             if not env.is_test:
                 ipaddress = RE_IP.findall(result[1])[0]
 
-            result = cmd(cmd_ssh, True)
+            result = cmd(cmd_ssh)
             if result[0] == 0:
                 ssh = 'success'
                 uptime = run('uptime')
@@ -32,4 +32,9 @@ def check():
         host_json.update({'ssh': ssh})
         host_json.update({'uptime': uptime})
         util.dump_json(host_json)
+
+        if ssh == 'success':
+            return True
+        else:
+            return False
 

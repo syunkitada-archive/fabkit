@@ -4,18 +4,17 @@ from fabric.api import env, task, settings, shell_env, parallel
 import re, os, json, commands, datetime, sys
 import conf, util
 from api import *
+from check import check
 
 @task
 @parallel(pool_size=10)
 def prepare(option=None):
-    if not env.host:
-        print 'host has not been set.'
-        print 'please run "host" task before "prepare" task.'
+    if not check():
+        print 'Failed to check(ssh)'
         return
 
-    PASS_KEY = 'user_password'
-    set_pass(PASS_KEY, env.password, True)
-    cmd_knife_bootstrap = 'cd {0} && knife bootstrap {1} -x {2} --ssh-password {3} --sudo --use-sudo-password {3}'.format(conf.CHEFREPO_DIR, env.host, env.user, util.get_pass(PASS_KEY, True))
+    set_pass(conf.UUID, env.password, 'localhost')
+    cmd_knife_bootstrap = 'cd {0} && knife bootstrap {1} -x {2} --ssh-password {3} --sudo --use-sudo-password {3}'.format(conf.CHEFREPO_DIR, env.host, env.user, util.get_pass(conf.UUID, 'localhost'))
 
     if conf.CHEF_RPM:
         if os.path.exists(conf.CHEF_RPM):
@@ -39,16 +38,14 @@ def prepare(option=None):
             return
     else:
         with shell_env(PASSWORD=env.password):
-            local('knife solo prepare {0} --ssh-password {1}'.format(env.host, get_pass(PASS_KEY, True)))
+            local('knife solo prepare {0} --ssh-password {1}'.format(env.host, get_pass(conf.UUID, 'localhost')))
             if conf.is_server(option):
                 local(cmd_knife_bootstrap)
 
-    unset_pass(True)
-    uptime = run('uptime')
+    unset_pass('localhost')
 
     host_json = util.load_json()
     host_json.update({'last_cook': 'prepared'})
-    host_json.update({'uptime': uptime})
     util.dump_json(host_json)
 
     os.environ['PASSWORD'] = ''

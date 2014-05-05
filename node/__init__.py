@@ -1,11 +1,11 @@
+# coding: utf-8
+
 from fabric.api import env, task, hosts, cd
 import re, os, json, sys
 from types import *
 import datetime
 import util, conf, testtools
 from api import *
-
-RE_UPTIME = re.compile('^.*up (.+),.*user.*$')
 
 @task
 @hosts('localhost')
@@ -65,29 +65,27 @@ def node(option=None, host_pattern=None, edit_key=None, edit_value=None):
         if util.confirm('Are you sure you want to upload above nodes?', 'Canceled'):
             for host in env.hosts:
                 if util.exists_json(host):
-                    print cmd('knife node from file {0}/{1}.json'.format(conf.NODE_DIR, host))
+                    print cmd('knife node from file {0}/{1}.json'.format(conf.NODE_DIR, host))[1]
         return
 
     elif option == 'download':
         host_pattern = check_host_pattern(host_pattern)
-        searched_nodes = cmd('knife search node "name:{0}" -F json'.format(host_pattern))
+        searched_nodes = cmd('knife search node "name:{0}" -F json'.format(host_pattern))[1]
         if env.is_test:
             searched_nodes = testtools.get_searched_nodes(host_pattern)
 
-        print searched_nodes
+        nodes = json.loads(searched_nodes)['rows']
+        for node in nodes:
+            print node['name']
 
         if util.confirm('Are you sure you want to save above nodes?', 'Canceled'):
-            nodes = json.loads(searched_nodes)['rows']
             for node in nodes:
                 host = node['name']
                 node_json = util.load_json(host)
                 node_json.update(node)
                 util.dump_json(node_json, host)
-                print host
+                print 'saved {0}'.format(host)
 
-            print '\nsaved {0}\n'.format(host_pattern)
-            env.hosts = util.get_available_hosts(host_pattern)
-            print_hosts()
         return
 
     else:
@@ -99,7 +97,6 @@ def node(option=None, host_pattern=None, edit_key=None, edit_value=None):
         env.hosts = util.get_available_hosts(host_pattern)
         print_hosts()
         RE_ROLE = re.compile('role\[(.+)\]')
-        print 'debug'
         for host in env.hosts:
             host_json = util.load_json(host)
             for run_list in host_json['run_list']:
@@ -125,17 +122,18 @@ def node(option=None, host_pattern=None, edit_key=None, edit_value=None):
 
                 if is_cook:
                     if not conf.is_server(task[4:]):
-                        os.environ['PASSWORD'] = env.password
-                        local('cd {0} && knife solo cook localhost --no-berkshelf --no-chef-check --ssh-password $PASSWORD'.format(conf.chef_repo_path))
+                        set_pass(conf.UUID, env.password)
+                        # knife solo 使わなくてもできるかも
+                        local('cd {0} && knife solo cook localhost --no-berkshelf --no-chef-check --ssh-password {1}'.format(conf.CHEFREPO_DIR, get_pass(conf.UUID)))
                         run('tar -czf chef-solo.tar.gz chef-solo')
-                        os.environ['PASSWORD'] = ''
-
+                        unset_pass()
 
 def check_host_pattern(host_pattern):
     while not host_pattern or host_pattern == '':
         host_pattern = raw_input('Please enter host: ')
     return host_pattern
 
+RE_UPTIME = re.compile('^.*up (.+),.*user.*$')
 def print_hosts():
     host_info = 'hostname(ipaddress)'
     uptime = 'uptime'
