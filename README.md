@@ -1,14 +1,23 @@
 # chefric
 
-fabfile for chef
+This is fabfile of fabric for chef.
 
 いろいろと未完成
 
-## TODO
-* fabscriptからのroleやdatabagの参照
+## 開発目的
+* rubyよりもpythonが好き！
+* chef-serverを使いたくない
+ * サーバの運用をしたくない
+ * データベースとか使わずに、すべてファイルにしてGitで管理したい
+* knife soloがちょっと使いづらい
+ * ノード一個づつのセットアップなら良いが、ノードをまとめてセットアップできない  
+ * chefricは、正規表現（みたいなの）でノードを選択し、並列でchef-solo実行する
+
 
 ## Docs
-[Getting Started](https://github.com/syunkitada/chefric/blob/master/docs/GETTING_STARTED.md)
+* [Getting Started](https://github.com/syunkitada/chefric/blob/master/docs/GETTING_STARTED.md)
+* [Tutorial](https://github.com/syunkitada/chefric/blob/master/docs/TUTORIAL.md)
+* [TODO](https://github.com/syunkitada/chefric/blob/master/docs/TODO.md)
 
 ## 使い方
 ### ホスト名の指定について
