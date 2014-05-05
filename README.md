@@ -7,33 +7,8 @@ fabfile for chef
 ## TODO
 * fabscriptからのroleやdatabagの参照
 
-## Table Of Contents
-[Getting Started](Getting Started)
-
-## Getting Started
-* chefがインストールされている
-* knife soloがインストールされている
-* fabricがインストールされている
-* chef-repoの直下にこのfabfileを置いて使用
-* chef-serverはオプションで利用
-
-
-
-## 初期設定
-``` bash
-# chef-repo直下で以下を実行してください
-$ git clone git@github.com:syunkitada/chefric.git fabfile
-
-# fab commandが実行できたら成功です
-$ fab -l
-Available commands:
-
-    cook
-    node
-    prepare
-    role
-    test
-```
+## Docs
+[Getting Started](https://github.com/syunkitada/chefric/blob/master/docs/GETTING_STARTED.md)
 
 ## 使い方
 ### ホスト名の指定について
