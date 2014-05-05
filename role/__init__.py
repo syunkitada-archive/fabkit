@@ -10,7 +10,7 @@ def role(role_pattern='*'):
     re_run_list = re.compile('run_list +[\'"](.*)[\'"]')
     re_run_list_following = re.compile('[\'"](.*)[\'"]')
     re_run_list_end = re.compile('^[a-z].*')
-    find = commands.getoutput('find %s/ -name %s.rb' % (conf.role_path, role_pattern))
+    find = commands.getoutput('find {0}/ -name {1}.rb'.format(conf.ROLE_DIR, role_pattern))
     role_paths = find.split('\n')
 
     name = 'name'

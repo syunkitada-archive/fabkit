@@ -1,22 +1,24 @@
 #!/usr/bin/python
 
 import unittest
-import conf, testtools
-from fabric.api import *
+import conf
+from fabric.api import env
 from prepare import prepare
+from api import *
 
 class TestSequenceFunctions(unittest.TestCase):
     def setUp(self):
         env.password = 'test'
 
     def test_prepare(self):
-        testtools.init_conf()
+        conf.init()
         env.cmd_history = []
         prepare('p')
         cmd_history = [
-                'local> scp %s %s:~/%s' % (conf.chef_rpm_path, env.host, conf.tmp_chef_rpm),
-                'sudo> yum install %s -y' % conf.tmp_chef_rpm,
-                'run> rm -rf %s' % conf.tmp_chef_rpm,
+                'local> scp {0} {1}:{2}'.format(conf.CHEF_RPM, env.host, conf.TMP_CHEF_RPM),
+                'sudo> yum install {0} -y'.format(conf.TMP_CHEF_RPM),
+                'run> rm -rf {0}'.format(conf.TMP_CHEF_RPM),
+                'cmd> rm -f {0}'.format(conf.get_tmp_password_file()),
                 'run> uptime',
                 ]
         self.assertEqual(cmd_history, env.cmd_history)
@@ -33,23 +35,24 @@ class TestSequenceFunctions(unittest.TestCase):
         self.assertFalse(env.is_proxy)
 
     def test_prepare_no_rpm(self):
-        conf.chef_rpm_path = '/dev/null/chef.rpm'
+        conf.CHEF_RPM = '/dev/null/chef.rpm'
         env.cmd_history = []
         prepare()
         self.assertEqual([], env.cmd_history)
         self.assertFalse(env.is_proxy)
 
         cmd_history = [
-            'local> knife solo prepare %s --ssh-password $PASSWORD' % (env.host),
+            'local> knife solo prepare {0} --ssh-password {1}'.format(env.host, get_pass('user_password', True)),
+            'cmd> rm -f {0}'.format(conf.get_tmp_password_file(True)),
             'run> uptime',
         ]
-        conf.chef_rpm_path = ''
+        conf.CHEF_RPM = ''
         env.cmd_history = []
         prepare()
         self.assertEqual(cmd_history, env.cmd_history)
         self.assertFalse(env.is_proxy)
 
-        conf.chef_rpm_path = None
+        conf.CHEF_RPM = None
         env.cmd_history = []
         prepare()
         self.assertEqual(cmd_history, env.cmd_history)

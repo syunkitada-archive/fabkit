@@ -7,7 +7,7 @@ class TestSequenceFunctions(unittest.TestCase):
 
     def test_create(self):
         def __test_create(host_pattern):
-            testtools.init_conf()
+            conf.init()
             node('create', host_pattern)
             for host in util.get_expanded_hosts(host_pattern):
                 self.assertEqual(conf.get_initial_json(host), util.load_json(host))
@@ -17,7 +17,7 @@ class TestSequenceFunctions(unittest.TestCase):
 
     def test_edit(self):
         def __test_edit(host_pattern, edit_key, edit_value):
-            testtools.init_conf()
+            conf.init()
             node('edit', host_pattern, edit_key, edit_value)
             for host in util.get_available_hosts(host_pattern):
                 host_json = util.load_json(host)
@@ -28,7 +28,7 @@ class TestSequenceFunctions(unittest.TestCase):
 
     def test_remove(self):
         def __test_remove(host_pattern):
-            testtools.init_conf()
+            conf.init()
             node('remove', host_pattern)
             for host in util.get_expanded_hosts(host_pattern):
                 self.assertFalse(util.exists_json(host))
@@ -40,12 +40,12 @@ class TestSequenceFunctions(unittest.TestCase):
 
     def test_upload(self):
         def __test_upload(host_pattern):
-            testtools.init_conf()
+            conf.init()
             node('upload', host_pattern)
             hosts = util.get_available_hosts(host_pattern)
             cmds = []
             for host in hosts:
-                cmds.append('cmd> knife node from file %s/%s.json' % (conf.node_path, host))
+                cmds.append('cmd> knife node from file {0}/{1}.json'.format(conf.NODE_DIR, host))
             self.assertEqual(cmds, env.cmd_history)
 
         __test_upload('localhost')
@@ -53,7 +53,7 @@ class TestSequenceFunctions(unittest.TestCase):
 
     def test_download(self):
         def __test_download(host_pattern):
-            testtools.init_conf()
+            conf.init()
             node('download', host_pattern)
             searched_nodes = testtools.get_searched_nodes_obj(host_pattern)
             nodes = searched_nodes['rows']

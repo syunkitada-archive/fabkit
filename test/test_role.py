@@ -1,10 +1,10 @@
 import unittest
 from role import role
-import conf, testtools
+import conf
 
 class TestSequenceFunctions(unittest.TestCase):
     def test_role(self):
-        testtools.init_conf()
+        conf.init()
         role_infos = [
                     {
                         'name': 'test01',

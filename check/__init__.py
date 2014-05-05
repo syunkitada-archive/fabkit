@@ -9,8 +9,8 @@ import re
 def check():
     RE_IP = re.compile('PING .+ \((.+)\) .+\(.+\) bytes')
 
-    cmd_ping = 'ping %s -c 1 -W 2' % env.host
-    cmd_ssh  = 'ssh %s hostname' % env.host
+    cmd_ping = 'ping {0} -c 1 -W 2'.format(env.host)
+    cmd_ssh  = 'ssh {0} hostname'.format(env.host)
 
     ipaddress = 'failed'
     ssh       = 'failed'

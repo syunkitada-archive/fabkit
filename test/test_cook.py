@@ -6,14 +6,14 @@ import json
 
 class TestSequenceFunctions(unittest.TestCase):
     def test_cook(self):
-        testtools.init_conf()
+        conf.init()
         cook('p')
         cmd_history = [
                     'run> rm -rf chef-solo',
-                    'local> scp ~/chef-solo.tar.gz %s:~/' % env.host,
+                    'local> scp ~/chef-solo.tar.gz {0}:~/'.format(env.host),
                     'run> tar -xvf chef-solo.tar.gz',
                     'run> rm -f chef-solo.tar.gz',
-                    'run> echo \'%s\' > chef-solo/solo.json' % conf.get_jsonstr_for_chefsolo(),
+                    'run> echo \'{0}\' > chef-solo/solo.json'.format(conf.get_jsonstr_for_chefsolo()),
                     'sudo> chef-solo -c chef-solo/solo.rb -j chef-solo/solo.json',
                     'run> uptime',
                 ]

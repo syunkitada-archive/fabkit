@@ -4,8 +4,6 @@ from fabric import api
 import commands, re, os
 import conf, util
 
-api.env.cmd_history = []
-
 # memo
 # with settings(warn_only=True): をやろうとすると失敗する (sudo: export command not found)
 # warn_onlyを利用する場合は、run(cmd, warn_only=True) でやる
@@ -60,7 +58,7 @@ def scp(from_path, to_path):
     return run('scp -o "StrictHostKeyChecking=no" %s %s' % (from_path, to_path))
 
 def log(msg):
-    with open('%s/%s.log' % (conf.log_dir_path, api.env.host), 'a') as f:
+    with open('%s/%s.log' % (conf.LOG_DIR, api.env.host), 'a') as f:
         f.write('%s: %s\n' % (util.get_timestamp(), msg))
 
 
@@ -76,33 +74,35 @@ class TestCmd(str):
 
 # コマンド内に直接パスワードを書き込みたくない場合に利用
 # ファイルを通してパスワードを参照するようにする
-def set_pass(key, password):
-    api.env.password_file = os.path.expanduser('~/.password_%s' % api.env.host)
-    api.env.tmp_password_file = os.path.expanduser('~/.tmp_password_%s' % api.env.host)
-
+def set_pass(key, password, is_local=False):
+    password_file = conf.get_tmp_password_file(is_local)
     re_key = re.compile('^%s .+$' % key)
     replaced_file = ''
     exists_key = False
-    if os.path.exists(api.env.password_file):
-        with open(api.env.password_file, 'r') as f:
+    if os.path.exists(password_file):
+        with open(password_file, 'r') as f:
             for line in f:
                 if re_key.match(line):
-                    replaced_file += re_key.sub('%s %s' % (key, password), line)
+                    replaced_file += re_key.sub('{0} {1}'.format(key, password), line)
                     exists_key = True
                 else:
                     replaced_file += line
 
     if not exists_key:
-        replaced_file += '%s %s\n' % (key, password)
+        replaced_file += '{0} {1}\n'.format(key, password)
 
-    with open(api.env.password_file, 'w') as f:
+    with open(password_file, 'w') as f:
         f.write(replaced_file)
 
-    local_scp(api.env.password_file, '%s:%s' % (api.env.host, api.env.tmp_password_file))
+    if not is_local:
+        local_scp(password_file, '{0}:{1}'.format(api.env.host, password_file))
 
-def get_pass(key):
-    return "`grep '^%s ' %s | awk '{print $2;}'`" % (key, api.env.tmp_password_file)
+def get_pass(key, is_local=False):
+    password_file = conf.get_tmp_password_file(is_local)
+    return "`grep '^{0} ' {1} | awk '{{print $2;}}'`".format(key, password_file)
 
-def unset_pass():
-    cmd('rm -f %s' % api.env.password_file)
-    run('rm -f %s' % api.env.tmp_password_file)
+def unset_pass(is_local=False):
+    password_file = conf.get_tmp_password_file()
+    cmd('rm -f {0}'.format(password_file))
+    if not is_local:
+        run('rm -f {0}'.format(api.env.tmp_password_file))

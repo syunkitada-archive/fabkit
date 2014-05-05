@@ -20,7 +20,7 @@ def node(option=None, host_pattern=None, edit_key=None, edit_value=None):
                 if not util.exists_json(host):
                     util.dump_json(conf.get_initial_json(host), host)
                 else:
-                    print '%s is already created.' % host
+                    print '{0} is already created.'.format(host)
             print_hosts()
 
         return
@@ -34,7 +34,7 @@ def node(option=None, host_pattern=None, edit_key=None, edit_value=None):
             for host in env.hosts:
                 util.remove_json(host)
 
-            print '%s removed.' % host_pattern
+            print '{0} removed.'.format(host_pattern)
 
         return
 
@@ -65,12 +65,12 @@ def node(option=None, host_pattern=None, edit_key=None, edit_value=None):
         if util.confirm('Are you sure you want to upload above nodes?', 'Canceled'):
             for host in env.hosts:
                 if util.exists_json(host):
-                    print cmd('knife node from file %s/%s.json' % (conf.node_path, host))
+                    print cmd('knife node from file {0}/{1}.json'.format(conf.NODE_DIR, host))
         return
 
     elif option == 'download':
         host_pattern = check_host_pattern(host_pattern)
-        searched_nodes = cmd('knife search node "name:%s" -F json' % host_pattern)
+        searched_nodes = cmd('knife search node "name:{0}" -F json'.format(host_pattern))
         if env.is_test:
             searched_nodes = testtools.get_searched_nodes(host_pattern)
 
@@ -85,7 +85,7 @@ def node(option=None, host_pattern=None, edit_key=None, edit_value=None):
                 util.dump_json(node_json, host)
                 print host
 
-            print '\nsaved %s\n' % host_pattern
+            print '\nsaved {0}\n'.format(host_pattern)
             env.hosts = util.get_available_hosts(host_pattern)
             print_hosts()
         return
@@ -126,8 +126,7 @@ def node(option=None, host_pattern=None, edit_key=None, edit_value=None):
                 if is_cook:
                     if not conf.is_server(task[4:]):
                         os.environ['PASSWORD'] = env.password
-                        local('cd %s && knife solo cook localhost --no-berkshelf --no-chef-check --ssh-password $PASSWORD' % conf.chef_repo_path)
-                        #run('cp -r %s/* chef-solo/' % conf.node_path)
+                        local('cd {0} && knife solo cook localhost --no-berkshelf --no-chef-check --ssh-password $PASSWORD'.format(conf.chef_repo_path))
                         run('tar -czf chef-solo.tar.gz chef-solo')
                         os.environ['PASSWORD'] = ''
 
@@ -142,12 +141,13 @@ def print_hosts():
     uptime = 'uptime'
     last_cook = 'last_cook'
     run_list = 'run_list'
-    print '%(host_info)-50s%(uptime)-15s%(last_cook)-25s%(run_list)s' % locals()
+    format_str = '{0:<50} {1:<15} {2:<25} {3}'
+    print format_str.format(host_info, uptime, last_cook, run_list)
     print '--------------------------------------------------------------------------------------------------------'
 
     for host in env.hosts:
         host_json = util.load_json(host)
-        host_info = '%s(%s)' % (host, host_json.get('ipaddress', ''))
+        host_info = '{0}({1})'.format(host, host_json.get('ipaddress', ''))
 
         uptime = host_json.get('uptime', '')
         uptimes = RE_UPTIME.search(uptime)
@@ -156,6 +156,6 @@ def print_hosts():
         last_cook = host_json.get('last_cook')
         run_list = host_json.get('run_list')
 
-        print '%(host_info)-50s%(uptime)-15s%(last_cook)-25s%(run_list)s' % locals()
+        print format_str.format(host_info, uptime, last_cook, run_list)
 
 

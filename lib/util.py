@@ -49,16 +49,16 @@ def get_available_hosts(host_pattern=None):
 
     hosts = set()
     candidates = get_expanded_hosts(host_pattern)
-    prog = re.compile('%s/(.*).json' % conf.node_path)
+    prog = re.compile('%s/(.*).json' % conf.NODE_DIR)
     for candidate in candidates:
-        host_jsons = commands.getoutput('find %s/ -name %s.json' % (conf.node_path, candidate))
+        host_jsons = commands.getoutput('find %s/ -name %s.json' % (conf.NODE_DIR, candidate))
         hosts.update(set(prog.findall(host_jsons)))
     return hosts
 
 def load_json(host=None):
     if not host:
         host = env.host
-    path = '%s/%s.json' % (conf.node_path, host)
+    path = '%s/%s.json' % (conf.NODE_DIR, host)
     if os.path.exists(path):
         with open(path, 'r') as f:
             return json.load(f)
@@ -67,20 +67,20 @@ def load_json(host=None):
 def dump_json(dict_obj, host=None):
     if not host:
         host = env.host
-    path = '%s/%s.json' % (conf.node_path, host)
+    path = '%s/%s.json' % (conf.NODE_DIR, host)
     with open(path, 'w') as f:
         json.dump(dict_obj, f)
 
 def remove_json(host=None):
     if not host:
         host = env.host
-    path = '%s/%s.json' % (conf.node_path, host)
+    path = '%s/%s.json' % (conf.NODE_DIR, host)
     os.remove(path)
 
 def exists_json(host=None):
     if not host:
         host = env.host
-    path = '%s/%s.json' % (conf.node_path, host)
+    path = '%s/%s.json' % (conf.NODE_DIR, host)
     return os.path.exists(path)
 
 def get_timestamp():
