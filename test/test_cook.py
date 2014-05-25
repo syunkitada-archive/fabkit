@@ -13,7 +13,8 @@ class TestSequenceFunctions(unittest.TestCase):
         util.dump_json(host_json)
 
         fabcook()
-        cmd_history = [ 'run> hostname' ]
+        cmd_history = test_check.get_check_cmds()
+        cmd_history.extend(['run> hostname'])
         self.assertEqual(cmd_history, env.cmd_history)
 
     def test_cook(self):
@@ -22,7 +23,7 @@ class TestSequenceFunctions(unittest.TestCase):
         cmd_history = test_check.get_check_cmds()
         cmd_history.extend([
                     'run> rm -rf chef-solo',
-                    'local> scp ~/chef-solo.tar.gz {0}:~/'.format(env.host),
+                    'local> scp -o "StrictHostKeyChecking=no" ~/chef-solo.tar.gz {0}:~/'.format(env.host),
                     'run> tar -xvf chef-solo.tar.gz',
                     'run> rm -f chef-solo.tar.gz',
                     'run> echo \'{0}\' > chef-solo/solo.json'.format(conf.get_jsonstr_for_chefsolo()),
