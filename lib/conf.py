@@ -96,7 +96,7 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
 
     fablib_options = CONFIG.options('fablib')
     for fablib_name in fablib_options:
-        fablib = os.path.join(FABLIB_MODULE, fablib_name)
+        fablib = os.path.join(FABLIB_MODULE_DIR, fablib_name)
         if not os.path.exists(fablib):
             cmd_gitclone = 'git clone {0} {1}'.format(CONFIG.get('fablib', fablib_name), fablib)
             if util.confirm('{0} is not exists in fablib.\nDo you want to run "{1}"?'.format(fablib_name, cmd_gitclone), 'Canceled.'):
