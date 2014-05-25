@@ -113,8 +113,8 @@ def node(option=None, host_pattern=None, edit_key=None, edit_value=None):
                     })
 
         for task in env.tasks:
-            is_prepare = task.find('prepare') != -1
-            is_cook = task.find('cook') != -1
+            is_prepare = task.find('prepare') == 0
+            is_cook = task.find('cook') == 0
 
             if is_prepare or is_cook:
                 if util.confirm('Are you sure you want to run task that follow on above nodes?', 'Canceled'):
@@ -127,7 +127,6 @@ def node(option=None, host_pattern=None, edit_key=None, edit_value=None):
                 if is_cook:
                     if not conf.is_server(task[4:]):
                         set_pass(conf.UUID, env.password)
-                        return
                         # knife solo 使わなくてもできるかも
                         local('cd {0} && knife solo cook localhost --no-berkshelf --no-chef-check --ssh-password {1}'.format(conf.CHEFREPO_DIR, get_pass(conf.UUID)))
                         run('tar -czf chef-solo.tar.gz chef-solo')

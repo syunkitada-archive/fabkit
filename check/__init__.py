@@ -10,7 +10,6 @@ def check():
     RE_IP = re.compile('PING .+ \((.+)\) .+\(.+\) bytes')
 
     cmd_ping = 'ping {0} -c 1 -W 2'.format(env.host)
-    cmd_ssh  = 'ssh {0} hostname'.format(env.host)
 
     ipaddress = 'failed'
     ssh       = 'failed'
@@ -22,11 +21,8 @@ def check():
         if result[0] == 0:
             if not env.is_test:
                 ipaddress = RE_IP.findall(result[1])[0]
-
-            result = cmd(cmd_ssh)
-            if result[0] == 0:
-                ssh = 'success'
-                uptime = run('uptime')
+            uptime = run('uptime')
+            ssh = 'success'
 
         host_json.update({'ipaddress': ipaddress})
         host_json.update({'ssh': ssh})

@@ -15,11 +15,17 @@ from logging.handlers import RotatingFileHandler
 from logging import StreamHandler
 
 # setup fabric env
-env.forward_agent = True
-env.is_test       = False
+env.forward_agent   = True
+env.is_test         = False
+env.use_ssh_config  = True
+env.warn_only       = True
+env.colorize_errors = True
+
+STDOUT_LOG_FILE = 'stdout.log'
 
 # for prefix of tmpfile
 UUID = uuid.uuid4()
+
 
 # append module dir to sys.path
 def init(chefrepo_dir=None, test_chefrepo_dir=None):
@@ -242,4 +248,5 @@ def get_tmp_password_file(host=None):
     if not host:
         host = env.host
     return os.path.expanduser('~/.{0}-{1}'.format(UUID, host))
+
 

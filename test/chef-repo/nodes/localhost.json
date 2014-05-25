@@ -3,13 +3,13 @@
         "testscript.test"
     ], 
     "ipaddress": "failed", 
-    "last_check": "2014-05-25 16:24:14", 
-    "last_cook": "2014-05-25 16:24:14 [0]", 
+    "last_check": "2014-05-25 17:32:10", 
+    "last_cook": "2014-05-25 17:32:10 [0]", 
     "last_fabcooks": [
-        "2014-05-25 16:24:14 [testscript.test:None]"
+        "2014-05-25 17:32:10 [testscript.test:None]"
     ], 
     "name": "localhost", 
     "run_list": "recipe[test]", 
     "ssh": "success", 
-    "uptime": " 16:24:14 up 15:29,  1 user,  load average: 0.01, 0.05, 0.03"
+    "uptime": " 17:32:10 up 16:37,  1 user,  load average: 0.26, 0.19, 0.10"
 }

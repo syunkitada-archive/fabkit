@@ -12,7 +12,6 @@ class TestSequenceFunctions(unittest.TestCase):
 def get_check_cmds():
     return [
             'cmd> ping {0} -c 1 -W 2'.format(env.host),
-            'cmd> ssh {0} hostname'.format(env.host),
             'run> uptime',
             ]
 

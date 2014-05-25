@@ -38,7 +38,7 @@ def cook(option=None):
 
     if not conf.is_server(option):
         run('rm -rf chef-solo')
-        local('scp ~/chef-solo.tar.gz {0}:~/'.format(env.host))
+        local_scp('~/chef-solo.tar.gz', '{0}:~/'.format(env.host))
         with hide('output'):
             run('tar -xvf chef-solo.tar.gz')
         run('rm -f chef-solo.tar.gz')
