@@ -37,6 +37,9 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
     if chefrepo_dir:
         CHEFREPO_DIR = chefrepo_dir
     elif TEST_CHEFREPO_DIR:
+        if not TEST_CHEFREPO_DIR in sys.path:
+            sys.path.remove(CHEFREPO_DIR)
+            sys.path.append(TEST_CHEFREPO_DIR)
         CHEFREPO_DIR = TEST_CHEFREPO_DIR
 
     # complement to absolute path from path relative to the chef-repo
@@ -214,12 +217,15 @@ def get_initial_json(host):
 
 def get_node_json(dict_obj):
     return {
-        'name'     : dict_obj.get('name', ''),
-        'run_list' : dict_obj.get('run_list', []),
-        'ipaddress': dict_obj.get('ipaddress', ''),
-        'ssh'      : dict_obj.get('ssh', ''),
-        'uptime'   : dict_obj.get('uptime', ''),
-        'last_cook': dict_obj.get('last_cook', ''),
+        'name'          : dict_obj.get('name', ''),
+        'run_list'      : dict_obj.get('run_list', []),
+        'ipaddress'     : dict_obj.get('ipaddress', ''),
+        'ssh'           : dict_obj.get('ssh', ''),
+        'uptime'        : dict_obj.get('uptime', ''),
+        'last_cook'     : dict_obj.get('last_cook', ''),
+        'fab_run_list'  : dict_obj.get('fab_run_list', []),
+        'last_fabcooks' : dict_obj.get('last_fabcooks', []),
+        'last_check'    : dict_obj.get('last_check', ''),
     }
 
 

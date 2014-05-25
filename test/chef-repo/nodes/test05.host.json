@@ -1,6 +1,9 @@
 {
+    "fab_run_list": [], 
     "ipaddress": "", 
+    "last_check": "", 
     "last_cook": "", 
+    "last_fabcooks": [], 
     "name": "test05.host", 
     "run_list": [], 
     "ssh": "", 

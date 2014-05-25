@@ -89,13 +89,16 @@ def node(option=None, host_pattern=None, edit_key=None, edit_value=None):
         return
 
     else:
+        is_verbose = False
         if option:
+            if host_pattern == 'v':
+                is_verbose = True
             host_pattern = option
         else:
             host_pattern = '*'
 
         env.hosts = util.get_available_hosts(host_pattern)
-        print_hosts()
+        print_hosts(is_verbose)
         RE_ROLE = re.compile('role\[(.+)\]')
         for host in env.hosts:
             host_json = util.load_json(host)
@@ -118,11 +121,13 @@ def node(option=None, host_pattern=None, edit_key=None, edit_value=None):
                     print 'enter your password\n'
                     sudo('hostname')
                 else:
+                    env.hosts = []
                     return
 
                 if is_cook:
                     if not conf.is_server(task[4:]):
                         set_pass(conf.UUID, env.password)
+                        return
                         # knife solo 使わなくてもできるかも
                         local('cd {0} && knife solo cook localhost --no-berkshelf --no-chef-check --ssh-password {1}'.format(conf.CHEFREPO_DIR, get_pass(conf.UUID)))
                         run('tar -czf chef-solo.tar.gz chef-solo')
@@ -134,26 +139,53 @@ def check_host_pattern(host_pattern):
     return host_pattern
 
 RE_UPTIME = re.compile('^.*up (.+),.*user.*$')
-def print_hosts():
-    host_info = 'hostname(ipaddress)'
-    uptime = 'uptime'
-    last_cook = 'last_cook'
-    run_list = 'run_list'
-    format_str = '{0:<50} {1:<15} {2:<25} {3}'
-    print format_str.format(host_info, uptime, last_cook, run_list)
-    print '--------------------------------------------------------------------------------------------------------'
+def print_hosts(is_verbose=False):
+    if not is_verbose:
+        format_str = '{hostname:<30} {run_list} {fab_run_list}'
+        print '----------------------------------------------------------------------'
+        print format_str.format(
+                hostname = 'hostname',
+                run_list = 'run_list',
+                fab_run_list = 'fab_run_list',
+                )
+    else:
+        format_str = '''\
+host_info     : {host_info}
+uptime        : {uptime}
+run_list      : {run_list}
+last_cook     : {last_cook}
+fab_run_list  : {fab_run_list}
+last_fabcooks : {last_fabcooks}
+last_check    : {last_check}
+        '''
+
+    print '----------------------------------------------------------------------'
 
     for host in env.hosts:
         host_json = util.load_json(host)
-        host_info = '{0}({1})'.format(host, host_json.get('ipaddress', ''))
+        run_list = host_json.get('run_list', [])
+        fab_run_list = host_json.get('fab_run_list', [])
 
-        uptime = host_json.get('uptime', '')
-        uptimes = RE_UPTIME.search(uptime)
-        if uptimes:
-            uptime = uptimes.group(1)
-        last_cook = host_json.get('last_cook')
-        run_list = host_json.get('run_list')
-
-        print format_str.format(host_info, uptime, last_cook, run_list)
+        if not is_verbose:
+            print format_str.format(
+                    hostname = host,
+                    run_list = run_list,
+                    fab_run_list = fab_run_list,
+                )
+        else:
+            host_info = '{0}({1}) ssh:{2}'.format(host, host_json.get('ipaddress', ''), host_json.get('ssh'))
+            uptime = host_json.get('uptime', '')
+            last_cook = host_json.get('last_cook', '')
+            last_fabcooks = host_json.get('last_fabcooks', [])
+            last_check = host_json.get('last_check', '')
+            print format_str.format(
+                    host_info = host_info,
+                    run_list = run_list,
+                    fab_run_list = fab_run_list,
+                    uptime = uptime,
+                    last_cook = last_cook,
+                    last_fabcooks = last_fabcooks,
+                    last_check = last_check,
+                )
 
 

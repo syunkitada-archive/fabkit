@@ -24,6 +24,6 @@ from test import test
 from node import node
 from role import role
 from prepare import prepare
-from cook import cook
+from cook import cook, fabcook
 from check import check
 

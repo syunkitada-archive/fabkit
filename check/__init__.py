@@ -5,7 +5,7 @@ import re
 
 
 @task
-@parallel
+@parallel(10)
 def check():
     RE_IP = re.compile('PING .+ \((.+)\) .+\(.+\) bytes')
 
@@ -31,6 +31,7 @@ def check():
         host_json.update({'ipaddress': ipaddress})
         host_json.update({'ssh': ssh})
         host_json.update({'uptime': uptime})
+        host_json.update({'last_check': util.get_timestamp()})
         util.dump_json(host_json)
 
         if ssh == 'success':
