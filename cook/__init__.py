@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from fabric.api import task, env, settings, shell_env, parallel, cd, hide
-import conf, util
+import conf, util, log
 from api import *
 from check import check
 
@@ -9,6 +9,13 @@ from check import check
 @parallel(pool_size=10)
 def fabcook(option=None):
     host_json = util.load_json()
+    host_json.update({'last_fabcooks': ['{0} [start]'.format(util.get_timestamp())]})
+    util.dump_json(host_json)
+
+    if not check():
+        log.warning('Failed to check(ssh)')
+        return
+
     run = __import__(conf.FABSCRIPT_MODULE, {}, {}, [])
 
     last_fabcooks = []
@@ -32,8 +39,12 @@ def fabcook(option=None):
 @task
 @parallel(pool_size=10)
 def cook(option=None):
+    host_json = util.load_json()
+    host_json.update({'last_cook': '{0} [start]'.format(util.get_timestamp())})
+    util.dump_json(host_json)
+
     if not check():
-        print 'Failed to check(ssh)'
+        log.warning('Failed to check(ssh)')
         return
 
     if not conf.is_server(option):

@@ -88,6 +88,14 @@ def node(option=None, host_pattern=None, edit_key=None, edit_value=None):
 
         return
 
+    elif option == 'check':
+        warning_nodes = cmd('grep \' \[.*[^0]\]\' -r nodes/*'.format(conf.NODE_DIR))[1]
+        if warning_nodes == '':
+            print 'No warning nodes.'
+        else:
+            print warning_nodes[1]
+        return
+
     else:
         is_verbose = False
         if option:
