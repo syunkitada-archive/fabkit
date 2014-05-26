@@ -89,11 +89,14 @@ def node(option=None, host_pattern=None, edit_key=None, edit_value=None):
         return
 
     elif option == 'check':
-        warning_nodes = cmd('grep \' \[.*[^0]\]\' -r nodes/*'.format(conf.NODE_DIR))[1]
-        if warning_nodes == '':
+        warning_nodes    = cmd('grep \' \[.*[^0]\]\' -r {0}/*'.format(conf.NODE_DIR))[1]
+        failed_ssh_nodes = cmd('grep \'"ssh": "failed"\' -r {0}/*'.format(conf.NODE_DIR))[1]
+        if warning_nodes == '' and failed_ssh_nodes == '':
             print 'No warning nodes.'
         else:
-            print warning_nodes[1]
+            print warning_nodes
+            print failed_ssh_nodes
+
         return
 
     else:
