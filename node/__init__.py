@@ -100,16 +100,31 @@ def node(option=None, host_pattern=None, edit_key=None, edit_value=None):
         return
 
     else:
-        is_verbose = False
-        if option:
-            if host_pattern == 'v':
-                is_verbose = True
-            host_pattern = option
-        else:
-            host_pattern = '*'
+        if option == 's':
+            env.is_server = True
+            searched_nodes = cmd('knife search node "name:{0}" -F json'.format(host_pattern))[1]
+            if env.is_test:
+                searched_nodes = testtools.get_searched_nodes(host_pattern)
 
-        env.hosts = util.get_available_hosts(host_pattern)
-        print_hosts(is_verbose)
+            nodes = json.loads(searched_nodes)['rows']
+            hosts = []
+            for node in nodes:
+                print '{0:<40} {1}'.format(node['name'], node['run_list'])
+                hosts.append(node['name'])
+            env.hosts = hosts
+
+        else:
+            is_verbose = False
+            if option:
+                if host_pattern == 'v':
+                    is_verbose = True
+                host_pattern = option
+            else:
+                host_pattern = '*'
+
+            env.hosts = util.get_available_hosts(host_pattern)
+            print_hosts(is_verbose)
+
         RE_ROLE = re.compile('role\[(.+)\]')
         for host in env.hosts:
             host_json = util.load_json(host)
@@ -151,7 +166,7 @@ def check_host_pattern(host_pattern):
 RE_UPTIME = re.compile('^.*up (.+),.*user.*$')
 def print_hosts(is_verbose=False):
     if not is_verbose:
-        format_str = '{hostname:<30} {run_list} {fab_run_list}'
+        format_str = '{hostname:<40} {run_list} {fab_run_list}'
         print '----------------------------------------------------------------------'
         print format_str.format(
                 hostname = 'hostname',

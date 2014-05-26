@@ -71,6 +71,7 @@ def cook(option=None):
             cook = sudo(cmd_chef_solo, warn_only=True)
 
     host_json = util.load_json()
-    last_cook = '{0} [{1}]'.format(util.get_timestamp(), cook.return_code)
+    cook_cmd = 'client' if conf.is_server(option) else 'solo'
+    last_cook = '{0} [{1}:{2}]'.format(util.get_timestamp(), cook_cmd, cook.return_code)
     host_json.update({'last_cook': last_cook})
     util.dump_json(host_json)

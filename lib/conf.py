@@ -215,8 +215,7 @@ def is_server(option=None):
         env.is_server = True
         return True
     else:
-        env.is_server = False
-        return False
+        return env.is_server
 
 def get_initial_json(host):
     return get_node_json({ 'name': host })
