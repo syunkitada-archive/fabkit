@@ -89,8 +89,9 @@ def dump_json(dict_obj, host=None):
     if not host:
         host = env.host
     if host is not None:
-        with open(get_node_json_file(host), 'w') as f:
-            json.dump(conf.get_node_json(dict_obj), f, sort_keys=True, indent=4)
+        if not env.is_server:
+            with open(get_node_json_file(host), 'w') as f:
+                json.dump(conf.get_node_json(dict_obj), f, sort_keys=True, indent=4)
 
         with open(log.get_node_log_json_file(host), 'w') as f:
             json.dump(conf.get_node_log_json(dict_obj), f, sort_keys=True, indent=4)
