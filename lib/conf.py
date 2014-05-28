@@ -222,17 +222,22 @@ def get_initial_json(host):
 
 def get_node_json(dict_obj):
     return {
-        'name'          : dict_obj.get('name', ''),
-        'run_list'      : dict_obj.get('run_list', []),
-        'ipaddress'     : dict_obj.get('ipaddress', ''),
-        'ssh'           : dict_obj.get('ssh', ''),
-        'uptime'        : dict_obj.get('uptime', ''),
-        'last_cook'     : dict_obj.get('last_cook', ''),
-        'fab_run_list'  : dict_obj.get('fab_run_list', []),
-        'last_fabcooks' : dict_obj.get('last_fabcooks', []),
-        'last_check'    : dict_obj.get('last_check', ''),
+        'name'             : dict_obj.get('name', ''),
+        'chef_environment' : dict_obj.get('chef_environment', '_default'),
+        'run_list'         : dict_obj.get('run_list', []),
+        'fab_run_list'     : dict_obj.get('fab_run_list', []),
+        'data'             : dict_obj.get('data', {}),
     }
 
+def get_node_log_json(dict_obj):
+    return {
+        'ipaddress'        : dict_obj.get('ipaddress', ''),
+        'last_check'       : dict_obj.get('last_check', ''),
+        'last_cook'        : dict_obj.get('last_cook', ''),
+        'last_fabcooks'    : dict_obj.get('last_fabcooks', []),
+        'ssh'              : dict_obj.get('ssh', ''),
+        'uptime'           : dict_obj.get('uptime', ''),
+    }
 
 # chef-solo用のjson文字列を作成し、返します
 # chef-serverのjsonをマージすると、chef-soloで利用できなくなるため必要
@@ -243,9 +248,5 @@ def get_jsonstr_for_chefsolo(host=None):
     }
     return json.dumps(json_obj)
 
-def get_tmp_password_file(host=None):
-    if not host:
-        host = env.host
-    return os.path.expanduser('~/.{0}-{1}'.format(UUID, host))
 
 

@@ -1,18 +1,18 @@
 import unittest
-from cook import fabcook, cook
+from cook import cookfab, cook
 from fabric.api import env
 import conf, testtools, util
 import json
 import test_check
 
 class TestSequenceFunctions(unittest.TestCase):
-    def test_fabcook(self):
+    def test_cookfab(self):
         conf.init()
         host_json = util.load_json()
         host_json['fab_run_list'] = ['testscript.test']
         util.dump_json(host_json)
 
-        fabcook()
+        cookfab()
         cmd_history = test_check.get_check_cmds()
         cmd_history.extend(['run> hostname'])
         self.assertEqual(cmd_history, env.cmd_history)

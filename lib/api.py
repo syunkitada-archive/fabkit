@@ -74,15 +74,17 @@ def test_cmd(cmd):
 class TestCmd(str):
     return_code = 0
 
-# コマンド内に直接パスワードを書き込みたくない場合に利用
+# コマンド内に直接パスワードを書き込みたくない場合に利用する
+# ログにパスワードが出力されるのを回避できる
 # ファイルを通してパスワードを参照するようにする
 def set_pass(key, password, host=None):
-    password_file = conf.get_tmp_password_file(host)
+    secret_file = get_tmp_secret_file(host)
+
     re_key = re.compile('^%s .+$' % key)
     replaced_file = ''
     exists_key = False
-    if os.path.exists(password_file):
-        with open(password_file, 'r') as f:
+    if os.path.exists(secret_file):
+        with open(secret_file, 'r') as f:
             for line in f:
                 if re_key.match(line):
                     replaced_file += re_key.sub('{0} {1}'.format(key, password), line)
@@ -93,23 +95,27 @@ def set_pass(key, password, host=None):
     if not exists_key:
         replaced_file += '{0} {1}\n'.format(key, password)
 
-    with open(password_file, 'w') as f:
+    with open(secret_file, 'w') as f:
         f.write(replaced_file)
 
     if not host:
         host = api.env.host
     if host != 'localhost':
-        local_scp(password_file, '{0}:{1}'.format(host, password_file))
+        local_scp(secret_file, '{0}:{1}'.format(host, secret_file))
 
 def get_pass(key, host=None):
-    password_file = conf.get_tmp_password_file(host)
-    return "`grep '^{0} ' {1} | awk '{{print $2;}}'`".format(key, password_file)
+    secret_file = get_tmp_secret_file(host)
+    return "`grep '^{0} ' {1} | awk '{{print $2;}}'`".format(key, secret_file)
 
 def unset_pass(host=None):
-    password_file = conf.get_tmp_password_file(host)
-    cmd('rm -f {0}'.format(password_file))
+    secret_file = get_tmp_secret_file(host)
+    cmd('rm -f {0}'.format(secret_file))
     if not host:
         host = api.env.host
     if host != 'localhost':
-        run('rm -f {0}'.format(password_file))
+        run('rm -f {0}'.format(secret_file))
 
+def get_tmp_secret_file(host=None):
+    if not host:
+        host = api.env.host
+    return os.path.expanduser('~/.{0}.secret'.format(host))

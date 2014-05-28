@@ -23,10 +23,10 @@ run = __import__(conf.FABSCRIPT_MODULE, {}, {}, [])
 
 # register task
 from test import test
-from node import node
+from node import node, nodesolo
 from role import role
 from prepare import prepare
-from cook import cook, fabcook
+from cook import cook, cookfab
 from check import check
 
 

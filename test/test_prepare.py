@@ -20,7 +20,7 @@ class TestSequenceFunctions(unittest.TestCase):
             'local> scp {0} {1}:{2}'.format(conf.CHEF_RPM, env.host, conf.TMP_CHEF_RPM),
             'sudo> yum install {0} -y'.format(conf.TMP_CHEF_RPM),
             'run> rm -rf {0}'.format(conf.TMP_CHEF_RPM),
-            'cmd> rm -f {0}'.format(conf.get_tmp_password_file()),
+            'cmd> rm -f {0}'.format(get_tmp_secret_file()),
         ])
         self.assertEqual(cmd_history, env.cmd_history)
         self.assertTrue(env.is_proxy)
@@ -45,7 +45,7 @@ class TestSequenceFunctions(unittest.TestCase):
         cmd_history = test_check.get_check_cmds()
         cmd_history.extend([
             'local> knife solo prepare {0} --ssh-password {1}'.format(env.host, get_pass(conf.UUID, 'localhost')),
-            'cmd> rm -f {0}'.format(conf.get_tmp_password_file('localhost')),
+            'cmd> rm -f {0}'.format(get_tmp_secret_file('localhost')),
         ])
         conf.CHEF_RPM = ''
         env.cmd_history = []

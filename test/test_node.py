@@ -1,6 +1,6 @@
 import unittest
 from fabric.api import env
-from node import node
+from node import node, nodesolo
 import util, conf, testtools
 
 class TestSequenceFunctions(unittest.TestCase):
@@ -8,9 +8,9 @@ class TestSequenceFunctions(unittest.TestCase):
     def test_create(self):
         def __test_create(host_pattern):
             conf.init()
-            node('create', host_pattern)
+            nodesolo('create', host_pattern)
             for host in util.get_expanded_hosts(host_pattern):
-                self.assertEqual(conf.get_initial_json(host), util.load_json(host))
+                self.assertEqual(conf.get_initial_json(host), util.load_node_json(host))
 
         __test_create('localhost')
         __test_create('test[01-09].host')
@@ -18,7 +18,7 @@ class TestSequenceFunctions(unittest.TestCase):
     def test_edit(self):
         def __test_edit(host_pattern, edit_key, edit_value):
             conf.init()
-            node('edit', host_pattern, edit_key, edit_value)
+            nodesolo('edit', host_pattern, edit_key, edit_value)
             for host in util.get_available_hosts(host_pattern):
                 host_json = util.load_json(host)
                 self.assertEqual(edit_value, host_json[edit_key])
@@ -29,19 +29,17 @@ class TestSequenceFunctions(unittest.TestCase):
     def test_remove(self):
         def __test_remove(host_pattern):
             conf.init()
-            node('remove', host_pattern)
+            nodesolo('remove', host_pattern)
             for host in util.get_expanded_hosts(host_pattern):
                 self.assertFalse(util.exists_json(host))
 
         __test_remove('test0[6-7]*')
         __test_remove('test0[7-9]*')
 
-        node() # for debug
-
     def test_upload(self):
         def __test_upload(host_pattern):
             conf.init()
-            node('upload', host_pattern)
+            nodesolo('upload', host_pattern)
             hosts = util.get_available_hosts(host_pattern)
             cmds = []
             for host in hosts:
@@ -54,11 +52,11 @@ class TestSequenceFunctions(unittest.TestCase):
     def test_download(self):
         def __test_download(host_pattern):
             conf.init()
-            node('download', host_pattern)
+            nodesolo('download', host_pattern)
             searched_nodes = testtools.get_searched_nodes_obj(host_pattern)
             nodes = searched_nodes['rows']
             for n in nodes:
-                self.assertEqual(n, util.load_json(n['name']))
+                self.assertEqual(n, util.load_node_json(n['name']))
 
         __test_download('downloded.host')
 

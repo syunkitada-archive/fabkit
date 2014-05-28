@@ -44,7 +44,16 @@ class TestSequenceFunctions(unittest.TestCase):
         host = 'test99.host'
         util.dump_json(conf.get_initial_json(host), host)
         self.assertTrue(util.exists_json(host))
-        self.assertEqual(conf.get_initial_json(host), util.load_json(host))
+
+        node_json = conf.get_initial_json(host)
+        self.assertEqual(node_json, util.load_node_json(host))
+
+        node_log_json = conf.get_node_log_json({})
+        self.assertEqual(node_log_json, util.load_node_log_json(host))
+
+        node_json.update(node_log_json)
+        self.assertEqual(node_json, util.load_json(host))
+
         util.remove_json(host)
         self.assertFalse(util.exists_json(host))
 

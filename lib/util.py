@@ -49,27 +49,54 @@ def get_available_hosts(host_pattern=None):
 
     hosts = set()
     candidates = get_expanded_hosts(host_pattern)
-    prog = re.compile('%s/(.*).json' % conf.NODE_DIR)
+    RE_NODE_JSON = re.compile('%s/(.*).json' % conf.NODE_DIR)
     for candidate in candidates:
         host_jsons = commands.getoutput('find %s/ -name %s.json' % (conf.NODE_DIR, candidate))
-        hosts.update(set(prog.findall(host_jsons)))
+        hosts.update(set(RE_NODE_JSON.findall(host_jsons)))
     return hosts
 
 def load_json(host=None):
     if not host:
         host = env.host
-    path = '%s/%s.json' % (conf.NODE_DIR, host)
+
+    node_json = load_node_json(host)
+    node_json.update(load_node_log_json(host))
+    return node_json
+
+def load_node_json(host=None):
+    if not host:
+        host = env.host
+
+    path = get_node_json_file(host)
     if os.path.exists(path):
         with open(path, 'r') as f:
             return json.load(f)
+
     return conf.get_initial_json(host)
+
+def load_node_log_json(host=None):
+    if not host:
+        host = env.host
+
+    path = log.get_node_log_json_file(host)
+    if os.path.exists(path):
+        with open(path, 'r') as f:
+            return json.load(f)
+
+    return {}
 
 def dump_json(dict_obj, host=None):
     if not host:
         host = env.host
-    path = '%s/%s.json' % (conf.NODE_DIR, host)
-    with open(path, 'w') as f:
-        json.dump(conf.get_node_json(dict_obj), f, sort_keys=True, indent=4)
+    if host is not None:
+        with open(get_node_json_file(host), 'w') as f:
+            json.dump(conf.get_node_json(dict_obj), f, sort_keys=True, indent=4)
+
+        with open(log.get_node_log_json_file(host), 'w') as f:
+            json.dump(conf.get_node_log_json(dict_obj), f, sort_keys=True, indent=4)
+
+def get_node_json_file(host=None):
+    return os.path.join(conf.NODE_DIR, '{0}.json'.format(host))
 
 def remove_json(host=None):
     if not host:
@@ -98,7 +125,10 @@ def confirm(msg_ask, msg_cancel=None):
         return False
 
 def get_data_bag(bagname, itemname):
-    result = cmd('knife solo data bag show %s %s -F json' % (bagname, itemname), True)
+    if env.is_server:
+        result = cmd('knife data bag show %s %s -F json' % (bagname, itemname), True)
+    else:
+        result = cmd('knife solo data bag show %s %s -F json' % (bagname, itemname), True)
     if result[0] == 0:
         data_bag = json.loads(result[1])
         return data_bag
