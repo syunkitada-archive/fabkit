@@ -52,15 +52,18 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
     def complement_path(path, is_check_dir=False):
         if path == '':
             return None
-        if path.find('/') != 0:
-            return os.path.join(CHEFREPO_DIR, path)
-        return path
+        if path.find('/') == 0:
+            return path
+        elif path.find('~') == 0:
+            return os.path.expanduser(path)
+
+        return os.path.join(CHEFREPO_DIR, path)
 
     # create directory, if directory not exists
     def create_dir(directory, is_create_init_py=False):
         if not os.path.exists(directory):
             if util.confirm('"{0}" is not exists. do you want to create?'.format(directory), 'Canceled.'):
-                os.mkdir(directory)
+                os.makedirs(directory)
                 print '"{0}" is created.'.format(directory)
                 if is_create_init_py:
                     init_py = os.path.join(directory, '__init__.py')
