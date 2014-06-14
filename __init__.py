@@ -3,6 +3,7 @@
 import os
 import sys
 import subprocess
+from fabric.api import env
 
 FABFILE_DIR       = os.path.dirname(os.path.abspath(__file__))
 LIB_DIR           = os.path.join(FABFILE_DIR, 'lib')
@@ -20,6 +21,7 @@ conf.init(CHEFREPO_DIR, TEST_CHEFREPO_DIR)
 
 # register fabscript task
 run = __import__(conf.FABSCRIPT_MODULE, {}, {}, [])
+env.last_runs = []
 
 # register task
 from test import test

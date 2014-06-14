@@ -238,6 +238,7 @@ def get_node_log_json(dict_obj):
         'last_check'       : dict_obj.get('last_check', ''),
         'last_cook'        : dict_obj.get('last_cook', ''),
         'last_fabcooks'    : dict_obj.get('last_fabcooks', []),
+        'last_runs'        : dict_obj.get('last_runs', []),
         'ssh'              : dict_obj.get('ssh', ''),
         'uptime'           : dict_obj.get('uptime', ''),
     }

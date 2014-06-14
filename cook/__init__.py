@@ -34,7 +34,7 @@ def cook(option=None):
         with shell_env(http_proxy=conf.HTTP_PROXY, https_proxy=conf.HTTPS_PROXY):
             cook_result = sudo(cook_cmd)
     else:
-            cook_result = sudo(cook_cmd)
+        cook_result = sudo(cook_cmd)
 
     host_json = util.load_json()
     last_cook = '{0} [{1}:{2}]'.format(util.get_timestamp(), cook_prefix, cook_result.return_code)

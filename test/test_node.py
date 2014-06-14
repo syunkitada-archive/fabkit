@@ -42,6 +42,7 @@ class TestSequenceFunctions(unittest.TestCase):
             nodesolo('upload', host_pattern)
             hosts = util.get_available_hosts(host_pattern)
             cmds = []
+            hosts = sorted(hosts)
             for host in hosts:
                 cmds.append('cmd> knife node from file {0}/{1}.json'.format(conf.NODE_DIR, host))
             self.assertEqual(cmds, env.cmd_history)

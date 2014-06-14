@@ -215,12 +215,14 @@ run_list      : {run_list}
 fab_run_list  : {fab_run_list}
 last_cook     : {last_cook}
 last_fabcooks : {last_fabcooks}
+last_runs     : {last_runs}
 last_check    : {last_check}
 '''
             horizontal_line = '-' * 85
             print horizontal_line
             format_str += horizontal_line
 
+    nodes = sorted(nodes, key=lambda node:str(node['name']), reverse=False)
     env_hosts = []
     for node in nodes:
         hostname = node.get('name', '')
@@ -240,16 +242,18 @@ last_check    : {last_check}
             environment = node.get('chef_environment', '')
             last_cook = node.get('last_cook', '')
             last_fabcooks = node.get('last_fabcooks', [])
+            last_runs = node.get('last_runs', [])
             last_check = node.get('last_check', '')
             print format_str.format(
-                    environment = environment,
-                    host_info = host_info,
-                    run_list = run_list,
-                    fab_run_list = fab_run_list,
-                    uptime = uptime,
-                    last_cook = last_cook,
+                    environment   = environment,
+                    host_info     = host_info,
+                    run_list      = run_list,
+                    fab_run_list  = fab_run_list,
+                    uptime        = uptime,
+                    last_cook     = last_cook,
                     last_fabcooks = last_fabcooks,
-                    last_check = last_check,
+                    last_runs     = last_runs,
+                    last_check    = last_check,
                 )
 
     env.hosts = env_hosts

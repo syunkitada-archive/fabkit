@@ -1,6 +1,7 @@
 # coding: utf-8
 
 from fabric import api
+from fabric.tasks import Task
 import commands, re, os
 import conf, util
 import log
@@ -119,3 +120,21 @@ def get_tmp_secret_file(host=None):
     if not host:
         host = api.env.host
     return os.path.expanduser('~/.{0}.secret'.format(host))
+
+class LogTask(Task):
+    def __init__(self, func, *args, **kwargs):
+        super(LogTask, self).__init__(*args, **kwargs)
+        self.func = func
+
+    def run(self, *args, **kwargs):
+        result = self.func(*args, **kwargs)
+        print api.env.tasks
+        print api.env.command
+        command = api.env.command
+
+        host_json = util.load_json()
+        api.env.last_runs.append('{0} [{1}:{2}]'.format(util.get_timestamp(), command, result))
+        host_json.update({'last_runs': api.env.last_runs})
+
+        util.dump_json(host_json)
+        return result
