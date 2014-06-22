@@ -7,7 +7,6 @@ import test_util
 import test_prepare
 import test_cook
 import test_node
-import test_role
 import test_check
 
 @task
@@ -25,7 +24,6 @@ def test():
             unittest.TestLoader().loadTestsFromTestCase(test_check.TestSequenceFunctions),
             unittest.TestLoader().loadTestsFromTestCase(test_prepare.TestSequenceFunctions),
             unittest.TestLoader().loadTestsFromTestCase(test_cook.TestSequenceFunctions),
-            unittest.TestLoader().loadTestsFromTestCase(test_role.TestSequenceFunctions),
         ]
 
     alltests = unittest.TestSuite(suites)

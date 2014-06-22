@@ -26,7 +26,6 @@ env.last_runs = []
 # register task
 from test import test
 from node import node, nodesolo
-from role import role
 from prepare import prepare
 from cook import cook, cookfab
 from check import check

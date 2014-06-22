@@ -73,7 +73,6 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
             else:
                 exit(0)
 
-    KNIFERB_FILE = os.path.join(CHEFREPO_DIR, '.chef/knife.rb')
     INIFILE = os.path.join(CHEFREPO_DIR, 'fabfile.ini')
 
     CONFIG  = ConfigParser.SafeConfigParser()
@@ -145,56 +144,61 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
     root_logger.addHandler(error_file_rotaiting_handler)
 
 
+    node_dir        = CONFIG.get('common', 'node_dir')
+    NODE_DIR        = complement_path(node_dir)
+    HTTP_PROXY      = CONFIG.get('common', 'http_proxy')
+    HTTPS_PROXY     = CONFIG.get('common', 'https_proxy')
+
     # read .chef/knife.rb
-    COOKBOOKS_DIRS  = []
-    NODE_DIR        = ''
-    ROLE_DIR        = ''
-    ENVIRONMENT_DIR = ''
-    HTTP_PROXY      = ''
-    HTTPS_PROXY     = ''
+    #COOKBOOKS_DIRS  = []
+    #NODE_DIR        = ''
+    #ROLE_DIR        = ''
+    #ENVIRONMENT_DIR = ''
+    #HTTP_PROXY      = ''
+    #HTTPS_PROXY     = ''
 
-    __RE_STRIP = re.compile('[ \'"]')
-    __RE_KNIFERB_COOKBOOK_PATH    = re.compile('cookbook_path +\[(.+)\]')
-    __RE_KNIFERB_NODE_PATH        = re.compile('node_path +[\'"](.+)[\'"]')
-    __RE_KNIFERB_ROLE_PATH        = re.compile('role_path +[\'"](.+)[\'"]')
-    __RE_KNIFERB_ENVIRONMENT_PATH = re.compile('environment_path +[\'"](.+)[\'"]')
-    __RE_KNIFERB_HTTP_PROXY       = re.compile('http_proxy +[\'"](.+)[\'"]')
-    __RE_KNIFERB_HTTPS_PROXY      = re.compile('https_proxy +[\'"](.+)[\'"]')
-    with open(KNIFERB_FILE) as f:
-        matched_cookbook_path    = False
-        matched_node_path        = False
-        matched_role_path        = False
-        matched_environment_path = False
-        matched_http_proxy       = False
-        matched_https_proxy      = False
-        for line in f:
-            match_cookbook_path = None if matched_cookbook_path else __RE_KNIFERB_COOKBOOK_PATH.match(line)
-            match_node_path = None if matched_node_path else __RE_KNIFERB_NODE_PATH.match(line)
-            match_role_path = None if matched_role_path else __RE_KNIFERB_ROLE_PATH.match(line)
-            match_environment_path = None if matched_environment_path else __RE_KNIFERB_ENVIRONMENT_PATH.match(line)
-            match_http_proxy  = None if matched_http_proxy else __RE_KNIFERB_HTTP_PROXY.match(line)
-            match_https_proxy = None if matched_https_proxy else __RE_KNIFERB_HTTPS_PROXY.match(line)
+    #__RE_STRIP = re.compile('[ \'"]')
+    #__RE_COOKBOOK_PATH    = re.compile('cookbook_path +\[(.+)\]')
+    #__RE_NODE_PATH        = re.compile('node_path +[\'"](.+)[\'"]')
+    #__RE_ROLE_PATH        = re.compile('role_path +[\'"](.+)[\'"]')
+    #__RE_ENVIRONMENT_PATH = re.compile('environment_path +[\'"](.+)[\'"]')
+    #__RE_HTTP_PROXY       = re.compile('http_proxy +[\'"](.+)[\'"]')
+    #__RE_HTTPS_PROXY      = re.compile('https_proxy +[\'"](.+)[\'"]')
+    #with open(KNIFERB_FILE) as f:
+    #    matched_cookbook_path    = False
+    #    matched_node_path        = False
+    #    matched_role_path        = False
+    #    matched_environment_path = False
+    #    matched_http_proxy       = False
+    #    matched_https_proxy      = False
+    #    for line in f:
+    #        match_cookbook_path = None if matched_cookbook_path else __RE_KNIFERB_COOKBOOK_PATH.match(line)
+    #        match_node_path = None if matched_node_path else __RE_KNIFERB_NODE_PATH.match(line)
+    #        match_role_path = None if matched_role_path else __RE_KNIFERB_ROLE_PATH.match(line)
+    #        match_environment_path = None if matched_environment_path else __RE_KNIFERB_ENVIRONMENT_PATH.match(line)
+    #        match_http_proxy  = None if matched_http_proxy else __RE_KNIFERB_HTTP_PROXY.match(line)
+    #        match_https_proxy = None if matched_https_proxy else __RE_KNIFERB_HTTPS_PROXY.match(line)
 
-            if match_cookbook_path:
-                cookbooks_dirs = __RE_STRIP.sub('', match_cookbook_path.group(1)).split(',')
-                for cookbooks_dir in cookbooks_dirs:
-                    COOKBOOKS_DIRS.append(complement_path(cookbooks_dir))
-                matched_cookbook_path = True
-            elif match_node_path:
-                NODE_DIR = complement_path(match_node_path.group(1))
-                matched_node_path = True
-            elif match_role_path:
-                ROLE_DIR = complement_path(match_role_path.group(1))
-                matched_role_path = True
-            elif match_environment_path:
-                ENVIRONMENT_DIR = complement_path(match_environment_path.group(1))
-                matched_environment_path = True
-            elif match_http_proxy:
-                HTTP_PROXY = match_http_proxy.group(1)
-                matched_http_proxy = True
-            elif match_https_proxy:
-                HTTPS_PROXY = match_https_proxy.group(1)
-                matched_https_proxy = True
+    #        if match_cookbook_path:
+    #            cookbooks_dirs = __RE_STRIP.sub('', match_cookbook_path.group(1)).split(',')
+    #            for cookbooks_dir in cookbooks_dirs:
+    #                COOKBOOKS_DIRS.append(complement_path(cookbooks_dir))
+    #            matched_cookbook_path = True
+    #        elif match_node_path:
+    #            NODE_DIR = complement_path(match_node_path.group(1))
+    #            matched_node_path = True
+    #        elif match_role_path:
+    #            ROLE_DIR = complement_path(match_role_path.group(1))
+    #            matched_role_path = True
+    #        elif match_environment_path:
+    #            ENVIRONMENT_DIR = complement_path(match_environment_path.group(1))
+    #            matched_environment_path = True
+    #        elif match_http_proxy:
+    #            HTTP_PROXY = match_http_proxy.group(1)
+    #            matched_http_proxy = True
+    #        elif match_https_proxy:
+    #            HTTPS_PROXY = match_https_proxy.group(1)
+    #            matched_https_proxy = True
 
 
 
