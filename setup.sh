@@ -20,6 +20,7 @@ git clone git@github.com:syunkitada/chefric.git fabfile
 mkdir nodes
 mkdir fablib
 mkdir fabscript
+touch fabscript/__init__.py
 cp fabfile/examples/fabfile.ini ./
 
 
