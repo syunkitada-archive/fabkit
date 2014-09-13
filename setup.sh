@@ -21,3 +21,15 @@ mkdir nodes
 mkdir fablib
 mkdir fabscript
 cp fabfile/examples/fabfile.ini ./
+
+
+cat << EOF > ./.gitignore
+/fablib/
+/fabfile/
+
+/cookbooks/
+.chef/*.pem
+.chef/data_bag_key
+
+*.pyc
+EOF
