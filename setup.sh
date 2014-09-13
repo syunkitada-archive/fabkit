@@ -15,7 +15,7 @@ sudo pip install fabric
 
 
 # init chefric repository and get chefric
-git clone git@github.com:syunkitada/chefric.git
+git clone git@github.com:syunkitada/chefric.git fabfile
 mkdir nodes
 mkdir fablib
 mkdir fabscript
