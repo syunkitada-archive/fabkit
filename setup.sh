@@ -8,6 +8,7 @@ sudo yum install git -y
 sudo yum install python-devel libxml2-devel libxslt-devel -y
 wget http://python-distribute.org/distribute_setup.py
 sudo python distribute_setup.py
+rm -rf distribute*
 sudo easy_install pip
 
 # Install fabric
@@ -19,4 +20,4 @@ git clone git@github.com:syunkitada/chefric.git fabfile
 mkdir nodes
 mkdir fablib
 mkdir fabscript
-cp examples/fabfile.ini ./
+cp fabfile/examples/fabfile.ini ./
