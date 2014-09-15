@@ -8,6 +8,7 @@ import commands
 import util, conf
 import json
 
+
 def get_searched_nodes_obj(host_pattern):
     hosts = []
     for host in util.get_expanded_hosts(host_pattern):

@@ -2,8 +2,8 @@
 from fabric.api import env
 import re, commands, json, datetime, os
 from types import *
-import conf
-from api import *
+import conf, log
+
 
 def get_expanded_hosts(host=None):
     if not host or type(host) is not StringType:
@@ -43,6 +43,7 @@ def get_expanded_hosts(host=None):
 
     return hosts
 
+
 def get_available_hosts(host_pattern=None):
     if not host_pattern or type(host_pattern) is not StringType:
         return []
@@ -55,6 +56,7 @@ def get_available_hosts(host_pattern=None):
         hosts.update(set(RE_NODE_JSON.findall(host_jsons)))
     return hosts
 
+
 def load_json(host=None):
     if not host:
         host = env.host
@@ -62,6 +64,7 @@ def load_json(host=None):
     node_json = load_node_json(host)
     node_json.update(load_node_log_json(host))
     return node_json
+
 
 def load_node_json(host=None):
     if not host:
@@ -74,6 +77,7 @@ def load_node_json(host=None):
 
     return conf.get_initial_json(host)
 
+
 def load_node_log_json(host=None):
     if not host:
         host = env.host
@@ -85,25 +89,29 @@ def load_node_log_json(host=None):
 
     return {}
 
+
 def dump_json(dict_obj, host=None):
     if not host:
         host = env.host
     if host is not None:
-        if not env.is_server:
+        if not env.is_chef:
             with open(get_node_json_file(host), 'w') as f:
                 json.dump(conf.get_node_json(dict_obj), f, sort_keys=True, indent=4)
 
         with open(log.get_node_log_json_file(host), 'w') as f:
             json.dump(conf.get_node_log_json(dict_obj), f, sort_keys=True, indent=4)
 
+
 def get_node_json_file(host=None):
     return os.path.join(conf.NODE_DIR, '{0}.json'.format(host))
+
 
 def remove_json(host=None):
     if not host:
         host = env.host
     path = '%s/%s.json' % (conf.NODE_DIR, host)
     os.remove(path)
+
 
 def exists_json(host=None):
     if not host:
@@ -126,7 +134,7 @@ def confirm(msg_ask, msg_cancel=None):
         return False
 
 def get_data_bag(bagname, itemname):
-    if env.is_server:
+    if env.is_chef:
         result = cmd('knife data bag show %s %s -F json' % (bagname, itemname), True)
     else:
         result = cmd('knife solo data bag show %s %s -F json' % (bagname, itemname), True)

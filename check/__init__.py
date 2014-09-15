@@ -3,8 +3,10 @@ from api import *
 import util, conf
 import re
 
-RE_IP   = re.compile('PING .+ \((.+)\) .+\(.+\) bytes')
+
+RE_IP = re.compile('PING .+ \((.+)\) .+\(.+\) bytes')
 RE_NODE = re.compile('log/(.+)/status.json: +"(.+)"')
+
 
 @task
 @parallel(10)

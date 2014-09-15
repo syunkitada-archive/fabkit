@@ -26,11 +26,11 @@ def prepare(option=None):
                     with shell_env(http_proxy=conf.HTTP_PROXY, https_proxy=conf.HTTP_PROXY):
                         cmd_knife_bootstrap += ' --bootstrap-proxy {0}'.format(conf.HTTP_PROXY)
                         sudo(cmd_chef_install)
-                        if conf.is_server(option):
+                        if conf.is_chef(option):
                             local(cmd_knife_bootstrap)
                 else:
                     sudo(cmd_chef_install)
-                    if conf.is_server(option):
+                    if conf.is_chef(option):
                         local(cmd_knife_bootstrap)
                 run('rm -rf {0}'.format(conf.TMP_CHEF_RPM))
         else:
@@ -39,7 +39,7 @@ def prepare(option=None):
     else:
         with shell_env(PASSWORD=env.password):
             local('knife solo prepare {0} --ssh-password {1}'.format(env.host, get_pass(conf.UUID, 'localhost')))
-            if conf.is_server(option):
+            if conf.is_chef(option):
                 local(cmd_knife_bootstrap)
 
     unset_pass('localhost')

@@ -4,6 +4,7 @@ import unittest
 import util, conf
 import re
 
+
 class TestSequenceFunctions(unittest.TestCase):
     def test_get_expanded_hosts(self):
         self.assertEqual(

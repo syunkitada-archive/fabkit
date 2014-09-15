@@ -8,7 +8,6 @@ import ConfigParser
 from fabric.api import env
 import commands
 import json
-import util
 import uuid
 import logging
 from logging.handlers import RotatingFileHandler
@@ -35,6 +34,7 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
     global STORAGE_DIR, LOG_DIR, PACKAGE_DIR, CHEF_RPM, TMP_CHEF_RPM
     global FABSCRIPT_MODULE, FABSCRIPT_MODULE_DIR
     global COOKBOOKS_DIRS, NODE_DIR, ROLE_DIR, ENVIRONMENT_DIR
+    global FABLIB_MODULE_DIR, FABLIB_MAP
     global HTTP_PROXY, HTTPS_PROXY
     global LOGGER_LEVEL, LOGGER_FORMATTER, NODE_LOGGER_MAX_BYTES, NODE_LOGGER_BACKUP_COUNT
 
@@ -59,20 +59,6 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
 
         return os.path.join(CHEFREPO_DIR, path)
 
-    # create directory, if directory not exists
-    def create_dir(directory, is_create_init_py=False):
-        if not os.path.exists(directory):
-            if util.confirm('"{0}" is not exists. do you want to create?'.format(directory), 'Canceled.'):
-                os.makedirs(directory)
-                print '"{0}" is created.'.format(directory)
-                if is_create_init_py:
-                    init_py = os.path.join(directory, '__init__.py')
-                    with open(init_py, 'w') as f:
-                        f.write('# coding: utf-8')
-                        print '"{0} is created."'.format(init_py)
-            else:
-                exit(0)
-
     INIFILE = os.path.join(CHEFREPO_DIR, 'fabfile.ini')
 
     CONFIG  = ConfigParser.SafeConfigParser()
@@ -82,32 +68,18 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
     STORAGE_DIR          = complement_path(CONFIG.get('common', 'storage_dir'))
     LOG_DIR              = os.path.join(STORAGE_DIR, CONFIG.get('common', 'log_dir'))
     PACKAGE_DIR          = os.path.join(STORAGE_DIR, CONFIG.get('common', 'package_dir'))
-    CHEF_RPM_NAME        = CONFIG.get('common', 'chef_rpm')
-    CHEF_RPM             = os.path.join(PACKAGE_DIR, CHEF_RPM_NAME)
-    TMP_CHEF_RPM         = '/tmp/{0}-{1}'.format(UUID, CHEF_RPM_NAME)
+    # CHEF_RPM_NAME        = CONFIG.get('common', 'chef_rpm')
+    # CHEF_RPM             = os.path.join(PACKAGE_DIR, CHEF_RPM_NAME)
+    # TMP_CHEF_RPM         = '/tmp/{0}-{1}'.format(UUID, CHEF_RPM_NAME)
     FABSCRIPT_MODULE     = CONFIG.get('common', 'fabscript_module')
     FABSCRIPT_MODULE_DIR = os.path.join(CHEFREPO_DIR, FABSCRIPT_MODULE)
     FABLIB_MODULE        = CONFIG.get('common', 'fablib_module')
     FABLIB_MODULE_DIR    = os.path.join(CHEFREPO_DIR, FABLIB_MODULE)
 
-    create_dir(STORAGE_DIR)
-    create_dir(LOG_DIR)
-    create_dir(PACKAGE_DIR)
-    create_dir(FABSCRIPT_MODULE_DIR, True)
-    create_dir(FABLIB_MODULE_DIR, True)
-
-    fablib_options = CONFIG.options('fablib')
-    for fablib_name in fablib_options:
-        fablib = os.path.join(FABLIB_MODULE_DIR, fablib_name)
-        if not os.path.exists(fablib):
-            cmd_gitclone = 'git clone {0} {1}'.format(CONFIG.get('fablib', fablib_name), fablib)
-            if util.confirm('{0} is not exists in fablib.\nDo you want to run "{1}"?'.format(fablib_name, cmd_gitclone), 'Canceled.'):
-                (status, output) = commands.getstatusoutput(cmd_gitclone)
-                print output
-                if status != 0:
-                    exit(0)
-            else:
-                exit(0)
+    FABLIB_MAP = {}
+    for fablib_name in CONFIG.options('fablib'):
+        fablib = os.path.join(conf.FABLIB_MODULE_DIR, fablib_name)
+        FABLIB_MAP.update({fablib_name: CONFIG.get('fablib', fablib_name)})
 
     ALL_LOG_FILE_NAME   = 'all.log'
     ALL_LOG_FILE        = os.path.join(LOG_DIR, ALL_LOG_FILE_NAME)
@@ -149,58 +121,6 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
     HTTP_PROXY      = CONFIG.get('common', 'http_proxy')
     HTTPS_PROXY     = CONFIG.get('common', 'https_proxy')
 
-    # read .chef/knife.rb
-    #COOKBOOKS_DIRS  = []
-    #NODE_DIR        = ''
-    #ROLE_DIR        = ''
-    #ENVIRONMENT_DIR = ''
-    #HTTP_PROXY      = ''
-    #HTTPS_PROXY     = ''
-
-    #__RE_STRIP = re.compile('[ \'"]')
-    #__RE_COOKBOOK_PATH    = re.compile('cookbook_path +\[(.+)\]')
-    #__RE_NODE_PATH        = re.compile('node_path +[\'"](.+)[\'"]')
-    #__RE_ROLE_PATH        = re.compile('role_path +[\'"](.+)[\'"]')
-    #__RE_ENVIRONMENT_PATH = re.compile('environment_path +[\'"](.+)[\'"]')
-    #__RE_HTTP_PROXY       = re.compile('http_proxy +[\'"](.+)[\'"]')
-    #__RE_HTTPS_PROXY      = re.compile('https_proxy +[\'"](.+)[\'"]')
-    #with open(KNIFERB_FILE) as f:
-    #    matched_cookbook_path    = False
-    #    matched_node_path        = False
-    #    matched_role_path        = False
-    #    matched_environment_path = False
-    #    matched_http_proxy       = False
-    #    matched_https_proxy      = False
-    #    for line in f:
-    #        match_cookbook_path = None if matched_cookbook_path else __RE_KNIFERB_COOKBOOK_PATH.match(line)
-    #        match_node_path = None if matched_node_path else __RE_KNIFERB_NODE_PATH.match(line)
-    #        match_role_path = None if matched_role_path else __RE_KNIFERB_ROLE_PATH.match(line)
-    #        match_environment_path = None if matched_environment_path else __RE_KNIFERB_ENVIRONMENT_PATH.match(line)
-    #        match_http_proxy  = None if matched_http_proxy else __RE_KNIFERB_HTTP_PROXY.match(line)
-    #        match_https_proxy = None if matched_https_proxy else __RE_KNIFERB_HTTPS_PROXY.match(line)
-
-    #        if match_cookbook_path:
-    #            cookbooks_dirs = __RE_STRIP.sub('', match_cookbook_path.group(1)).split(',')
-    #            for cookbooks_dir in cookbooks_dirs:
-    #                COOKBOOKS_DIRS.append(complement_path(cookbooks_dir))
-    #            matched_cookbook_path = True
-    #        elif match_node_path:
-    #            NODE_DIR = complement_path(match_node_path.group(1))
-    #            matched_node_path = True
-    #        elif match_role_path:
-    #            ROLE_DIR = complement_path(match_role_path.group(1))
-    #            matched_role_path = True
-    #        elif match_environment_path:
-    #            ENVIRONMENT_DIR = complement_path(match_environment_path.group(1))
-    #            matched_environment_path = True
-    #        elif match_http_proxy:
-    #            HTTP_PROXY = match_http_proxy.group(1)
-    #            matched_http_proxy = True
-    #        elif match_https_proxy:
-    #            HTTPS_PROXY = match_https_proxy.group(1)
-    #            matched_https_proxy = True
-
-
 
 # proxy setting
 env.is_proxy = False
@@ -216,25 +136,26 @@ def is_proxy(option=None):
         return False
 
 # chef-server setting
-env.is_server = False
-def is_server(option=None):
+env.is_chef = False
+def is_chef(option=None):
     if option and option.find('s') != -1:
-        env.is_server = True
+        env.is_chef = True
         return True
     else:
-        return env.is_server
+        return env.is_chef
 
 def get_initial_json(host):
     return get_node_json({ 'name': host })
+
 
 def get_node_json(dict_obj):
     return {
         'name'             : dict_obj.get('name', ''),
         'chef_environment' : dict_obj.get('chef_environment', '_default'),
-        'run_list'         : dict_obj.get('run_list', []),
         'fab_run_list'     : dict_obj.get('fab_run_list', []),
         'data'             : dict_obj.get('data', {}),
     }
+
 
 def get_node_log_json(dict_obj):
     return {
@@ -247,14 +168,5 @@ def get_node_log_json(dict_obj):
         'uptime'           : dict_obj.get('uptime', ''),
     }
 
-# chef-solo用のjson文字列を作成し、返します
-# chef-serverのjsonをマージすると、chef-soloで利用できなくなるため必要
-def get_jsonstr_for_chefsolo(host=None):
-    host_json = util.load_json(host)
-    json_obj = {
-        'run_list': host_json['run_list'],
-    }
-    return json.dumps(json_obj)
-
-
-
+def get_runmod():
+    return __import__(conf.FABSCRIPT_MODULE, {}, {}, [])

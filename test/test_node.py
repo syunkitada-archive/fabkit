@@ -1,7 +1,8 @@
 import unittest
 from fabric.api import env
-from node import node, nodesolo
+from node import node, chefnode
 import util, conf, testtools
+
 
 class TestSequenceFunctions(unittest.TestCase):
 

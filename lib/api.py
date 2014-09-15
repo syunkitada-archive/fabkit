@@ -1,9 +1,11 @@
 # coding: utf-8
 
+import commands
+import re
+import os
 from fabric import api
 from fabric.tasks import Task
-import commands, re, os
-import conf, util
+import util
 import log
 
 # memo
