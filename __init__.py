@@ -22,48 +22,15 @@ import conf
 conf.init(REPO_DIR, TEST_CHEFREPO_DIR)
 
 
-# create directory, if directory not exists
-#def create_dir(directory, is_create_init_py=False):
-#    if not os.path.exists(directory):
-#        if util.confirm('"{0}" is not exists. do you want to create?'.format(directory), 'Canceled.'):
-#            os.makedirs(directory)
-#            print '"{0}" is created.'.format(directory)
-#            if is_create_init_py:
-#                init_py = os.path.join(directory, '__init__.py')
-#                with open(init_py, 'w') as f:
-#                    f.write('# coding: utf-8')
-#                    print '"{0} is created."'.format(init_py)
-#        else:
-#            exit(0)
-#
-#create_dir(conf.STORAGE_DIR)
-#create_dir(conf.LOG_DIR)
-#create_dir(conf.PACKAGE_DIR)
-#create_dir(conf.FABSCRIPT_MODULE_DIR, True)
-#create_dir(conf.FABLIB_MODULE_DIR, True)
-#
-#for fablib, git_path in conf.FABLIB_MAP.items():
-#    if not os.path.exists(fablib):
-#        cmd_gitclone = 'git clone {0} {1}'.format(git_path, fablib)
-#        if util.confirm('{0} is not exists in fablib.\nDo you want to run "{1}"?'.format(fablib_name, cmd_gitclone), 'Canceled.'):
-#            (status, output) = commands.getstatusoutput(cmd_gitclone)
-#            print output
-#            if status != 0:
-#                exit(0)
-#        else:
-#            exit(0)
-
-
 # register fabscript task
 run = __import__(conf.FABSCRIPT_MODULE, {}, {}, [])
 env.last_runs = []
 
 # register task
-from fabfile.test import test
-from node import node, chefnode
-from prepare import prepare
-from cook import cook, cookfab
-from check import check
+from fabfile.test import test  # noqa
+from node import node, chefnode  # noqa
+from cook import cook  # noqa
+from check import check  # noqa
 
 
 from fabric.api import env

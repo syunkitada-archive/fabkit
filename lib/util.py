@@ -1,8 +1,14 @@
 # coding: utf-8
 from fabric.api import env
-import re, commands, json, datetime, os
-from types import *
-import conf, log
+import re
+import commands
+import json
+import datetime
+import os
+from types import StringType
+import conf
+import log
+from api import *  # noqa
 
 
 def get_expanded_hosts(host=None):
@@ -119,9 +125,11 @@ def exists_json(host=None):
     path = '%s/%s.json' % (conf.NODE_DIR, host)
     return os.path.exists(path)
 
+
 def get_timestamp():
     today = datetime.datetime.today()
     return today.strftime('%Y-%m-%d %H:%M:%S')
+
 
 def confirm(msg_ask, msg_cancel=None):
     if env.is_test:
@@ -132,6 +140,7 @@ def confirm(msg_ask, msg_cancel=None):
         if msg_cancel:
             print msg_cancel
         return False
+
 
 def get_data_bag(bagname, itemname):
     if env.is_chef:

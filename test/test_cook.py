@@ -1,5 +1,5 @@
 import unittest
-from cook import cookfab, cook
+from cook import cook
 from fabric.api import env
 import conf, testtools, util
 import json

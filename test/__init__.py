@@ -4,7 +4,6 @@ from fabric.api import *
 import os, unittest, commands
 import conf, testtools
 import test_util
-import test_prepare
 import test_cook
 import test_node
 import test_check

@@ -1,8 +1,12 @@
 # coding: utf-8
 
-from fabric.api import task, env, settings, shell_env, parallel, cd, hide, serial
-import conf, util, log
-from api import *
+from fabric.api import (task,
+                        env,
+                        parallel,)
+import conf
+import util
+import log
+from api import sudo
 from check import check
 
 
@@ -48,36 +52,4 @@ def cook(option=None):
                                                         fab_script, return_code))
             host_json.update({'last_fabcooks': last_fabcooks})
 
-    util.dump_json(host_json)
-
-
-@task
-@parallel(pool_size=10)
-def cookfab(option=None):
-    host_json = util.load_json()
-    host_json.update({'last_fabcooks': ['{0} [start]'.format(util.get_timestamp())]})
-    util.dump_json(host_json)
-
-    if not check():
-        log.warning('Failed to check(ssh)')
-        return
-
-    run = __import__(conf.FABSCRIPT_MODULE, {}, {}, [])
-
-    last_fabcooks = []
-    for fab_script in host_json.get('fab_run_list', []):
-        modules = fab_script.split('.')
-        module = run
-
-        i = 0
-        len_modules = len(modules)
-        while i < len_modules:
-            module = getattr(module, modules[i])
-            i += 1
-
-        return_code = module()
-
-        last_fabcooks.append('{0} [{1}:{2}]'.format(util.get_timestamp(), fab_script, return_code))
-
-    host_json.update({'last_fabcooks': last_fabcooks})
     util.dump_json(host_json)

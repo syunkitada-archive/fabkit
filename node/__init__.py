@@ -17,7 +17,22 @@ RE_UPTIME = re.compile('^.*up (.+),.*user.*$')
 @hosts('localhost')
 def chefnode(option=None, host_pattern=None):
     if option == 'bootstrap':
-        pass
+        host_pattern = check_host_pattern(host_pattern)
+        env.hosts = util.get_expanded_hosts(host_pattern)
+        if len(env.hosts) == 0:
+            print 'Empty nodes'
+            return
+
+        print env.hosts
+
+        if util.confirm('Are you sure you want to create above nodes?', 'Canceled'):
+            for host in env.hosts:
+                print '{0} host.'.format(host)
+                cmd_bootstrap = 'knife bootstrap {0} -x {1} -N {0} --sudo'.format(host, env.user)  # noqa
+                print cmd_bootstrap
+                local(cmd_bootstrap)
+
+        return
     else:
         # knife bootstrap `hostname` -A -x owner --sudo -r 'recipe[cookbook-test]'
         # knife node run_list add 192.168.33.10 recipe[cookbook-test]
