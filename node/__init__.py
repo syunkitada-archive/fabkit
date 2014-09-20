@@ -199,7 +199,7 @@ def print_nodes(nodes=[], option=''):
             format_str = '{hostname:<' + str(max_len_hostname) + '} {run_list}'
             horizontal_line = '-' * (max_len_hostname + 30)
         else:
-            format_str = '{hostname:<' + str(max_len_hostname) + '} {run_list} {fab_run_list}'
+            format_str = '{hostname:<' + str(max_len_hostname) + '} {fab_run_list}'
             horizontal_line = '-' * (max_len_hostname + 50)
 
         print horizontal_line
