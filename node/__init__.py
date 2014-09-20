@@ -120,39 +120,6 @@ def node(option=None, host_pattern=None, edit_key=None, edit_value=None):
 
         return
 
-    elif option == 'upload':
-        host_pattern = check_host_pattern(host_pattern)
-        set_hosts(host_pattern)
-
-        if util.confirm('Are you sure you want to upload above nodes?', 'Canceled'):
-            for host in env.hosts:
-                if util.exists_json(host):
-                    print cmd('knife node from file {0}/{1}.json'.format(conf.NODE_DIR, host))[1]
-
-        return
-
-    elif option == 'download':
-        host_pattern = check_host_pattern(host_pattern)
-        searched_nodes = cmd('knife search node "name:{0}" -F json'.format(host_pattern))[1]
-        if env.is_test:
-            searched_nodes = testtools.get_searched_nodes(host_pattern)
-
-        nodes = json.loads(searched_nodes)['rows']
-        for node in nodes:
-            print node['name']
-
-        if util.confirm('Are you sure you want to save above nodes?', 'Canceled'):
-            for node in nodes:
-                host = node['name']
-                node_json = util.load_json(host)
-                node_json.update(node)
-                util.dump_json(node_json, host)
-                print 'saved {0}'.format(host)
-
-            set_hosts(host_pattern)
-
-        return
-
     else:
         # optionなしの場合、optionがhost_patternの役割をはたし、host_patternがoptionになる
         if not option:

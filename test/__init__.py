@@ -1,12 +1,14 @@
 # coding: utf-8
 
-from fabric.api import *
-import os, unittest, commands
-import conf, testtools
+from fabric.api import *  # noqa
+import unittest
+import commands
+import conf
 import test_util
 import test_cook
 import test_node
 import test_check
+
 
 @task
 @hosts('localhost')
@@ -18,14 +20,11 @@ def test():
     # first, remove all node, and create test nodes in test_node
     commands.getoutput('rm -r {0}/*'.format(conf.NODE_DIR))
     suites = [
-            unittest.TestLoader().loadTestsFromTestCase(test_node.TestSequenceFunctions),
-            unittest.TestLoader().loadTestsFromTestCase(test_util.TestSequenceFunctions),
-            unittest.TestLoader().loadTestsFromTestCase(test_check.TestSequenceFunctions),
-            unittest.TestLoader().loadTestsFromTestCase(test_prepare.TestSequenceFunctions),
-            unittest.TestLoader().loadTestsFromTestCase(test_cook.TestSequenceFunctions),
-        ]
+        unittest.TestLoader().loadTestsFromTestCase(test_node.TestSequenceFunctions),
+        unittest.TestLoader().loadTestsFromTestCase(test_util.TestSequenceFunctions),
+        unittest.TestLoader().loadTestsFromTestCase(test_check.TestSequenceFunctions),
+        unittest.TestLoader().loadTestsFromTestCase(test_cook.TestSequenceFunctions),
+    ]
 
     alltests = unittest.TestSuite(suites)
     unittest.TextTestRunner(verbosity=2).run(alltests)
-
-

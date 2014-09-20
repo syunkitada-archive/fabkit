@@ -5,34 +5,24 @@ import conf, testtools, util
 import json
 import test_check
 
+
 class TestSequenceFunctions(unittest.TestCase):
-    def test_cookfab(self):
+    def test_cook(self):
         conf.init()
+        env.is_chef = False
         host_json = util.load_json()
         host_json['fab_run_list'] = ['testscript.test']
         util.dump_json(host_json)
 
-        cookfab()
+        cook()
         cmd_history = test_check.get_check_cmds()
         cmd_history.extend(['run> hostname'])
         self.assertEqual(cmd_history, env.cmd_history)
 
-    def test_cook(self):
+    def test_cook_for_chef(self):
         conf.init()
-        cook('p')
-        cmd_history = test_check.get_check_cmds()
-        cmd_history.extend([
-                    'run> rm -rf chef-solo',
-                    'local> scp -o "StrictHostKeyChecking=no" ~/chef-solo.tar.gz {0}:~/'.format(env.host),
-                    'run> tar -xvf chef-solo.tar.gz',
-                    'run> rm -f chef-solo.tar.gz',
-                    'run> echo \'{0}\' > chef-solo/solo.json'.format(conf.get_jsonstr_for_chefsolo()),
-                    'sudo> chef-solo -c chef-solo/solo.rb -j chef-solo/solo.json',
-                ])
-        self.assertEqual(cmd_history, env.cmd_history)
-        self.assertTrue(env.is_proxy)
-
-        env.cmd_history = []
+        env.is_chef = True
         cook()
+        cmd_history = test_check.get_check_cmds()
+        cmd_history.extend(['sudo> chef-client'])
         self.assertEqual(cmd_history, env.cmd_history)
-        self.assertFalse(env.is_proxy)

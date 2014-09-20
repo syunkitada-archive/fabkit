@@ -26,7 +26,6 @@ def cook(option=None):
         return
 
     if env.is_chef:
-        print 'chef-client'
         cook_result = sudo('chef-client')
         host_json = util.load_json()
         last_cook = '{0} [{1}]'.format(util.get_timestamp(), cook_result.return_code)

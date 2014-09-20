@@ -17,12 +17,11 @@ import util
 
 # setup fabric env
 env.forward_agent = True
-env.is_test = False
 env.use_ssh_config = True
 env.warn_only = True
 env.colorize_errors = True
 
-
+env.is_test = False
 env.is_chef = False
 
 STDOUT_LOG_FILE = 'stdout.log'
@@ -73,6 +72,8 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
     STORAGE_DIR = complement_path(CONFIG.get('common', 'storage_dir'))
     LOG_DIR = os.path.join(STORAGE_DIR, CONFIG.get('common', 'log_dir'))
     PACKAGE_DIR = os.path.join(STORAGE_DIR, CONFIG.get('common', 'package_dir'))
+    node_dir = CONFIG.get('common', 'node_dir')
+    NODE_DIR = complement_path(node_dir)
     # CHEF_RPM_NAME        = CONFIG.get('common', 'chef_rpm')
     # CHEF_RPM             = os.path.join(PACKAGE_DIR, CHEF_RPM_NAME)
     # TMP_CHEF_RPM         = '/tmp/{0}-{1}'.format(UUID, CHEF_RPM_NAME)
@@ -85,7 +86,7 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
     def create_dir(directory, is_create_init_py=False):
         if not os.path.exists(directory):
             if util.confirm('"{0}" is not exists. do you want to create?'.format(directory),
-                            'Canceled.'):
+                            'Canceled.') or env.is_test:
                 os.makedirs(directory)
                 print '"{0}" is created.'.format(directory)
                 if is_create_init_py:
@@ -98,6 +99,7 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
 
     create_dir(STORAGE_DIR)
     create_dir(LOG_DIR)
+    create_dir(NODE_DIR)
     create_dir(PACKAGE_DIR)
     create_dir(FABSCRIPT_MODULE_DIR, True)
     create_dir(FABLIB_MODULE_DIR, True)
@@ -152,8 +154,6 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
     error_file_rotaiting_handler.setLevel(logging.ERROR)
     root_logger.addHandler(error_file_rotaiting_handler)
 
-    node_dir = CONFIG.get('common', 'node_dir')
-    NODE_DIR = complement_path(node_dir)
     HTTP_PROXY = CONFIG.get('common', 'http_proxy')
     HTTPS_PROXY = CONFIG.get('common', 'https_proxy')
 
