@@ -1,6 +1,9 @@
 import unittest
-from node import node, chefnode
-import util, conf, testtools
+from fabric.api import env
+from node import (node,
+                  chefnode)
+import util
+import conf
 
 
 class TestSequenceFunctions(unittest.TestCase):
@@ -35,3 +38,25 @@ class TestSequenceFunctions(unittest.TestCase):
 
         __test_remove('test0[6-7]*')
         __test_remove('test0[7-9]*')
+
+    def test_node(slef):
+        conf.init()
+        node()
+
+    def test_chefnode(self):
+        conf.init()
+        chefnode()
+
+    def test_chefbootstrap(self):
+        def __test_bootstrap(host_pattern):
+            conf.init()
+            chefnode('bootstrap', host_pattern)
+            cmd_history = []
+            for host in util.get_expanded_hosts(host_pattern):
+                cmd_history.append(
+                    'local> knife bootstrap {0} -x {1} -N {0} --sudo'.format(host, env.user)  # noqa
+                )
+            self.assertEqual(cmd_history, env.cmd_history)
+
+        __test_bootstrap('test0[6-7]')
+        __test_bootstrap('localhost')

@@ -25,6 +25,9 @@ def chefnode(option=None, host_pattern=None):
 
         print env.hosts
 
+        # knife bootstrap `hostname` -A -x owner --sudo -r 'recipe[cookbook-test]'
+        # knife node run_list add 192.168.33.10 recipe[cookbook-test]
+
         if util.confirm('Are you sure you want to create above nodes?', 'Canceled'):
             for host in env.hosts:
                 print '{0} host.'.format(host)
@@ -34,9 +37,6 @@ def chefnode(option=None, host_pattern=None):
 
         return
     else:
-        # knife bootstrap `hostname` -A -x owner --sudo -r 'recipe[cookbook-test]'
-        # knife node run_list add 192.168.33.10 recipe[cookbook-test]
-
         env.is_chef = True
         if not option:
             host_name = '*'

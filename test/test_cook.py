@@ -1,8 +1,8 @@
 import unittest
 from cook import cook
 from fabric.api import env
-import conf, testtools, util
-import json
+import conf
+import util
 import test_check
 
 
