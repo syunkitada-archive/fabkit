@@ -1,7 +1,8 @@
 # coding: utf-8
-from fabric.api import env, task, hosts
-from api import *
-import util, conf
+from fabric.api import (task,
+                        hosts)
+from api import run
+
 
 @task
 @hosts('localhost')

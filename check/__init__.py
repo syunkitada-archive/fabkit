@@ -1,17 +1,20 @@
 from fabric.api import task, env, warn_only, parallel
-from api import *
-import util, conf
+from api import run, cmd
+import util
+import conf
 import re
 
-RE_IP   = re.compile('PING .+ \((.+)\) .+\(.+\) bytes')
+
+RE_IP = re.compile('PING .+ \((.+)\) .+\(.+\) bytes')
 RE_NODE = re.compile('log/(.+)/status.json: +"(.+)"')
+
 
 @task
 @parallel(10)
 def check():
     if len(env.hosts) == 0:
         find_status = cmd('find {0} -name status.json'.format(conf.LOG_DIR))
-        find_status = find_status[1].replace('\n',' ')
+        find_status = find_status[1].replace('\n', ' ')
         grep_cmd = 'grep -H \' \[.*:[^0]\]\' {0}'.format(find_status)
         warning_nodes = cmd(grep_cmd)[1]
         failed_ssh_nodes = cmd('grep \'"ssh": "failed"\' {0}'.format(find_status))[1]
@@ -21,7 +24,8 @@ def check():
             nodes = {}
 
             fsnodes = RE_NODE.findall(failed_ssh_nodes)
-            wnodes  = RE_NODE.findall(warning_nodes)
+            wnodes = RE_NODE.findall(warning_nodes)
+
             for fsnode in fsnodes:
                 nodes.update({fsnode[0]: [fsnode[1]]})
 
@@ -38,8 +42,8 @@ def check():
     cmd_ping = 'ping {0} -c 1 -W 2'.format(env.host)
 
     ipaddress = 'failed'
-    ssh       = 'failed'
-    uptime    = ''
+    ssh = 'failed'
+    uptime = ''
 
     with warn_only():
         host_json = util.load_json()
@@ -60,4 +64,3 @@ def check():
             return True
         else:
             return False
-

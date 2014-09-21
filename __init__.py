@@ -5,30 +5,32 @@ import sys
 import subprocess
 from fabric.api import env
 
-FABFILE_DIR       = os.path.dirname(os.path.abspath(__file__))
-LIB_DIR           = os.path.join(FABFILE_DIR, 'lib')
-CHEFREPO_DIR      = os.path.dirname(FABFILE_DIR)
+
+FABFILE_DIR = os.path.dirname(os.path.abspath(__file__))
+LIB_DIR = os.path.join(FABFILE_DIR, 'lib')
+REPO_DIR = os.path.dirname(FABFILE_DIR)
 TEST_CHEFREPO_DIR = os.path.join(FABFILE_DIR, 'test/chef-repo')
 sys.path.extend([
     FABFILE_DIR,
     LIB_DIR,
-    CHEFREPO_DIR,
+    REPO_DIR,
 ])
 
 # initialize config
 import conf
-conf.init(CHEFREPO_DIR, TEST_CHEFREPO_DIR)
+# from lib import util
+conf.init(REPO_DIR, TEST_CHEFREPO_DIR)
+
 
 # register fabscript task
 run = __import__(conf.FABSCRIPT_MODULE, {}, {}, [])
 env.last_runs = []
 
 # register task
-from test import test
-from node import node, nodesolo
-from prepare import prepare
-from cook import cook, cookfab
-from check import check
+from fabfile.test import test  # noqa
+from node import node, chefnode  # noqa
+from cook import cook  # noqa
+from check import check  # noqa
 
 
 from fabric.api import env
