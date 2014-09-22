@@ -1,0 +1,28 @@
+Retrying.
+
+--2014-09-22 21:46:38--  (try:10)  http://python-distribute.org/distribute_setup.py
+Connecting to python-distribute.org|88.191.140.69|:80... failed: Connection timed out.
+Retrying.
+
+--2014-09-22 21:47:51--  (try:11)  http://python-distribute.org/distribute_setup.py
+Connecting to python-distribute.org|88.191.140.69|:80... failed: Connection timed out.
+Retrying.
+
+--2014-09-22 21:49:04--  (try:12)  http://python-distribute.org/distribute_setup.py
+Connecting to python-distribute.org|88.191.140.69|:80... failed: Connection timed out.
+Retrying.
+
+--2014-09-22 21:50:17--  (try:13)  http://python-distribute.org/distribute_setup.py
+Connecting to python-distribute.org|88.191.140.69|:80... failed: Connection timed out.
+Retrying.
+
+--2014-09-22 21:51:30--  (try:14)  http://python-distribute.org/distribute_setup.py
+Connecting to python-distribute.org|88.191.140.69|:80... failed: Connection timed out.
+Retrying.
+
+--2014-09-22 21:52:43--  (try:15)  http://python-distribute.org/distribute_setup.py
+Connecting to python-distribute.org|88.191.140.69|:80... failed: Connection timed out.
+Retrying.
+
+--2014-09-22 21:53:56--  (try:16)  http://python-distribute.org/distribute_setup.py
+Connecting to python-distribute.org|88.191.140.69|:80... 
