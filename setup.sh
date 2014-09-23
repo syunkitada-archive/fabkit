@@ -3,12 +3,13 @@
 # Install git
 sudo yum install git -y
 
+sudo yum install python-devel libxml2-devel libxslt-devel -y
 
+pushd /tmp
 # Install pip for install fabric
+
 which pip
 if [ $? != 0 ]; then
-    sudo yum install python-devel libxml2-devel libxslt-devel -y
-    pushd /tmp
     wget https://pypi.python.org/packages/source/d/distribute/distribute-0.6.49.tar.gz
     tar -xvf distribute-0.6.49.tar.gz
     pushd distribute-0.6.49
@@ -16,13 +17,13 @@ if [ $? != 0 ]; then
     sudo easy_install pip
     popd
     sudo rm -rf distribute*
-    popd
 fi
+
+popd
 
 # Install fabric
 sudo yum remove python-crypto
 sudo pip install fabric
-
 
 
 # init chefric repository and get chefric
