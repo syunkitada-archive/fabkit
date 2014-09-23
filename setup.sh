@@ -1,4 +1,4 @@
-#!/bin/sh -ex
+#!/bin/sh -x
 
 # Install git
 sudo yum install git -y
@@ -20,6 +20,7 @@ if [ $? != 0 ]; then
 fi
 
 # Install fabric
+sudo yum remove python-crypto
 sudo pip install fabric
 
 
