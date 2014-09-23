@@ -3,10 +3,10 @@
 from fabric.api import (task,
                         env,
                         parallel,)
-import conf
-import util
-import log
-from api import sudo
+from lib import conf
+from lib import util
+from lib import log
+from lib.api import sudo
 from check import check
 
 

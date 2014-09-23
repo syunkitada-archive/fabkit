@@ -1,7 +1,7 @@
 from fabric.api import task, env, warn_only, parallel
-from api import run, cmd
-import util
-import conf
+from lib.api import run, cmd
+from lib import util
+from lib import conf
 import re
 
 

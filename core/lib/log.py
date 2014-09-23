@@ -2,7 +2,7 @@
 
 from fabric import api
 import os
-import conf
+from lib import conf
 import logging
 from logging.handlers import RotatingFileHandler
 

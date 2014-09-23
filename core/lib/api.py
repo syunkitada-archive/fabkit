@@ -4,9 +4,7 @@ import commands
 import re
 import os
 from fabric import api
-from fabric.tasks import Task
-import util
-import log
+from lib import log
 
 # memo
 # with settings(warn_only=True): をやろうとすると失敗する (sudo: export command not found)
@@ -66,8 +64,12 @@ def local(cmd, **kwargs):
     return result
 
 
-def local_scp(from_path, to_path):
-    return local('scp -o "StrictHostKeyChecking=no" %s %s' % (from_path, to_path))
+def local_scp(from_path, to_path, use_env_host=True):
+    if use_env_host:
+        return local('scp -o "StrictHostKeyChecking=no" {0} {1}:{2}'.format(from_path,
+                                                                            api.env.host, to_path))
+    else:
+        return local('scp -o "StrictHostKeyChecking=no" {0} {1}'.format(from_path, to_path))
 
 
 def scp(from_path, to_path):
@@ -134,22 +136,3 @@ def get_tmp_secret_file(host=None):
     if not host:
         host = api.env.host
     return os.path.expanduser('~/.{0}.secret'.format(host))
-
-
-class LogTask(Task):
-    def __init__(self, func, *args, **kwargs):
-        super(LogTask, self).__init__(*args, **kwargs)
-        self.func = func
-
-    def run(self, *args, **kwargs):
-        result = self.func(*args, **kwargs)
-        print api.env.tasks
-        print api.env.command
-        command = api.env.command
-
-        host_json = util.load_json()
-        api.env.last_runs.append('{0} [{1}:{2}]'.format(util.get_timestamp(), command, result))
-        host_json.update({'last_runs': api.env.last_runs})
-
-        util.dump_json(host_json)
-        return result

@@ -5,10 +5,10 @@ import json
 from fabric.api import (env,
                         task,
                         hosts,)
-import util
-import conf
-import testtools
-from api import *  # noqa
+from lib import util
+from lib import conf
+from lib import testtools
+from lib.api import *  # noqa
 
 RE_UPTIME = re.compile('^.*up (.+),.*user.*$')
 

@@ -1,8 +1,8 @@
 # coding: utf-8
 
 import unittest
-import util
-import conf
+from lib import util
+from lib import conf
 import re
 
 

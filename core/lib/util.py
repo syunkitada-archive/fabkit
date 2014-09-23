@@ -6,9 +6,9 @@ import json
 import datetime
 import os
 from types import StringType
-import conf
-import log
-from api import *  # noqa
+from lib import conf
+from lib import log
+from lib.api import *  # noqa
 
 
 def get_expanded_hosts(host=None):

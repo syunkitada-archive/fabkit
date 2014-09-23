@@ -3,7 +3,7 @@
 from fabric.api import *  # noqa
 import unittest
 import commands
-import conf
+from lib import conf
 import test_util
 import test_cook
 import test_node

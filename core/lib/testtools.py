@@ -2,8 +2,8 @@
 
 # library for test
 
-import util
-import conf
+from lib import util
+from lib import conf
 import json
 
 
