@@ -1,7 +1,7 @@
 import unittest
 from fabric.api import env
 from check import check
-import conf
+from lib import conf
 
 
 class TestSequenceFunctions(unittest.TestCase):
