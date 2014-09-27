@@ -105,10 +105,10 @@ def node(option=None, host_pattern=None, edit_key=None, edit_value=None):
         set_hosts(host_pattern)
 
         print '\n\nEdit above nodes.'
-        if not edit_key and type(edit_value) is not StringType:
+        if not edit_key or type(edit_value) is not StringType:
             edit_key = raw_input('Enter key: ')
 
-        if not edit_value and type(edit_value) is not StringType:
+        if not edit_value or type(edit_value) is not StringType:
             edit_value = raw_input('Enter value: ')
 
         for host in env.hosts:
