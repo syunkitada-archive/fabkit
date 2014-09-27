@@ -36,7 +36,7 @@ def get_logger(host=None):
 def get_node_logdir(host=None):
     node_logdir = os.path.join(conf.LOG_DIR, host)
     if not os.path.exists(node_logdir):
-        os.mkdir(node_logdir)
+        os.makedirs(node_logdir)
     return node_logdir
 
 

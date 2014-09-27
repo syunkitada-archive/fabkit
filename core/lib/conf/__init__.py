@@ -138,7 +138,6 @@ def get_initial_json(host):
 
 def get_node_json(dict_obj):
     return {
-        'name': dict_obj.get('name', ''),
         'chef_environment': dict_obj.get('chef_environment', '_default'),
         'fab_run_list': dict_obj.get('fab_run_list', []),
         'data': dict_obj.get('data', {}),

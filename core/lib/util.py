@@ -58,14 +58,24 @@ def get_available_hosts(host_pattern=None):
     candidates = get_expanded_hosts(host_pattern)
     RE_NODE_JSON = re.compile('%s/(.*).json' % conf.NODE_DIR)
     for candidate in candidates:
-        host_jsons = commands.getoutput('find %s/ -name %s.json' % (conf.NODE_DIR, candidate))
+        dir_file = candidate.rsplit('/', 1)
+        if len(dir_file) > 1:
+            node_dir = os.path.join(conf.NODE_DIR, dir_file[0])
+            candidate = dir_file[1]
+        else:
+            node_dir = conf.NODE_DIR
+
+        cmd = 'find %s -maxdepth 1 -name %s.json' % (node_dir, candidate)
+        host_jsons = commands.getoutput(cmd)
         hosts.update(set(RE_NODE_JSON.findall(host_jsons)))
+
     return hosts
 
 
 def load_json(host=None):
     if not host:
-        host = env.host
+        host = env.host_attrs.get(env.host)
+        host = host.get('hostpath')
 
     node_json = load_node_json(host)
     node_json.update(load_node_log_json(host))
@@ -74,7 +84,7 @@ def load_json(host=None):
 
 def load_node_json(host=None):
     if not host:
-        host = env.host
+        host = env.host_attrs.get(env.host).get('hostpath')
 
     path = get_node_json_file(host)
     if os.path.exists(path):
@@ -86,7 +96,7 @@ def load_node_json(host=None):
 
 def load_node_log_json(host=None):
     if not host:
-        host = env.host
+        host = env.host_attrs.get(env.host).get('hostpath')
 
     path = log.get_node_log_json_file(host)
     if os.path.exists(path):
@@ -98,13 +108,22 @@ def load_node_log_json(host=None):
 
 def dump_json(dict_obj, host=None):
     if not host:
-        host = env.host
+        host = env.host_attrs.get(env.host).get('hostpath')
+
     if host is not None:
         if not env.is_chef:
-            with open(get_node_json_file(host), 'w') as f:
+            node_file = get_node_json_file(host)
+            # create dir
+            dir_file = node_file.rsplit('/', 1)
+            if len(dir_file) > 1 and not os.path.exists(dir_file[0]):
+                os.makedirs(dir_file[0])
+            with open(node_file, 'w') as f:
                 json.dump(conf.get_node_json(dict_obj), f, sort_keys=True, indent=4)
 
-        with open(log.get_node_log_json_file(host), 'w') as f:
+        # create dir
+        node_log_file = log.get_node_log_json_file(host)
+
+        with open(node_log_file, 'w') as f:
             json.dump(conf.get_node_log_json(dict_obj), f, sort_keys=True, indent=4)
 
 

@@ -53,7 +53,8 @@ def chefnode(option=None, host_pattern=None):
             for node in nodes:
                 node.update(util.load_json(node['name']))
 
-        print_nodes(nodes, option)
+        env.hosts = nodes
+        print_nodes(option)
         check_continue()
 
 
@@ -124,17 +125,30 @@ def node(option=None, host_pattern=None, edit_key=None, edit_value=None):
         # optionなしの場合、optionがhost_patternの役割をはたし、host_patternがoptionになる
         if not option:
             option = '*'
+
         set_hosts(option, host_pattern)
         check_continue()
 
 
 def set_hosts(host_pattern='*', option=None):
     hosts = util.get_available_hosts(host_pattern)
-    nodes = []
     for host in hosts:
-        nodes.append(util.load_json(host))
+        host_json = util.load_json(host)
 
-    print_nodes(nodes, option)
+        splited_host = host.rsplit('/', 1)
+        if len(splited_host) > 1:
+            env_host = splited_host[1]
+        else:
+            env_host = host
+
+        host_json.update({
+            'hostpath': host
+        })
+
+        env.host_attrs.update({env_host: host_json})
+        env.hosts.append(env_host)
+
+    print_nodes(option)
 
 
 def check_host_pattern(host_pattern):
@@ -167,8 +181,10 @@ def check_continue():
             exit()
 
 
-def print_nodes(nodes=[], option=''):
+def print_nodes(option=''):
+    nodes = env.host_attrs
     is_verbose = False
+
     if option is not None and option.find('v') > -1:
         is_verbose = True
 
@@ -176,14 +192,13 @@ def print_nodes(nodes=[], option=''):
         if len(nodes) == 0:
             max_len_hostname = 10
         else:
-            max_len_hostname = max([len(node['name']) for node in nodes])
+            max_len_hostname = max([len(node['hostpath']) for node in nodes.values()])
         if env.is_chef:
             format_str = '{hostname:<' + str(max_len_hostname) + '} {run_list}'
-            horizontal_line = '-' * (max_len_hostname + 30)
         else:
             format_str = '{hostname:<' + str(max_len_hostname) + '} {fab_run_list}'
-            horizontal_line = '-' * (max_len_hostname + 50)
 
+        horizontal_line = '-' * (max_len_hostname + 30)
         print horizontal_line
         print format_str.format(hostname='hostname',
                                 run_list='run_list',
@@ -212,11 +227,11 @@ last_check    : {last_check}
             print horizontal_line
             format_str += horizontal_line
 
-    nodes = sorted(nodes, key=lambda node: str(node['name']), reverse=False)
-    env_hosts = []
-    for node in nodes:
-        hostname = node.get('name', '')
-        env_hosts.append(hostname)
+    nodes = sorted(nodes.items(), reverse=False)
+
+    for node_tapple in nodes:
+        node = node_tapple[1]
+        hostname = node.get('hostpath', '')
         run_list = node.get('run_list', [])
         fab_run_list = node.get('fab_run_list', [])
 
@@ -242,5 +257,3 @@ last_check    : {last_check}
                                     last_fabcooks=last_fabcooks,
                                     last_runs=last_runs,
                                     last_check=last_check,)
-
-    env.hosts = env_hosts
