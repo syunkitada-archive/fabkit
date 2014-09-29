@@ -5,7 +5,6 @@ import sys
 import subprocess
 from fabric.api import env
 
-
 FABFILE_DIR = os.path.dirname(os.path.abspath(__file__))
 CORE_DIR = os.path.join(FABFILE_DIR, 'core')
 REPO_DIR = os.path.dirname(FABFILE_DIR)
@@ -23,10 +22,11 @@ conf.init(REPO_DIR, TEST_CHEFREPO_DIR)
 # register fabscript task
 run = __import__(conf.FABSCRIPT_MODULE, {}, {}, [])
 env.last_runs = []
+env.host_attrs = {}
 
 # register task
 from test import test  # noqa
-from node import node, chefnode  # noqa
+from node import node, nodechef  # noqa
 from cook import cook  # noqa
 from check import check  # noqa
 

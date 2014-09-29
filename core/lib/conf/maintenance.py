@@ -26,7 +26,6 @@ def create_required_dirs():
     create_dir(conf.STORAGE_DIR)
     create_dir(conf.LOG_DIR)
     create_dir(conf.NODE_DIR)
-    create_dir(conf.PACKAGE_DIR)
     create_dir(conf.FABSCRIPT_MODULE_DIR, True)
     create_dir(conf.FABLIB_MODULE_DIR, True)
 

@@ -3,7 +3,7 @@
 # Install git
 sudo yum install git -y
 
-sudo yum install python-devel libxml2-devel libxslt-devel -y
+sudo yum install python-devel libevent-devel libxml2-devel libxslt-devel -y
 
 pushd /tmp
 # Install pip for install fabric
