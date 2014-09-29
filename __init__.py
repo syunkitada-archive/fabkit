@@ -26,7 +26,7 @@ env.host_attrs = {}
 
 # register task
 from test import test  # noqa
-from node import node, chefnode  # noqa
+from node import node, nodechef  # noqa
 from cook import cook  # noqa
 from check import check  # noqa
 

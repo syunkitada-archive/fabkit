@@ -1,7 +1,7 @@
 import unittest
 from fabric.api import env
 from node import (node,
-                  chefnode)
+                  nodechef)
 from lib import util
 from lib import conf
 
@@ -43,14 +43,14 @@ class TestSequenceFunctions(unittest.TestCase):
         conf.init()
         node()
 
-    def test_chefnode(self):
+    def test_nodechef(self):
         conf.init()
-        chefnode()
+        nodechef()
 
     def test_chefbootstrap(self):
         def __test_bootstrap(host_pattern):
             conf.init()
-            chefnode('bootstrap', host_pattern)
+            nodechef('bootstrap', host_pattern)
             cmd_history = []
             for host in util.get_expanded_hosts(host_pattern):
                 cmd_history.append(

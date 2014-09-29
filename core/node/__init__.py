@@ -2,6 +2,7 @@
 
 import re
 import json
+from types import StringType
 from fabric.api import (env,
                         task,
                         hosts,)
@@ -15,7 +16,7 @@ RE_UPTIME = re.compile('^.*up (.+),.*user.*$')
 
 @task
 @hosts('localhost')
-def chefnode(option=None, host_pattern=None):
+def nodechef(option=None, host_pattern=None):
     if option == 'bootstrap':
         host_pattern = check_host_pattern(host_pattern)
         env.hosts = util.get_expanded_hosts(host_pattern)
