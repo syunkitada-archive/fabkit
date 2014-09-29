@@ -8,7 +8,6 @@ from fabric.api import (env,
                         hosts,)
 from lib import util
 from lib import conf
-from lib import testtools
 from lib.api import *  # noqa
 
 RE_UPTIME = re.compile('^.*up (.+),.*user.*$')
@@ -16,7 +15,7 @@ RE_UPTIME = re.compile('^.*up (.+),.*user.*$')
 
 @task
 @hosts('localhost')
-def nodechef(option=None, host_pattern=None):
+def chefnode(option=None, host_pattern=None, chefoption=''):
     if option == 'bootstrap':
         host_pattern = check_host_pattern(host_pattern)
         env.hosts = util.get_expanded_hosts(host_pattern)
@@ -25,15 +24,14 @@ def nodechef(option=None, host_pattern=None):
             return
 
         print env.hosts
+        print 'option: {0}'.format(chefoption)
 
         # knife bootstrap `hostname` -A -x owner --sudo -r 'recipe[cookbook-test]'
         # knife node run_list add 192.168.33.10 recipe[cookbook-test]
 
         if util.confirm('Are you sure you want to create above nodes?', 'Canceled'):
             for host in env.hosts:
-                print '{0} host.'.format(host)
-                cmd_bootstrap = 'knife bootstrap {0} -x {1} -N {0} --sudo'.format(host, env.user)  # noqa
-                print cmd_bootstrap
+                cmd_bootstrap = 'knife bootstrap {0} -x {1} -N {0} --sudo {2}'.format(host, env.user, chefoption)  # noqa
                 local(cmd_bootstrap)
 
         return
@@ -46,15 +44,17 @@ def nodechef(option=None, host_pattern=None):
 
         option = host_pattern
         searched_nodes = cmd('knife search node "name:{0}" -F json'.format(host_name))[1]
-        if env.is_test:
-            searched_nodes = testtools.get_searched_nodes(host_name)
 
         nodes = json.loads(searched_nodes)['rows']
-        if option == 'v':
-            for node in nodes:
-                node.update(util.load_json(node['name']))
 
-        env.hosts = nodes
+        for node in nodes:
+            print 'DEBUG\n' * 3
+            print node
+            node.update(util.load_json(node['name']))
+            node.update({'hostpath': node['name']})
+            env.hosts.append(node['name'])
+            env.host_attrs.update({node['name']: node})
+
         print_nodes(option)
         check_continue()
 

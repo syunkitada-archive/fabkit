@@ -1,7 +1,7 @@
 import unittest
 from fabric.api import env
 from node import (node,
-                  nodechef)
+                  chefnode)
 from lib import util
 from lib import conf
 
@@ -43,18 +43,18 @@ class TestSequenceFunctions(unittest.TestCase):
         conf.init()
         node()
 
-    def test_nodechef(self):
-        conf.init()
-        nodechef()
+    def test_chefnode(self):
+        # TODO
+        pass
 
     def test_chefbootstrap(self):
         def __test_bootstrap(host_pattern):
             conf.init()
-            nodechef('bootstrap', host_pattern)
+            chefnode('bootstrap', host_pattern)
             cmd_history = []
             for host in util.get_expanded_hosts(host_pattern):
                 cmd_history.append(
-                    'local> knife bootstrap {0} -x {1} -N {0} --sudo'.format(host, env.user)  # noqa
+                    'local> knife bootstrap {0} -x {1} -N {0} --sudo '.format(host, env.user)  # noqa
                 )
             self.assertEqual(cmd_history, env.cmd_history)
 
