@@ -174,9 +174,9 @@ def check_continue():
 
     if len(env.tasks) > 1:
         if util.confirm('Are you sure you want to run task on above nodes?', 'Canceled'):
-            if is_prepare or is_cook:
+            if (is_prepare or is_cook) and not env.password:
                 print 'Enter your password.\n'
-                sudo('hostname')
+                # sudo('hostname')
         else:
             env.hosts = []
             exit()

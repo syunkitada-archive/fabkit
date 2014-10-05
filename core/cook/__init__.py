@@ -13,13 +13,13 @@ from check import check
 @task
 @parallel(pool_size=10)
 def cook(option=None):
-    host_json = util.load_json()
+    attr = env.host_attrs[env.host]
     if env.is_chef:
-        host_json.update({'last_cook': '{0} [start]'.format(util.get_timestamp())})
-        util.dump_json(host_json)
+        attr.update({'last_cook': '{0} [start]'.format(util.get_timestamp())})
+        util.dump_json()
     else:
-        host_json.update({'last_fabcooks': ['{0} [start]'.format(util.get_timestamp())]})
-        util.dump_json(host_json)
+        attr.update({'last_fabcooks': ['{0} [start]'.format(util.get_timestamp())]})
+        util.dump_json()
 
     if not check():
         log.warning('Failed to check(ssh)')
@@ -27,15 +27,15 @@ def cook(option=None):
 
     if env.is_chef:
         cook_result = sudo('chef-client')
-        host_json = util.load_json()
+        attr = util.load_json()
         last_cook = '{0} [{1}]'.format(util.get_timestamp(), cook_result.return_code)
-        host_json.update({'last_cook': last_cook})
+        attr.update({'last_cook': last_cook})
 
     else:
         run = __import__(conf.FABSCRIPT_MODULE, {}, {}, [])
 
         last_fabcooks = []
-        for fab_script in host_json.get('fab_run_list', []):
+        for fab_script in attr.get('fab_run_list', []):
             modules = fab_script.split('.')
             module = run
 
@@ -49,6 +49,6 @@ def cook(option=None):
 
             last_fabcooks.append('{0} [{1}:{2}]'.format(util.get_timestamp(),
                                                         fab_script, return_code))
-            host_json.update({'last_fabcooks': last_fabcooks})
+            attr.update({'last_fabcooks': last_fabcooks})
 
-    util.dump_json(host_json)
+    util.dump_json()

@@ -1,11 +1,20 @@
+# coding:utf-8
+
 from fabric.api import task, env, warn_only, parallel
 from lib.api import run, cmd
 from lib import util
 from lib import conf
 import re
+import platform
 
+os = platform.platform()
+if os.find('CYGWIN') >= 0:
+    RE_IP = re.compile('.+\[(.+)\].+')
+    cmd_ping = 'ping {0} -n 1 -w 2'
+else:
+    RE_IP = re.compile('PING .+ \((.+)\) .+\(.+\) bytes')
+    cmd_ping = 'ping {0} -c 1 -W 2'
 
-RE_IP = re.compile('PING .+ \((.+)\) .+\(.+\) bytes')
 RE_NODE = re.compile('log/(.+)/status.json: +"(.+)"')
 
 
@@ -39,26 +48,25 @@ def check():
 
         return
 
-    cmd_ping = 'ping {0} -c 1 -W 2'.format(env.host)
-
     ipaddress = 'failed'
     ssh = 'failed'
     uptime = ''
 
     with warn_only():
-        host_json = util.load_json()
-        result = cmd(cmd_ping)
+        attr = env.host_attrs[env.host]
+        result = cmd(cmd_ping.format(env.host))
+
         if result[0] == 0:
             if not env.is_test:
                 ipaddress = RE_IP.findall(result[1])[0]
             uptime = run('uptime')
             ssh = 'success'
 
-        host_json.update({'ipaddress': ipaddress})
-        host_json.update({'ssh': ssh})
-        host_json.update({'uptime': uptime})
-        host_json.update({'last_check': util.get_timestamp()})
-        util.dump_json(host_json)
+        attr.update({'ipaddress': ipaddress})
+        attr.update({'ssh': ssh})
+        attr.update({'uptime': uptime})
+        attr.update({'last_check': util.get_timestamp()})
+        util.dump_json()
 
         if ssh == 'success':
             return True

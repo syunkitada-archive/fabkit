@@ -5,6 +5,7 @@ import sys
 import subprocess
 from fabric.api import env
 
+
 FABFILE_DIR = os.path.dirname(os.path.abspath(__file__))
 CORE_DIR = os.path.join(FABFILE_DIR, 'core')
 REPO_DIR = os.path.dirname(FABFILE_DIR)

@@ -106,9 +106,12 @@ def load_node_log_json(host=None):
     return {}
 
 
-def dump_json(dict_obj, host=None):
+def dump_json(dict_obj=None, host=None):
     if not host:
         host = env.host_attrs.get(env.host).get('hostpath')
+
+    if not dict_obj:
+        dict_obj = env.host_attrs[env.host]
 
     if host is not None:
         if not env.is_chef:

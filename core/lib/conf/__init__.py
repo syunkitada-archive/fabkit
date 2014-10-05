@@ -34,12 +34,11 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
 
     global CONFIG
     global CHEFREPO_DIR, TEST_CHEFREPO_DIR
-    global STORAGE_DIR, LOG_DIR, PACKAGE_DIR, CHEF_RPM, TMP_CHEF_RPM
+    global STORAGE_DIR, LOG_DIR, TMP_DIR, PACKAGE_DIR
     global FABSCRIPT_MODULE, FABSCRIPT_MODULE_DIR
     global COOKBOOKS_DIRS, NODE_DIR, ROLE_DIR, ENVIRONMENT_DIR
     global FABLIB_MODULE_DIR, FABLIB_MAP
     global LOGGER_LEVEL, LOGGER_FORMATTER, NODE_LOGGER_MAX_BYTES, NODE_LOGGER_BACKUP_COUNT
-    global CHEF_CLIENT_PACKAGES
 
     if test_chefrepo_dir:
         TEST_CHEFREPO_DIR = test_chefrepo_dir
@@ -69,7 +68,8 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
 
     # read common settings
     STORAGE_DIR = complement_path(CONFIG.get('common', 'storage_dir'))
-    LOG_DIR = os.path.join(STORAGE_DIR, CONFIG.get('common', 'log_dir'))
+    LOG_DIR = os.path.join(STORAGE_DIR, 'log')
+    TMP_DIR = os.path.join(STORAGE_DIR, 'tmp')
     node_dir = CONFIG.get('common', 'node_dir')
     NODE_DIR = complement_path(node_dir)
     FABSCRIPT_MODULE = CONFIG.get('common', 'fabscript_module')
