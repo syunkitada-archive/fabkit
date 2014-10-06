@@ -3,20 +3,21 @@
 from lib.api import *  # noqa
 
 
-# TODO osの判定
 def start(package_name):
-    cmd_start = 'service {0} start'.format(package_name)
-
-    sudo(cmd_start)
+    sudo('/etc/init.d/{0} start'.format(package_name))
 
 
-def enable(package_name):
-    cmd_enable = 'chkconfig {0} on'.format(package_name)
-
-    sudo(cmd_enable)
+def stop(package_name):
+    sudo('/etc/init.d/{0} restart'.format(package_name))
 
 
 def restart(package_name):
-    cmd_start = 'service {0} restart'.format(package_name)
+    sudo('/etc/init.d/{0} restart'.format(package_name))
 
-    sudo(cmd_start)
+
+def enable(package_name):
+    sudo('chkconfig {0} on'.format(package_name))
+
+
+def disable(package_name):
+    sudo('chkconfig {0} off'.format(package_name))

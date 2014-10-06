@@ -9,7 +9,6 @@ from lib import (log,
 
 
 def template(target, src_file, owner='root:root', mode='644', kwargs={}):
-    # TODO 新規ファイルの場合は、全diffを表示する
     timestamp = int(time.time())
     tmp_path = 'template/{0}_{1}'.format(target, timestamp)
     local_tmp_file = os.path.join(conf.TMP_DIR, env.host, tmp_path)

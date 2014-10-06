@@ -2,6 +2,8 @@
 
 import re
 import json
+import platform
+import getpass
 from types import StringType
 from fabric.api import (env,
                         task,
@@ -102,6 +104,8 @@ def node(option=None, host_pattern=None, edit_key=None, edit_value=None):
         return
 
     elif option == 'edit':
+        # XXX 文字列が正しくjson形式に置換できていない
+        # ダブルクォート、シングルクォートなどの判定もするべき
         host_pattern = check_host_pattern(host_pattern)
         set_hosts(host_pattern)
 
@@ -174,9 +178,13 @@ def check_continue():
 
     if len(env.tasks) > 1:
         if util.confirm('Are you sure you want to run task on above nodes?', 'Canceled'):
+            # TODO fabfileでパスワード設定できるようにする
             if (is_prepare or is_cook) and not env.password:
                 print 'Enter your password.\n'
-                # sudo('hostname')
+                if platform.system().find('CYGWIN') == 0:
+                    env.password = getpass.getpass()
+                else:
+                    sudo('hostname')
         else:
             env.hosts = []
             exit()
