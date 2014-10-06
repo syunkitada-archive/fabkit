@@ -2,8 +2,8 @@
 
 import time
 import os
-from fabric.api import env
-from lib.api import local, sudo, local_scp
+from fabric.api import env, warn_only
+from lib.api import local, sudo, scp
 from lib import (log,
                  conf)
 
@@ -25,14 +25,19 @@ def template(target, src_file, owner='root:root', mode='644', kwargs={}):
         with open(local_tmp_file, 'w') as exf:
             exf.write(f.read().format(**kwargs))
 
-    local_scp(local_tmp_file, tmp_file)
-    result = sudo('diff {0} {1}'.format(target, tmp_file))
-    if result.return_code != 0:
-        sudo('mv {0} {1}_old'.format(target, tmp_file))
-        sudo('cp -af {0} {1}'.format(tmp_file, target))
+    scp(local_tmp_file, tmp_file)
 
-    else:
-        log.info('No change')
+    with warn_only():
+        if exists(target):
+            result = sudo('diff {0} {1}'.format(target, tmp_file))
+            if result.return_code != 0:
+                sudo('mv {0} {1}_old'.format(target, tmp_file))
+                sudo('cp -af {0} {1}'.format(tmp_file, target))
+            else:
+                log.info('No change')
+        else:
+            sudo('diff /dev/null {1}'.format(target, tmp_file))
+            sudo('cp -af {0} {1}'.format(tmp_file, target))
 
     sudo('chmod {0} {1}'.format(mode, target))
     sudo('chown {0} {1}'.format(owner, target))
@@ -46,3 +51,12 @@ def mkdir(target, is_local=False, owner='root:root', mode='775'):
         sudo(cmd_mkdir)
         sudo('chmod {0} {1}'.format(mode, target))
         sudo('chown {0} {1}'.format(owner, target))
+
+
+def exists(target):
+    with warn_only():
+        cmd = '[ -e {0} ]'.format(target)
+        if sudo(cmd).return_code == 0:
+            return True
+        else:
+            return False

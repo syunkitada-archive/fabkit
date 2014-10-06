@@ -64,16 +64,15 @@ def local(cmd, **kwargs):
     return result
 
 
-def local_scp(from_path, to_path, use_env_host=True):
-    if use_env_host:
-        return local('scp -o "StrictHostKeyChecking=no" {0} {1}:{2}'.format(from_path,
-                                                                            api.env.host, to_path))
+def scp(from_path, to_path, is_local=True, use_env_host=True):
+    if is_local:
+        if use_env_host:
+            return local('scp -o "StrictHostKeyChecking=no" {0} {1}:{2}'.format(from_path,
+                         api.env.host, to_path))
+        else:
+            return local('scp -o "StrictHostKeyChecking=no" {0} {1}'.format(from_path, to_path))
     else:
-        return local('scp -o "StrictHostKeyChecking=no" {0} {1}'.format(from_path, to_path))
-
-
-def scp(from_path, to_path):
-    return run('scp -o "StrictHostKeyChecking=no" %s %s' % (from_path, to_path))
+        return run('scp -o "StrictHostKeyChecking=no" %s %s' % (from_path, to_path))
 
 
 def test_cmd(cmd):
@@ -115,7 +114,7 @@ def set_pass(key, password, host=None):
     if not host:
         host = api.env.host
     if host != 'localhost':
-        local_scp(secret_file, '{0}:{1}'.format(host, secret_file))
+        scp(secret_file, '{0}:{1}'.format(host, secret_file))
 
 
 def get_pass(key, host=None):

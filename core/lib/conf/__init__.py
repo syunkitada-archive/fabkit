@@ -16,7 +16,7 @@ from logging import StreamHandler
 # setup fabric env
 env.forward_agent = True
 env.use_ssh_config = True
-env.warn_only = True
+env.warn_only = False
 env.colorize_errors = True
 
 env.is_test = False
@@ -34,7 +34,7 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
 
     global CONFIG
     global CHEFREPO_DIR, TEST_CHEFREPO_DIR
-    global STORAGE_DIR, LOG_DIR, TMP_DIR, PACKAGE_DIR
+    global STORAGE_DIR, LOG_DIR, TMP_DIR, DOWNLOADS_DIR
     global FABSCRIPT_MODULE, FABSCRIPT_MODULE_DIR
     global COOKBOOKS_DIRS, NODE_DIR, ROLE_DIR, ENVIRONMENT_DIR
     global FABLIB_MODULE_DIR, FABLIB_MAP
@@ -70,6 +70,7 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
     STORAGE_DIR = complement_path(CONFIG.get('common', 'storage_dir'))
     LOG_DIR = os.path.join(STORAGE_DIR, 'log')
     TMP_DIR = os.path.join(STORAGE_DIR, 'tmp')
+    DOWNLOADS_DIR = os.path.join(STORAGE_DIR, 'downloads')
     node_dir = CONFIG.get('common', 'node_dir')
     NODE_DIR = complement_path(node_dir)
     FABSCRIPT_MODULE = CONFIG.get('common', 'fabscript_module')

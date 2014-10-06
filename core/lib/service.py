@@ -14,3 +14,9 @@ def enable(package_name):
     cmd_enable = 'chkconfig {0} on'.format(package_name)
 
     sudo(cmd_enable)
+
+
+def restart(package_name):
+    cmd_start = 'service {0} restart'.format(package_name)
+
+    sudo(cmd_start)
