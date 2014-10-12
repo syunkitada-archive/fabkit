@@ -1,0 +1,36 @@
+2014-10-12 23:53:55,463 - localhost - INFO - cmd> find /cygdrive/c/Users/owner/chefric-repo/fabfile/test/chef-repo/storage/log -name status.json
+2014-10-12 23:53:55,463 - localhost - INFO - cmd> find /cygdrive/c/Users/owner/chefric-repo/fabfile/test/chef-repo/storage/log -name status.json
+2014-10-12 23:53:55,464 - localhost - INFO - return> 0  out>
+find /cygdrive/c/Users/owner/chefric-repo/fabfile/test/chef-repo/storage/log -name status.json
+2014-10-12 23:53:55,464 - localhost - INFO - return> 0  out>
+find /cygdrive/c/Users/owner/chefric-repo/fabfile/test/chef-repo/storage/log -name status.json
+2014-10-12 23:53:55,464 - localhost - INFO - cmd> grep -H ' \[.*:[^0]\]' find /cygdrive/c/Users/owner/chefric-repo/fabfile/test/chef-repo/storage/log -name status.json
+2014-10-12 23:53:55,464 - localhost - INFO - cmd> grep -H ' \[.*:[^0]\]' find /cygdrive/c/Users/owner/chefric-repo/fabfile/test/chef-repo/storage/log -name status.json
+2014-10-12 23:53:55,465 - localhost - INFO - return> 0  out>
+grep -H ' \[.*:[^0]\]' find /cygdrive/c/Users/owner/chefric-repo/fabfile/test/chef-repo/storage/log -name status.json
+2014-10-12 23:53:55,465 - localhost - INFO - return> 0  out>
+grep -H ' \[.*:[^0]\]' find /cygdrive/c/Users/owner/chefric-repo/fabfile/test/chef-repo/storage/log -name status.json
+2014-10-12 23:53:55,465 - localhost - INFO - cmd> grep '"ssh": "failed"' find /cygdrive/c/Users/owner/chefric-repo/fabfile/test/chef-repo/storage/log -name status.json
+2014-10-12 23:53:55,465 - localhost - INFO - cmd> grep '"ssh": "failed"' find /cygdrive/c/Users/owner/chefric-repo/fabfile/test/chef-repo/storage/log -name status.json
+2014-10-12 23:53:55,466 - localhost - INFO - return> 0  out>
+grep '"ssh": "failed"' find /cygdrive/c/Users/owner/chefric-repo/fabfile/test/chef-repo/storage/log -name status.json
+2014-10-12 23:53:55,466 - localhost - INFO - return> 0  out>
+grep '"ssh": "failed"' find /cygdrive/c/Users/owner/chefric-repo/fabfile/test/chef-repo/storage/log -name status.json
+2014-10-12 23:53:55,555 - localhost - INFO - cmd> ping localhost -n 1 -w 2
+2014-10-12 23:53:55,555 - localhost - INFO - cmd> ping localhost -n 1 -w 2
+2014-10-12 23:53:55,555 - localhost - INFO - cmd> ping localhost -n 1 -w 2
+2014-10-12 23:53:55,556 - localhost - INFO - return> 0  out>
+ping localhost -n 1 -w 2
+2014-10-12 23:53:55,556 - localhost - INFO - return> 0  out>
+ping localhost -n 1 -w 2
+2014-10-12 23:53:55,556 - localhost - INFO - return> 0  out>
+ping localhost -n 1 -w 2
+2014-10-12 23:53:55,556 - localhost - INFO - run> uptime
+2014-10-12 23:53:55,556 - localhost - INFO - run> uptime
+2014-10-12 23:53:55,556 - localhost - INFO - run> uptime
+2014-10-12 23:53:55,584 - localhost - INFO - return> 0  out>
+/bin/sh: uptime: コマンドが見つかりません
+2014-10-12 23:53:55,584 - localhost - INFO - return> 0  out>
+/bin/sh: uptime: コマンドが見つかりません
+2014-10-12 23:53:55,584 - localhost - INFO - return> 0  out>
+/bin/sh: uptime: コマンドが見つかりません

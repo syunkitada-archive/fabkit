@@ -27,10 +27,18 @@ STDOUT_LOG_FILE = 'stdout.log'
 # for prefix of tmpfile
 UUID = uuid.uuid4()
 
+env.cmd_history = []  # for debug
+env.last_runs = []
+env.node_map = {}
+
 
 # append module dir to sys.path
 def init(chefrepo_dir=None, test_chefrepo_dir=None):
-    env.cmd_history = []  # for debug
+    if env.is_test:
+        env.cmd_history = []  # for debug
+        env.last_runs = []
+        env.hosts = []
+        env.node_map = {}
 
     global CONFIG
     global CHEFREPO_DIR, TEST_CHEFREPO_DIR
@@ -120,35 +128,3 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
     error_file_rotaiting_handler.setFormatter(LOGGER_FORMATTER)
     error_file_rotaiting_handler.setLevel(logging.ERROR)
     root_logger.addHandler(error_file_rotaiting_handler)
-
-
-# chef-server setting
-def is_chef(option=None):
-    if option and option.find('s') != -1:
-        env.is_chef = True
-        return True
-    else:
-        return env.is_chef
-
-
-def get_initial_json(host):
-    return get_node_json({'name': host})
-
-
-def get_node_json(dict_obj):
-    return {
-        'fab_run_list': dict_obj.get('fab_run_list', []),
-        'attr': dict_obj.get('data', {}),
-    }
-
-
-def get_node_log_json(dict_obj):
-    return {
-        'ipaddress': dict_obj.get('ipaddress', ''),
-        'last_check': dict_obj.get('last_check', ''),
-        'last_cook': dict_obj.get('last_cook', ''),
-        'last_fabcooks': dict_obj.get('last_fabcooks', []),
-        'last_runs': dict_obj.get('last_runs', []),
-        'ssh': dict_obj.get('ssh', ''),
-        'uptime': dict_obj.get('uptime', ''),
-    }

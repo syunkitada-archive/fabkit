@@ -7,8 +7,8 @@ from lib import conf
 import re
 import platform
 
-os = platform.platform()
-if os.find('CYGWIN') >= 0:
+
+if platform.platform().find('CYGWIN') >= 0:
     RE_IP = re.compile('.+\[(.+)\].+')
     cmd_ping = 'ping {0} -n 1 -w 2'
 else:
@@ -21,6 +21,10 @@ RE_NODE = re.compile('log/(.+)/status.json: +"(.+)"')
 @task
 @parallel(10)
 def check():
+    ipaddress = 'failed'
+    ssh = 'failed'
+    uptime = ''
+
     if len(env.hosts) == 0:
         find_status = cmd('find {0} -name status.json'.format(conf.LOG_DIR))
         find_status = find_status[1].replace('\n', ' ')
@@ -48,12 +52,8 @@ def check():
 
         return
 
-    ipaddress = 'failed'
-    ssh = 'failed'
-    uptime = ''
-
     with warn_only():
-        attr = env.host_attrs[env.host]
+        node = env.node_map[env.host]
         result = cmd(cmd_ping.format(env.host))
 
         if result[0] == 0:
@@ -62,11 +62,11 @@ def check():
             uptime = run('uptime')
             ssh = 'success'
 
-        attr.update({'ipaddress': ipaddress})
-        attr.update({'ssh': ssh})
-        attr.update({'uptime': uptime})
-        attr.update({'last_check': util.get_timestamp()})
-        util.dump_json()
+        node.update({'ipaddress': ipaddress})
+        node.update({'ssh': ssh})
+        node.update({'uptime': uptime})
+        node.update({'last_check': util.get_timestamp()})
+        util.dump_node()
 
         if ssh == 'success':
             return True
