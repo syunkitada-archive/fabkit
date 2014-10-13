@@ -2,11 +2,10 @@
 
 import unittest
 from lib import util
-from lib import conf
-import re
+from node import node
 
 
-class TestSequenceFunctions(unittest.TestCase):
+class TestUtilHost(unittest.TestCase):
     def test_get_expanded_hosts(self):
         self.assertEqual(
             util.get_expanded_hosts('test[01-03].host'),
@@ -27,38 +26,16 @@ class TestSequenceFunctions(unittest.TestCase):
         self.assertEqual(util.get_expanded_hosts(None), [])
 
     def test_get_available_hosts(self):
+        node('create', 'localhost')
         self.assertEqual(util.get_available_hosts('localhost'),
                          set(['localhost']))
 
-        self.assertEqual(util.get_available_hosts('test0[2+4]*'),
+        node('create', 'test0[2+4].host')
+        hosts = util.get_available_hosts('test0[2+4]*')
+        self.assertEqual(hosts,
                          set(['test02.host', 'test04.host']))
 
         self.assertEqual(util.get_available_hosts(1), [])
         self.assertEqual(util.get_available_hosts(True), [])
         self.assertEqual(util.get_available_hosts(), [])
         self.assertEqual(util.get_available_hosts(None), [])
-
-    def test_json(self):
-        host = 'test99.host'
-        util.dump_json(conf.get_initial_json(host), host)
-        self.assertTrue(util.exists_json(host))
-
-        node_json = conf.get_initial_json(host)
-        self.assertEqual(node_json, util.load_node_json(host))
-
-        node_log_json = conf.get_node_log_json({})
-        self.assertEqual(node_log_json, util.load_node_log_json(host))
-
-        node_json.update(node_log_json)
-        self.assertEqual(node_json, util.load_json(host))
-
-        util.remove_json(host)
-        self.assertFalse(util.exists_json(host))
-
-    def test_get_timestamp(self):
-        prog = re.compile('[1-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-2][0-9]:[0-6][0-9]:[0-6][0-9]')  # noqa
-        self.assertTrue(prog.match(util.get_timestamp()))
-
-    def test_confirm(self):
-        self.assertTrue(util.confirm('Is ok?'))
-        self.assertTrue(util.confirm('Is ok?', 'Canceled'))

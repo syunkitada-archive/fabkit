@@ -5,10 +5,7 @@ import re
 import os
 from fabric import api
 from lib import log
-
-# memo
-# with settings(warn_only=True): をやろうとすると失敗する (sudo: export command not found)
-# warn_onlyを利用する場合は、run(cmd, warn_only=True) でやる
+from lib import conf
 
 
 def cmd(cmd):
@@ -64,16 +61,15 @@ def local(cmd, **kwargs):
     return result
 
 
-def local_scp(from_path, to_path, use_env_host=True):
-    if use_env_host:
-        return local('scp -o "StrictHostKeyChecking=no" {0} {1}:{2}'.format(from_path,
-                                                                            api.env.host, to_path))
+def scp(from_path, to_path, is_local=True, use_env_host=True):
+    if is_local:
+        if use_env_host:
+            return local('scp -o "StrictHostKeyChecking=no" {0} {1}:{2}'.format(from_path,
+                         api.env.host, to_path))
+        else:
+            return local('scp -o "StrictHostKeyChecking=no" {0} {1}'.format(from_path, to_path))
     else:
-        return local('scp -o "StrictHostKeyChecking=no" {0} {1}'.format(from_path, to_path))
-
-
-def scp(from_path, to_path):
-    return run('scp -o "StrictHostKeyChecking=no" %s %s' % (from_path, to_path))
+        return run('scp -o "StrictHostKeyChecking=no" %s %s' % (from_path, to_path))
 
 
 def test_cmd(cmd):
@@ -88,15 +84,28 @@ class TestCmd(str):
     return_code = 0
 
 
-# コマンド内に直接パスワードを書き込みたくない場合に利用する
-# ログにパスワードが出力されるのを回避できる
-# ファイルを通してパスワードを参照するようにする
+""" パスワード支援機能
+コマンド内に直接パスワードを書き込みたくない場合に利用する
+ログ出力にパスワードが出力されるのを回避できる
+
+set_pass('test', 'hogepass')
+set_pass('test', 'piyohogepass')
+run('echo {0}'.format(get_pass('test')))
+unset_pass()
+"""
+
+
 def set_pass(key, password, host=None):
-    secret_file = get_tmp_secret_file(host)
+    """
+    ユーザホームのローカルファイルにパスワードを書き込む
+    権限は600 user:user とする
+    """
+    secret_file = __get_local_secret_file(host)
 
     re_key = re.compile('^%s .+$' % key)
     replaced_file = ''
     exists_key = False
+
     if os.path.exists(secret_file):
         with open(secret_file, 'r') as f:
             for line in f:
@@ -115,24 +124,31 @@ def set_pass(key, password, host=None):
     if not host:
         host = api.env.host
     if host != 'localhost':
-        local_scp(secret_file, '{0}:{1}'.format(host, secret_file))
+        path = __get_remote_secret_file(host)
+        scp(secret_file, path)
+        run('chmod 600 {0}'.format(path))
 
 
 def get_pass(key, host=None):
-    secret_file = get_tmp_secret_file(host)
+    secret_file = __get_remote_secret_file(host)
     return "`grep '^{0} ' {1} | awk '{{print $2;}}'`".format(key, secret_file)
 
 
 def unset_pass(host=None):
-    secret_file = get_tmp_secret_file(host)
-    cmd('rm -f {0}'.format(secret_file))
+    cmd('rm -f {0}'.format(__get_local_secret_file()))
     if not host:
         host = api.env.host
     if host != 'localhost':
-        run('rm -f {0}'.format(secret_file))
+        run('rm -f {0}'.format(__get_remote_secret_file()))
 
 
-def get_tmp_secret_file(host=None):
+def __get_remote_secret_file(host=None):
     if not host:
         host = api.env.host
-    return os.path.expanduser('~/.{0}.secret'.format(host))
+    return os.path.join('~/.{0}.secret'.format(host))
+
+
+def __get_local_secret_file(host=None):
+    if not host:
+        host = api.env.host
+    return os.path.join(conf.TMP_DIR, '.{0}.secret'.format(host))

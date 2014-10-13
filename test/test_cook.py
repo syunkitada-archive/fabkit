@@ -1,28 +1,36 @@
+# coding: utf-8
+
 import unittest
-from cook import cook
 from fabric.api import env
+
+from node import node, chefnode
+from cook import cook
 from lib import conf
-from lib import util
 import test_check
+import test_node
 
 
-class TestSequenceFunctions(unittest.TestCase):
+class TestCook(unittest.TestCase):
     def test_cook(self):
-        conf.init()
+        node('remove', '*')
         env.is_chef = False
-        host_json = util.load_json()
-        host_json['fab_run_list'] = ['testscript.test']
-        util.dump_json(host_json)
+        conf.init()
 
+        node('create', 'localhost', 'fabrun_list', 'testscript.test')
         cook()
+
         cmd_history = test_check.get_check_cmds()
         cmd_history.extend(['run> hostname'])
-        self.assertEqual(cmd_history, env.cmd_history)
+        self.assertEqual(env.cmd_history, cmd_history)
 
     def test_cook_for_chef(self):
+        host = 'localhost'
         conf.init()
-        env.is_chef = True
+        chefnode(host)
         cook()
-        cmd_history = test_check.get_check_cmds()
+
+        cmd_history = []
+        cmd_history.extend(test_node.get_chefnode_cmds(host))
+        cmd_history.extend(test_check.get_check_cmds())
         cmd_history.extend(['sudo> chef-client'])
-        self.assertEqual(cmd_history, env.cmd_history)
+        self.assertEqual(env.cmd_history, cmd_history)
