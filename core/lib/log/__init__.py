@@ -44,8 +44,8 @@ def get_node_log(host=None):
     return os.path.join(get_node_logdir(host), '{0}.log'.format(host))
 
 
-def get_node_log_json_file(host=None):
-    return os.path.join(get_node_logdir(host), 'status.json')
+def get_node_log_file(host=None):
+    return os.path.join(get_node_logdir(host), 'status.yaml')
 
 
 def debug(msg, host=None):

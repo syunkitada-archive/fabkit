@@ -49,11 +49,10 @@ def dump_node(host=None, node=None, is_init=False):
         with open(node_file, 'w') as f:
             f.write(yaml.dump(node))
 
-    node_log_file = log.get_node_log_json_file(host)
+    node_log_file = log.get_node_log_file(host)
 
     with open(node_log_file, 'w') as f:
         f.write(yaml.dump(convert_node_log(node)))
-        # json.dump(conf.get_node_log_json(dict_obj), f, sort_keys=True, indent=4)
 
 
 def load_node(host=None):
@@ -195,7 +194,6 @@ def convert_node_log(node={}):
         'last_check': node.get('last_check', ''),
         'last_cook': node.get('last_cook', ''),
         'last_fabcooks': node.get('last_fabcooks', []),
-        'last_runs': node.get('last_runs', []),
         'ssh': node.get('ssh', ''),
         'uptime': node.get('uptime', ''),
     }

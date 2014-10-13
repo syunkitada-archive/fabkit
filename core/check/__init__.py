@@ -4,8 +4,10 @@ from fabric.api import task, env, warn_only, parallel
 from lib.api import run, cmd
 from lib import util
 from lib import conf
+import yaml
 import re
 import platform
+import os
 
 
 if platform.platform().find('CYGWIN') >= 0:
@@ -26,34 +28,26 @@ def check():
     uptime = ''
 
     if len(env.hosts) == 0:
-        find_status = cmd('find {0} -name status.json'.format(conf.LOG_DIR))
-        find_status = find_status[1].replace('\n', ' ')
-        grep_cmd = 'grep -H \' \[.*:[^0]\]\' {0}'.format(find_status)
-        warning_nodes = cmd(grep_cmd)[1]
-        failed_ssh_nodes = cmd('grep \'"ssh": "failed"\' {0}'.format(find_status))[1]
-        if warning_nodes == '' and failed_ssh_nodes == '':
-            print 'No warning nodes.'
-        else:
-            nodes = {}
+        print 'host: error'
+        print '-' * 40
+        re_host = re.compile('{0}/(.+)/status.yaml'.format(conf.LOG_DIR))
 
-            fsnodes = RE_NODE.findall(failed_ssh_nodes)
-            wnodes = RE_NODE.findall(warning_nodes)
-
-            for fsnode in fsnodes:
-                nodes.update({fsnode[0]: [fsnode[1]]})
-
-            for wnode in wnodes:
-                status = nodes.get(wnode[0], [])
-                status.append(wnode[1])
-                nodes.update({wnode[0]: status})
-
-            for node in nodes:
-                print '{0:<40} {1}'.format(node, nodes[node])
+        for root, dirs, files in os.walk(conf.LOG_DIR):
+            for file in files:
+                if file.find('status.yaml') == 0:
+                    path = os.path.join(root, file)
+                    with open(path) as f:
+                        status = yaml.load(f)
+                        if status['ipaddress'] == 'failed' or \
+                                status['ssh'] == 'failed':
+                            # TODO check last_fabcooks, last_cook
+                            host = re_host.search(path).group(1)
+                            print '{0}: {1}'.format(host, status)
 
         return
 
     with warn_only():
-        node = env.node_map[env.host]
+        node = env.node_map.get(env.host)
         result = cmd(cmd_ping.format(env.host))
 
         if result[0] == 0:
@@ -66,7 +60,7 @@ def check():
         node.update({'ssh': ssh})
         node.update({'uptime': uptime})
         node.update({'last_check': util.get_timestamp()})
-        util.dump_node()
+        util.dump_node(node=node)
 
         if ssh == 'success':
             return True

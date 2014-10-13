@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from fabric.api import warn_only
-from lib.api import *  # noqa
+from api import *  # noqa
 from lib import log
 
 

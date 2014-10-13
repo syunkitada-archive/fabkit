@@ -3,7 +3,7 @@
 import time
 import os
 from fabric.api import env, warn_only
-from lib.api import local, sudo, scp
+from api import local, sudo, scp
 from lib import (log,
                  conf)
 

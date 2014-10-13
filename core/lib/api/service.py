@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from lib.api import *  # noqa
+from api import *  # noqa
 
 
 def start(package_name):
