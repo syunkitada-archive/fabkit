@@ -2,13 +2,30 @@
 
 import time
 import os
+import inspect
 from fabric.api import env, warn_only
 from api import local, sudo, scp
-from lib import (log,
-                 conf)
+from lib import log, conf
+from jinja2 import Template
 
 
-def template(target, src_file, owner='root:root', mode='644', kwargs={}):
+def template(target, mode='644', owner='root:root', data={}, src_file=None):
+    if not src_file:
+        stack = inspect.stack()[1:-11]
+        templates_dirs = []
+        for frame in stack:
+            file = frame[1]
+            if file.find(conf.FABLIB_MODULE_DIR) == 0 or file.find(conf.FABSCRIPT_MODULE_DIR) == 0:
+                templates_dir = os.path.join(os.path.dirname(frame[1]), 'templates')
+                if os.path.exists(templates_dir):
+                    templates_dirs.insert(0, templates_dir)
+
+        file_name = target.rsplit('/', 1)[1]
+        for template in templates_dirs:
+            src_file = os.path.join(template, file_name)
+            if os.path.exists(src_file):
+                break
+
     timestamp = int(time.time())
     tmp_path = 'template/{0}_{1}'.format(target, timestamp)
     local_tmp_file = os.path.join(conf.TMP_DIR, env.host, tmp_path)
@@ -22,7 +39,10 @@ def template(target, src_file, owner='root:root', mode='644', kwargs={}):
 
     with open(src_file, 'rb') as f:
         with open(local_tmp_file, 'w') as exf:
-            exf.write(f.read().format(**kwargs))
+            template = Template(f.read())
+            exf.write(template.render(**data))
+            # exf.write(f.read().format(**kwargs))
+
 
     scp(local_tmp_file, tmp_file)
 
