@@ -4,28 +4,67 @@ import time
 import os
 import inspect
 from fabric.api import env, warn_only
-from api import local, sudo, scp
+from api import local, sudo, scp, run
 from lib import log, conf
 from jinja2 import Template
 
 
-def template(target, mode='644', owner='root:root', data={}, src_file=None):
+def __get_src_file(target, file_type, src_file=None):
     if not src_file:
         stack = inspect.stack()[1:-11]
-        templates_dirs = []
+        srcs_dirs = []
+        src_dirname = '{0}s'.format(file_type)
         for frame in stack:
             file = frame[1]
             if file.find(conf.FABLIB_MODULE_DIR) == 0 or file.find(conf.FABSCRIPT_MODULE_DIR) == 0:
-                templates_dir = os.path.join(os.path.dirname(frame[1]), 'templates')
-                if os.path.exists(templates_dir):
-                    templates_dirs.insert(0, templates_dir)
+                srcs_dir = os.path.join(os.path.dirname(frame[1]), src_dirname)
+                if os.path.exists(srcs_dir):
+                    srcs_dirs.insert(0, srcs_dir)
 
         file_name = target.rsplit('/', 1)[1]
-        for template in templates_dirs:
-            src_file = os.path.join(template, file_name)
+        for src in srcs_dirs:
+            src_file = os.path.join(src, file_name)
             if os.path.exists(src_file):
-                break
+                return src_file
+    else:
+        return src_file
 
+
+def file(target, mode='644', owner='root:root', extension=None, src_file=None):
+    with warn_only():
+        if exists(target):
+            log.info('file "{0}" exists'.format(target))
+        else:
+            if extension:
+                tmp_target = '{0}.{1}'.format(target, extension)
+            else:
+                tmp_target = target
+
+            src_file = __get_src_file(tmp_target, file_type='file')
+
+            tmp_file = '/tmp/file/{0}'.format(tmp_target)
+            tmp_dir = tmp_file.rsplit('/', 1)[0]
+            print 'DEBUG\n\n'
+            print tmp_target
+            print tmp_file
+            print tmp_dir
+            mkdir(tmp_dir, mode='777')
+
+            scp(src_file, tmp_file)
+
+            if extension:
+                if extension == 'tar.gz':
+                    run('tar -xvf {0} -C {1}'.format(tmp_file, tmp_dir))
+                sudo('cp -arf /tmp/file/{0} {0}'.format(target))
+            else:
+                sudo('cp -arf {0} {1}'.format(tmp_file, target))
+
+    sudo('chmod -R {0} {1}'.format(mode, target))
+    sudo('chown -R {0} {1}'.format(owner, target))
+
+
+def template(target, mode='644', owner='root:root', data={}, src_file=None):
+    src_file = __get_src_file(target, file_type='template')
     timestamp = int(time.time())
     tmp_path = 'template/{0}_{1}'.format(target, timestamp)
     local_tmp_file = os.path.join(conf.TMP_DIR, env.host, tmp_path)
@@ -41,8 +80,6 @@ def template(target, mode='644', owner='root:root', data={}, src_file=None):
         with open(local_tmp_file, 'w') as exf:
             template = Template(f.read())
             exf.write(template.render(**data))
-            # exf.write(f.read().format(**kwargs))
-
 
     scp(local_tmp_file, tmp_file)
 

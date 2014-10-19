@@ -8,7 +8,7 @@ def start(package_name):
 
 
 def stop(package_name):
-    sudo('/etc/init.d/{0} restart'.format(package_name))
+    sudo('/etc/init.d/{0} stop'.format(package_name))
 
 
 def restart(package_name):
