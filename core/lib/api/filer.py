@@ -31,6 +31,7 @@ def __get_src_file(target, file_type, src_file=None):
 
 
 def file(target, mode='644', owner='root:root', extension=None, src_file=None):
+    is_updated = False
     with warn_only():
         if exists(target):
             log.info('file "{0}" exists'.format(target))
@@ -44,10 +45,6 @@ def file(target, mode='644', owner='root:root', extension=None, src_file=None):
 
             tmp_file = '/tmp/file/{0}'.format(tmp_target)
             tmp_dir = tmp_file.rsplit('/', 1)[0]
-            print 'DEBUG\n\n'
-            print tmp_target
-            print tmp_file
-            print tmp_dir
             mkdir(tmp_dir, mode='777')
 
             scp(src_file, tmp_file)
@@ -58,12 +55,16 @@ def file(target, mode='644', owner='root:root', extension=None, src_file=None):
                 sudo('cp -arf /tmp/file/{0} {0}'.format(target))
             else:
                 sudo('cp -arf {0} {1}'.format(tmp_file, target))
+            is_updated = True
 
     sudo('chmod -R {0} {1}'.format(mode, target))
     sudo('chown -R {0} {1}'.format(owner, target))
+    return is_updated
 
 
 def template(target, mode='644', owner='root:root', data={}, src_file=None):
+    is_updated = False
+
     src_file = __get_src_file(target, file_type='template')
     timestamp = int(time.time())
     tmp_path = 'template/{0}_{1}'.format(target, timestamp)
@@ -89,14 +90,18 @@ def template(target, mode='644', owner='root:root', data={}, src_file=None):
             if result.return_code != 0:
                 sudo('mv {0} {1}_old'.format(target, tmp_file))
                 sudo('cp -af {0} {1}'.format(tmp_file, target))
+                is_updated = True
             else:
                 log.info('No change')
         else:
             sudo('diff /dev/null {1}'.format(target, tmp_file))
             sudo('cp -af {0} {1}'.format(tmp_file, target))
+            is_updated = True
 
     sudo('chmod {0} {1}'.format(mode, target))
     sudo('chown {0} {1}'.format(owner, target))
+
+    return is_updated
 
 
 def mkdir(target, is_local=False, owner='root:root', mode='775'):

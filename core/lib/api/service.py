@@ -15,6 +15,10 @@ def restart(package_name):
     sudo('/etc/init.d/{0} restart'.format(package_name))
 
 
+def reload(package_name):
+    sudo('/etc/init.d/{0} reload'.format(package_name))
+
+
 def enable(package_name):
     sudo('chkconfig {0} on'.format(package_name))
 
