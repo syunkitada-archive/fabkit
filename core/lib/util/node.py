@@ -31,8 +31,10 @@ def dump_node(host=None, node=None, is_init=False):
     if is_init:
         node_path = host
         node = convert_node()
+        db.update_node(host, node)
     elif not node:
         node = env.node_map.get(host)
+        db.update_node(host, node)
         node_path = node.get('path')
         node = convert_node(node)
     else:
@@ -49,10 +51,10 @@ def dump_node(host=None, node=None, is_init=False):
         with open(node_file, 'w') as f:
             f.write(yaml.dump(node))
 
-    node_log_file = log.get_node_log_file(host)
+    # node_log_file = log.get_node_log_file(host)
 
-    with open(node_log_file, 'w') as f:
-        f.write(yaml.dump(convert_node_log(node)))
+    # with open(node_log_file, 'w') as f:
+    #     f.write(yaml.dump(convert_node_log(node)))
 
 
 def load_node(host=None):

@@ -12,7 +12,10 @@ from check import check
 
 @task
 @parallel(pool_size=10)
-def cook(option=None):
+def setup(option=None):
+    if option == 'test':
+        env.is_test = True
+
     node = env.node_map.get(env.host)
     if env.is_chef:
         node.update({'last_cook': '{0} [start]'.format(util.get_timestamp())})

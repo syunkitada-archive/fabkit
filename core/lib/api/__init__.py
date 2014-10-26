@@ -4,3 +4,4 @@ from api import *  # noqa
 import filer  # noqa
 import package  # noqa
 import service  # noqa
+import db  # noqa

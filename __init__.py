@@ -4,6 +4,7 @@ import os
 import sys
 import subprocess
 from fabric.api import env
+import django
 
 
 FABFILE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -14,6 +15,9 @@ sys.path.extend([
     CORE_DIR,
     REPO_DIR,
 ])
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "webapp.webapp.settings")
+django.setup()
 
 # initialize config
 from lib import conf
@@ -26,7 +30,7 @@ run = __import__(conf.FABSCRIPT_MODULE, {}, {}, [])
 # register task
 from test import test  # noqa
 from node import node, chefnode  # noqa
-from cook import cook  # noqa
+from setup import setup  # noqa
 from check import check  # noqa
 
 
