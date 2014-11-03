@@ -31,10 +31,10 @@ def dump_node(host=None, node=None, is_init=False):
     if is_init:
         node_path = host
         node = convert_node()
-        db.update_node(host, node)
+        db.update_node(node, host)
     elif not node:
         node = env.node_map.get(host)
-        db.update_node(host, node)
+        db.update_node(node, host)
         node_path = node.get('path')
         node = convert_node(node)
     else:
@@ -192,7 +192,7 @@ def convert_node(node={}):
 
 def convert_node_log(node={}):
     return {
-        'ipaddress': node.get('ipaddress', ''),
+        'ip': node.get('ipaddress', ''),
         'last_check': node.get('last_check', ''),
         'last_cook': node.get('last_cook', ''),
         'last_fabcooks': node.get('last_fabcooks', []),

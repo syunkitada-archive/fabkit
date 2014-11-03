@@ -8,6 +8,7 @@ from fabric.api import (env,
                         hosts,)
 from lib import util
 from lib.api import *  # noqa
+from types import StringType
 
 
 @task
@@ -185,11 +186,10 @@ def __check_to_enter_host(host):
 
 
 def __convert_value(key, value):
-    from types import StringType
     if key == 'fabrun_list':
         if type(value) is StringType:
             value = value.split(',')
-        else:
-            value = list(value)
+
+        value = list(value)
 
     return value

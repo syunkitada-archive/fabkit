@@ -11,13 +11,18 @@ from lib import conf
 def cmd(cmd):
     log_cmd = 'cmd> ' + cmd
     log.info(log_cmd)
+    print_for_test(log_cmd)
 
     if api.env.is_test:
         api.env.cmd_history.append(log_cmd)
         result = (0, cmd)
     else:
         result = commands.getstatusoutput(cmd)
-    log.info('return> {0[0]}  out>\n{0[1]}'.format(result))
+
+    result_msg = 'return> {0[0]}  out>\n{0[1]}'.format(result)
+    log.info(result_msg)
+    print_for_test(result_msg)
+
     return result
 
 
@@ -25,13 +30,17 @@ def run(cmd, **kwargs):
     log_cmd = 'run> ' + cmd
     api.env.cmd_history.append(log_cmd)
     log.info(log_cmd)
+    print_for_test(log_cmd)
 
     if api.env.is_test:
         result = test_cmd(cmd)
     else:
         result = api.run(cmd, kwargs)
 
-    log.info('return> {0}  out>\n{1}'.format(result.return_code, result))
+    result_msg = 'return> {0}  out>\n{1}'.format(result.return_code, result)
+    log.info(result_msg)
+    print_for_test(result_msg)
+
     return result
 
 
@@ -39,12 +48,17 @@ def sudo(cmd, **kwargs):
     log_cmd = 'sudo> ' + cmd
     api.env.cmd_history.append(log_cmd)
     log.info(log_cmd)
+    print_for_test(log_cmd)
 
     if api.env.is_test:
         result = test_cmd(cmd)
     else:
         result = api.sudo(cmd, kwargs)
-    log.info('return> {0}  out>\n{1}'.format(result.return_code, result))
+
+    result_msg = 'return> {0}  out>\n{1}'.format(result.return_code, result)
+    log.info(result_msg)
+    print_for_test(result_msg)
+
     return result
 
 
@@ -52,12 +66,17 @@ def local(cmd, **kwargs):
     log_cmd = 'local> ' + cmd
     api.env.cmd_history.append(log_cmd)
     log.info(log_cmd)
+    print_for_test(log_cmd)
 
     if api.env.is_test:
         result = test_cmd(cmd)
     else:
         result = api.local(cmd, kwargs)
-    log.info('return> {0}'.format(result.return_code))
+
+    result_msg = 'return> {0}'.format(result.return_code)
+    log.info(result_msg)
+    print_for_test(result_msg)
+
     return result
 
 
@@ -152,3 +171,11 @@ def __get_local_secret_file(host=None):
     if not host:
         host = api.env.host
     return os.path.join(conf.TMP_DIR, '.{0}.secret'.format(host))
+
+
+def print_for_test(msg, host=None):
+    if api.env.is_test:
+        if not host:
+            host = api.env.host
+
+        print '[{0}] {1}'.format(host, msg)

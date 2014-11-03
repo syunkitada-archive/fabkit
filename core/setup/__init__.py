@@ -6,8 +6,9 @@ from fabric.api import (task,
 from lib import conf
 from lib import util
 from lib import log
-from lib.api import sudo
+from lib.api import sudo, db
 from check import check
+from types import IntType, TupleType
 
 
 @task
@@ -35,23 +36,24 @@ def setup(option=None):
         node.update({'last_cook': last_cook})
 
     else:
-        run = __import__(conf.FABSCRIPT_MODULE, {}, {}, [])
+        for fabscript in node.get('fabrun_list', []):
+            db.setuped(-1, 'start setup', script_name=fabscript)
+            script = '.'.join((conf.FABSCRIPT_MODULE, fabscript))
+            module = __import__(script, {}, {}, 'setup')
+            func = getattr(module, 'setup')
+            result = func()
 
-        last_fabcooks = []
-        for fab_script in node.get('fabrun_list', []):
-            modules = fab_script.split('.')
-            module = run
+            status = None
+            msg = None
+            if type(result) is IntType:
+                status = result
+            if type(result) is TupleType:
+                status, msg = result
+            if not status:
+                status = 0
+            if not msg:
+                msg = 'end setup'
 
-            i = 0
-            len_modules = len(modules)
-            while i < len_modules:
-                module = getattr(module, modules[i])
-                i += 1
-
-            return_code = module()
-
-            last_fabcooks.append('{0} [{1}:{2}]'.format(util.get_timestamp(),
-                                                        fab_script, return_code))
-            node.update({'last_fabcooks': last_fabcooks})
+            db.setuped(status, msg, script_name=fabscript)
 
     util.dump_node()

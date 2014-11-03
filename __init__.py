@@ -24,9 +24,6 @@ from lib import conf
 conf.init(REPO_DIR, TEST_CHEFREPO_DIR)
 
 
-# register fabscript task
-run = __import__(conf.FABSCRIPT_MODULE, {}, {}, [])
-
 # register task
 from test import test  # noqa
 from node import node, chefnode  # noqa

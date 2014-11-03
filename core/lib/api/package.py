@@ -23,3 +23,13 @@ def install(package_name, path=None, option=''):
             msg = 'It does not support the package manager of remote os.'
             log.error(msg)
             raise Exception(msg)
+
+
+def register_repo(name, baseurl, gpgkey, gpgcheck=1):
+    sudo('''sh -c "cat << _EOT_ > /etc/yum.repos.d/{0}.repo
+[{0}]
+name={0}
+baseurl={1}
+gpgkey={2}
+gpgcheck={3}
+_EOT_"'''.format(name, baseurl, gpgkey, gpgcheck))
