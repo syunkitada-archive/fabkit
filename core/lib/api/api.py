@@ -80,15 +80,64 @@ def local(cmd, **kwargs):
     return result
 
 
-def scp(from_path, to_path, is_local=True, use_env_host=True):
+def expect(cmd, expects=[], timeout=10, is_local=False, use_sudo=False):
+    expect_cmd = ''
+    for expect in expects:
+        expect_cmd += '''
+expect "{0}"
+send "{1}"
+        '''.format(expect[0], expect[1])
+
+    cmd = '''expect -c '
+set timeout {0}
+spawn {1}
+{2}
+interact
+'
+'''.format(timeout, cmd, expect_cmd)
+
     if is_local:
-        if use_env_host:
-            return local('scp -o "StrictHostKeyChecking=no" {0} {1}:{2}'.format(from_path,
-                         api.env.host, to_path))
-        else:
-            return local('scp -o "StrictHostKeyChecking=no" {0} {1}'.format(from_path, to_path))
+        return local(cmd)
     else:
-        return run('scp -o "StrictHostKeyChecking=no" %s %s' % (from_path, to_path))
+        if use_sudo:
+            return sudo(cmd)
+        else:
+            return run(cmd)
+
+
+def reboot(wait=60):
+    log_cmd = 'reboot> wait={0}'.format(wait)
+    api.env.cmd_history.append(log_cmd)
+    log.info(log_cmd)
+    print_for_test(log_cmd)
+
+    if api.env.is_test:
+        result = test_cmd('uptime')
+    else:
+        api.reboot(wait=wait)
+        result = api.run('uptime')
+
+    result_msg = 'return> {0}  out>\n{1}'.format(result.return_code, result)
+    log.info(result_msg)
+
+
+def scp(from_path, to_path, is_local=True, use_env_host=True):
+    cmd = 'scp -o "StrictHostKeyChecking=no" {0} {1}@'.format(from_path, api.env.user)
+    if use_env_host:
+        cmd += '{0}:'.format(api.env.host)
+    cmd += to_path
+
+    if is_local:
+        if conf.USER and conf.PASSWORD:
+            return expect(
+                cmd,
+                [['* password:', '{0}\\n'.format(conf.PASSWORD)]],
+                is_local=is_local)
+
+        return local(cmd)
+
+    else:
+        return run(cmd)
 
 
 def test_cmd(cmd):

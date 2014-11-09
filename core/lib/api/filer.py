@@ -9,6 +9,21 @@ from lib import log, conf
 from jinja2 import Template
 
 
+def create_src_file(target, src_str):
+    if target[0] == '/':
+        target = target[1:]
+
+    local_tmp_file = os.path.join(conf.TMP_DIR, env.host, 'src_files', target)
+
+    if not os.path.exists(local_tmp_file):
+        os.makedirs(os.path.dirname(local_tmp_file))
+
+    with open(local_tmp_file, 'w') as f:
+        f.write(src_str)
+
+    return local_tmp_file
+
+
 def __get_src_file(target, file_type, src_file=None):
     if not src_file:
         stack = inspect.stack()[1:-11]
@@ -30,7 +45,10 @@ def __get_src_file(target, file_type, src_file=None):
         return src_file
 
 
-def file(target, mode='644', owner='root:root', extension=None, src_file=None):
+def file(target, mode='644', owner='root:root', extension=None, src_file=None, src_str=None):
+    if src_str:
+        src_file = create_src_file(target, src_str)
+
     is_updated = False
     with warn_only():
         if exists(target):
@@ -41,7 +59,8 @@ def file(target, mode='644', owner='root:root', extension=None, src_file=None):
             else:
                 tmp_target = target
 
-            src_file = __get_src_file(tmp_target, file_type='file')
+            if not src_file:
+                src_file = __get_src_file(tmp_target, file_type='file')
 
             tmp_file = '/tmp/file/{0}'.format(tmp_target)
             tmp_dir = tmp_file.rsplit('/', 1)[0]
@@ -62,10 +81,15 @@ def file(target, mode='644', owner='root:root', extension=None, src_file=None):
     return is_updated
 
 
-def template(target, mode='644', owner='root:root', data={}, src_file=None):
+def template(target, mode='644', owner='root:root', data={}, src_file=None, src_str=None):
     is_updated = False
 
-    src_file = __get_src_file(target, file_type='template')
+    if src_str:
+        src_file = create_src_file(target, src_str)
+
+    if not src_file:
+        src_file = __get_src_file(target, file_type='template')
+
     timestamp = int(time.time())
     tmp_path = 'template/{0}_{1}'.format(target, timestamp)
     local_tmp_file = os.path.join(conf.TMP_DIR, env.host, tmp_path)
@@ -78,8 +102,8 @@ def template(target, mode='644', owner='root:root', data={}, src_file=None):
     mkdir(tmp_dir, mode='777')
 
     with open(src_file, 'rb') as f:
+        template = Template(f.read())
         with open(local_tmp_file, 'w') as exf:
-            template = Template(f.read())
             exf.write(template.render(**data))
 
     scp(local_tmp_file, tmp_file)

@@ -47,6 +47,7 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
     global COOKBOOKS_DIRS, NODE_DIR, ROLE_DIR, ENVIRONMENT_DIR
     global FABLIB_MODULE_DIR, FABLIB_MAP
     global LOGGER_LEVEL, LOGGER_FORMATTER, NODE_LOGGER_MAX_BYTES, NODE_LOGGER_BACKUP_COUNT
+    global USER, PASSWORD
 
     if test_chefrepo_dir:
         TEST_CHEFREPO_DIR = test_chefrepo_dir
@@ -85,8 +86,10 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
     FABLIB_MODULE = CONFIG.get('common', 'fablib_module')
     FABLIB_MODULE_DIR = os.path.join(CHEFREPO_DIR, FABLIB_MODULE)
 
-    env.user = CONFIG.get('common', 'user')
-    env.password = CONFIG.get('common', 'password')
+    USER = CONFIG.get('common', 'user')
+    PASSWORD = CONFIG.get('common', 'password')
+    env.user = USER
+    env.password = PASSWORD
 
     import maintenance
     maintenance.create_required_dirs()
