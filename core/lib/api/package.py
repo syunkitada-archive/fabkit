@@ -2,6 +2,7 @@
 
 from fabric.api import warn_only
 from api import *  # noqa
+import filer
 from lib import log
 
 
@@ -28,13 +29,13 @@ def install(package_name, path=None, option=''):
 def register_repo(name, baseurl, gpgkey, gpgcheck=1):
     with warn_only():
         if run('which yum').return_code == 0:
-                sudo('''sh -c "cat << _EOT_ > /etc/yum.repos.d/{0}.repo
-            [{0}]
-            name={0}
-            baseurl={1}
-            gpgkey={2}
-            gpgcheck={3}
-            _EOT_"'''.format(name, baseurl, gpgkey, gpgcheck))
+            filer.file('/etc/yum.repos.d/{0}.repo'.format(name), src_str='''
+[{0}]
+name={0}
+baseurl={1}
+gpgkey={2}
+gpgcheck={3}'''.format(name, baseurl, gpgkey, gpgcheck))
+
         else:
             msg = 'It does not support the package manager of remote os.'
             log.error(msg)

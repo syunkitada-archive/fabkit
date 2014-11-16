@@ -11,7 +11,7 @@ def create_required_dirs():
     # create directory, if directory not exists
     def create_dir(directory, is_create_init_py=False):
         if not os.path.exists(directory):
-            if util.confirm('"{0}" is not exists. do you want to create?'.format(directory),
+            if util.confirm('"{0}" is not exists.\nDo you want to create?'.format(directory),
                             'Canceled.') or env.is_test:
                 os.makedirs(directory)
                 print '"{0}" is created.'.format(directory)
@@ -24,6 +24,7 @@ def create_required_dirs():
                 exit(0)
 
     create_dir(conf.STORAGE_DIR)
+    create_dir(conf.DATABAG_DIR)
     create_dir(conf.LOG_DIR)
     create_dir(conf.TMP_DIR)
     create_dir(conf.NODE_DIR)

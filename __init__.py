@@ -29,6 +29,7 @@ from test import test  # noqa
 from node import node, chefnode  # noqa
 from setup import setup  # noqa
 from check import check  # noqa
+from databag import databag  # noqa
 
 
 len_env_tasks = len(env.tasks)
