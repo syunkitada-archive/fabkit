@@ -24,7 +24,7 @@ def create_src_file(target, src_str):
     return local_tmp_file
 
 
-def __get_src_file(target, file_type, src_file=None):
+def __get_src_file(target, file_type, src_target=None, src_file=None):
     if not src_file:
         stack = inspect.stack()[1:-11]
         srcs_dirs = []
@@ -36,9 +36,11 @@ def __get_src_file(target, file_type, src_file=None):
                 if os.path.exists(srcs_dir):
                     srcs_dirs.insert(0, srcs_dir)
 
-        file_name = target.rsplit('/', 1)[1]
+        if not src_target:
+            src_target = target.rsplit('/', 1)[1]
+
         for src in srcs_dirs:
-            src_file = os.path.join(src, file_name)
+            src_file = os.path.join(src, src_target)
             if os.path.exists(src_file):
                 return src_file
     else:
@@ -81,14 +83,15 @@ def file(target, mode='644', owner='root:root', extension=None, src_file=None, s
     return is_updated
 
 
-def template(target, mode='644', owner='root:root', data={}, src_file=None, src_str=None):
+def template(target, mode='644', owner='root:root', data={},
+             src_target=None, src_file=None, src_str=None):
     is_updated = False
 
     if src_str:
         src_file = create_src_file(target, src_str)
 
     if not src_file:
-        src_file = __get_src_file(target, file_type='template')
+        src_file = __get_src_file(target, file_type='template', src_target=src_target)
 
     timestamp = int(time.time())
     tmp_path = 'template/{0}_{1}'.format(target, timestamp)

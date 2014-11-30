@@ -35,7 +35,7 @@ def run(cmd, **kwargs):
     if api.env.is_test:
         result = test_cmd(cmd)
     else:
-        result = api.run(cmd, kwargs)
+        result = api.run(cmd, **kwargs)
 
     result_msg = 'return> {0}  out>\n{1}'.format(result.return_code, result)
     log.info(result_msg)
@@ -53,7 +53,7 @@ def sudo(cmd, **kwargs):
     if api.env.is_test:
         result = test_cmd(cmd)
     else:
-        result = api.sudo(cmd, kwargs)
+        result = api.sudo(cmd, **kwargs)
 
     result_msg = 'return> {0}  out>\n{1}'.format(result.return_code, result)
     log.info(result_msg)
@@ -71,7 +71,7 @@ def local(cmd, **kwargs):
     if api.env.is_test:
         result = test_cmd(cmd)
     else:
-        result = api.local(cmd, kwargs)
+        result = api.local(cmd, **kwargs)
 
     result_msg = 'return> {0}'.format(result.return_code)
     log.info(result_msg)

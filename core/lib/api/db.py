@@ -74,8 +74,13 @@ def update_connection_map(data, script_name=None):
     fabscript.save()
 
 
-def get(fabscript, key):
-    pass
+def get_data_map(script_name):
+    if not script_name:
+        script_name = __get_script_name()
+
+    fabscript = Fabscript.objects.get(name=script_name)
+    data_map = yaml.load(fabscript.data_map)
+    return data_map
 
 
 def get_connection(script_name, key):

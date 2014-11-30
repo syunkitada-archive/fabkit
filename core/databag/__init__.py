@@ -13,3 +13,6 @@ def databag(option=None, key=None, value=None):
 
     elif option == 'get':
         print api.databag.get(key)
+
+    elif option == 'list':
+        print 'list'

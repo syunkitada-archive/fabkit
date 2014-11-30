@@ -6,3 +6,4 @@ import package  # noqa
 import service  # noqa
 import db  # noqa
 import databag  # noqa
+import user  # noqa

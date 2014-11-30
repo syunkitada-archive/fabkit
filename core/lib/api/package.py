@@ -26,6 +26,16 @@ def install(package_name, path=None, option=''):
             raise Exception(msg)
 
 
+def uninstall(package_name):
+    with warn_only():
+        if run('which yum').return_code == 0:
+            sudo('yum remove {0} -y'.format(package_name))
+        else:
+            msg = 'It does not support the package manager of remote os.'
+            log.error(msg)
+            raise Exception(msg)
+
+
 def register_repo(name, baseurl, gpgkey, gpgcheck=1):
     with warn_only():
         if run('which yum').return_code == 0:
