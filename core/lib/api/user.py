@@ -8,4 +8,4 @@ def add(name):
     with warn_only():
         passwd = run('cat /etc/passwd | grep ^{0}:'.format(name))
         if passwd.return_code != 0:
-            sudo('useradd {0} -M'.format(name))
+            sudo('useradd {0} -M -s/bin/false'.format(name))
