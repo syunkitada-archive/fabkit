@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from django.shortcuts import render
-from node.models import Node
+from apps.node.models import Node
 
 
 def index(request):

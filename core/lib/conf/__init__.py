@@ -42,6 +42,7 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
 
     global CONFIG
     global CHEFREPO_DIR, TEST_CHEFREPO_DIR
+    global REMOTE_DIR, REMOTE_STORAGE_DIR, REMOTE_TMP_DIR
     global STORAGE_DIR, LOG_DIR, TMP_DIR, DATABAG_DIR
     global FABSCRIPT_MODULE, FABSCRIPT_MODULE_DIR
     global COOKBOOKS_DIRS, NODE_DIR, ROLE_DIR, ENVIRONMENT_DIR
@@ -76,6 +77,9 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
     CONFIG.read(INIFILE)
 
     # read common settings
+    REMOTE_DIR = complement_path(CONFIG.get('common', 'remote_dir'))
+    REMOTE_STORAGE_DIR = os.path.join(REMOTE_DIR, 'storage')
+    REMOTE_TMP_DIR = os.path.join(REMOTE_DIR, 'tmp')
     STORAGE_DIR = complement_path(CONFIG.get('common', 'storage_dir'))
     LOG_DIR = os.path.join(STORAGE_DIR, 'log')
     TMP_DIR = os.path.join(STORAGE_DIR, 'tmp')

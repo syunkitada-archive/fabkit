@@ -3,10 +3,8 @@
 from fabric.api import (task,
                         env,
                         parallel,)
-from lib import conf
-from lib import util
-from lib import log
-from lib.api import sudo, db
+from lib import conf, util, log
+from lib.api import sudo, db, filer
 from check import check
 from types import IntType, TupleType
 
@@ -36,7 +34,11 @@ def setup(option=None):
         node.update({'last_cook': last_cook})
 
     else:
-        for fabscript in node.get('fabrun_list', []):
+        filer.mkdir(conf.REMOTE_DIR)
+        filer.mkdir(conf.STORAGE_DIR)
+        filer.mkdir(conf.TMP_DIR, mode='777')
+
+        for fabscript in node.get('fabruns', []):
             db.setuped(-1, 'start setup', script_name=fabscript)
             script = '.'.join((conf.FABSCRIPT_MODULE, fabscript))
             module = __import__(script, {}, {}, 'setup')

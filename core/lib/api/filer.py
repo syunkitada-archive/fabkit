@@ -36,6 +36,7 @@ def __get_src_file(target, file_type, src_target=None, src_file=None):
                 if os.path.exists(srcs_dir):
                     srcs_dirs.insert(0, srcs_dir)
 
+        print src_target
         if not src_target:
             src_target = target.rsplit('/', 1)[1]
 
@@ -105,9 +106,9 @@ def template(target, mode='644', owner='root:root', data={},
     mkdir(tmp_dir, mode='777')
 
     with open(src_file, 'rb') as f:
-        template = Template(f.read())
+        template = Template(f.read().decode('utf-8'))
         with open(local_tmp_file, 'w') as exf:
-            exf.write(template.render(**data))
+            exf.write(template.render(**data).encode('utf-8'))
 
     scp(local_tmp_file, tmp_file)
 
@@ -137,6 +138,16 @@ def mkdir(target, is_local=False, owner='root:root', mode='775'):
         local(cmd_mkdir)
     else:
         sudo(cmd_mkdir)
+        sudo('chmod {0} {1}'.format(mode, target))
+        sudo('chown {0} {1}'.format(owner, target))
+
+
+def touch(target, is_local=False, owner='root:root', mode='775'):
+    cmd_touch = 'touch {0}'.format(target)
+    if is_local:
+        local(cmd_touch)
+    else:
+        sudo(cmd_touch)
         sudo('chmod {0} {1}'.format(mode, target))
         sudo('chown {0} {1}'.format(owner, target))
 

@@ -8,5 +8,8 @@ urlpatterns = patterns(
     # url(r'^blog/', include('blog.urls')),
 
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^node/', include('node.urls', namespace='node')),
+    url(r'^fabscript/', include('apps.fabscript.urls', namespace='fabscript')),
+    url(r'^node/', include('apps.node.urls', namespace='node')),
+    url(r'^result/', include('apps.result.urls', namespace='result')),
+    url(r'^$', include('apps.home.urls', namespace='home')),
 )

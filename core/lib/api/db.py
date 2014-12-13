@@ -2,12 +2,15 @@
 
 from fabric.api import env
 import inspect
-from lib import log
+from lib import log, conf
 import yaml
 import status_code
-from webapp.node.models import Node, Fabscript, Result
 import filer
+import databag
 from api import sudo
+from apps.node.models import Node
+from apps.fabscript.models import Fabscript
+from apps.result.models import Result
 
 
 def update_remote_node(data, host=None):
@@ -17,7 +20,7 @@ def update_remote_node(data, host=None):
     if not host:
         host = env.host
 
-    remote_storage = '/opt/chefric/storage/'
+    remote_storage = conf.REMOTE_STORAGE
     filer.mkdir(remote_storage)
     target = '{0}node.yaml'.format(remote_storage)
     filer.template(target, src_str=yaml.dump(data))
@@ -47,20 +50,7 @@ def update_node(data, host=None):
     node.save()
 
 
-def update_data_map(data, script_name=None):
-    if not script_name:
-        script_name = __get_script_name()
-
-    try:
-        fabscript = Fabscript.objects.get(name=script_name)
-    except Fabscript.DoesNotExist:
-        fabscript = Fabscript(name=script_name)
-    data_str = yaml.dump(data)
-    fabscript.data_map = data_str
-    fabscript.save()
-
-
-def update_connection_map(data, script_name=None):
+def update_connection(data, script_name=None):
     if not script_name:
         script_name = __get_script_name()
 
@@ -70,22 +60,18 @@ def update_connection_map(data, script_name=None):
         fabscript = Fabscript(name=script_name)
 
     data_str = yaml.dump(data)
-    fabscript.connection_map = data_str
+    fabscript.connection = data_str
     fabscript.save()
-
-
-def get_data_map(script_name):
-    if not script_name:
-        script_name = __get_script_name()
-
-    fabscript = Fabscript.objects.get(name=script_name)
-    data_map = yaml.load(fabscript.data_map)
-    return data_map
 
 
 def get_connection(script_name, key):
+    connected_script_name = __get_script_name()
     fabscript = Fabscript.objects.get(name=script_name)
-    data = yaml.load(fabscript.connection_map)
+    connected_fabscripts = set(yaml.load(fabscript.connected_fabscripts))
+    connected_fabscripts.add(connected_script_name)
+    fabscript.connected_fabscripts = yaml.dump(list(connected_fabscripts))
+    fabscript.save()
+    data = yaml.load(databag.decode_str(fabscript.connection))
     return data[key]
 
 
