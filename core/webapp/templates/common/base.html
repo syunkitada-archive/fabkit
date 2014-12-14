@@ -1,7 +1,7 @@
 {% load staticfiles %}
 <!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE|default:"en-us" }}">
-  <head>
+<head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -13,45 +13,43 @@
 
     <link href="{% static 'vendor/bootstrap-3.2.0-dist/css/bootstrap.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/common.css' %}" rel="stylesheet">
-    <link href="{% static 'vendor/bootstrap-3.2.0-dist/css/bootstrap-theme.min.css' %}" rel="stylesheet">
 </head>
 
 <body>
-    <!-- Fixed navbar -->
-    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
-      <div class="container">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="{% url 'home:index' %}">Chefric</a>
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/">Chefric</a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="{% if namespace == 'home' %}active{% endif %}"><a class="pjax" href="{% url 'home:index' %}">Home</a></li>
+                    <li class="{% if namespace == 'node' %}active{% endif %}"><a class="pjax" href="{% url 'node:index' %}">Node</a></li>
+                    <li class="{% if namespace == 'fabscript' %}active{% endif %}"><a class="pjax" href="{% url 'fabscript:index' %}">Fabscript</a></li>
+                    <li class="{% if namespace == 'result' %}active{% endif %}"><a class="pjax" href="{% url 'result:index' %}">Result Log</a></li>
+                </ul>
+            </div>
         </div>
-        <div id="navbar" class="navbar-collapse collapse">
-            <ul class="nav navbar-nav">
-                <li class="active"><a href="{% url 'home:index' %}">Home</a></li>
-                <li><a href="{% url 'node:index' %}">Node</a></li>
-                <li><a href="{% url 'fabscript:index' %}">Fabscript</a></li>
-                <li><a href="{% url 'result:index' %}">Result Log</a></li>
-            </ul>
-            <ul class="nav navbar-nav navbar-right">
-                <li><a href="../navbar/">Default</a></li>
-                <li><a href="../navbar-static-top/">Static top</a></li>
-                <li class="active"><a href="./">Fixed top <span class="sr-only">(current)</span></a></li>
-            </ul>
-        </div><!--/.nav-collapse -->
-      </div>
     </nav>
 
-    <div class="container">
-        {% block content %}
-        {% endblock %}
+    <div class="container-fluid">
+        <div class="row" id="pjax-container">
+          {% block content %}
+          {% endblock %}
+        </div>
     </div>
 
     <script src="{% static 'vendor/js/jquery-2.1.1.min.js' %}"></script>
+    <script src="{% static 'vendor/js/jquery.pjax.js' %}"></script>
     <script src="{% static 'vendor/bootstrap-3.2.0-dist/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/common.js' %}"></script>
     <script src="http://localhost:35729/livereload.js"></script>
+    {% block js_extention %}{% endblock %}
 </body>
 </html>

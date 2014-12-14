@@ -4,6 +4,7 @@ from fabric.api import env
 import inspect
 from lib import log, conf
 import yaml
+import json
 import status_code
 import filer
 import databag
@@ -59,19 +60,24 @@ def update_connection(data, script_name=None):
     except Fabscript.DoesNotExist:
         fabscript = Fabscript(name=script_name)
 
-    data_str = yaml.dump(data)
+    data_str = json.dumps(data)
     fabscript.connection = data_str
     fabscript.save()
 
 
 def get_connection(script_name, key):
-    connected_script_name = __get_script_name()
     fabscript = Fabscript.objects.get(name=script_name)
+
+    connected_fabscript = '{0}:{1}'.format(__get_script_name(True), key)
     connected_fabscripts = set(yaml.load(fabscript.connected_fabscripts))
-    connected_fabscripts.add(connected_script_name)
-    fabscript.connected_fabscripts = yaml.dump(list(connected_fabscripts))
+    connected_fabscripts.add(connected_fabscript)
+    fabscript.connected_fabscripts = json.dumps(list(connected_fabscripts))
     fabscript.save()
-    data = yaml.load(databag.decode_str(fabscript.connection))
+    print '\n\nDEBUG'
+    print fabscript.connection
+    connection_str = databag.decode_str(fabscript.connection)
+    print connection_str
+    data = json.loads(connection_str)
     return data[key]
 
 
@@ -132,9 +138,16 @@ def is_setuped(host, script_name, status=0):
     return status_code.IS_NOT_SETUPED, msg
 
 
-def __get_script_name():
+def __get_script_name(is_reqursive=False):
+    scripts = []
     stack = inspect.stack()[1:-11]
     for frame in stack:
         file = frame[1]
         if file.find('/fabscript/') > -1:
-            return file.split('fabscript/', 1)[1].replace('.py', '').replace('/', '.')
+            script = file.split('fabscript/', 1)[1].replace('.py', '').replace('/', '.')
+            if not is_reqursive:
+                return script
+
+            scripts.insert(0, script)
+
+    return '>'.join(scripts)

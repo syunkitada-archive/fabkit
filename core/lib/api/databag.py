@@ -55,11 +55,11 @@ def __get_key_file(key_path):
 
 
 def decode_str(value):
-    splited_value = value.split('{{')
+    splited_value = value.split('{%')
     if len(splited_value) > 1:
         result = ''
         for value in splited_value:
-            splited_key = value.split('}}')
+            splited_key = value.split('%}')
             if len(splited_key) > 1:
                 key = splited_key[0]
                 result += get(key) + splited_key[1]

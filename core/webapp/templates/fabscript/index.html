@@ -1,27 +1,12 @@
 {% extends "common/base.html" %}
 
-{% block title %}Fabscriptの一覧{% endblock title %}
+{% block title %}{{title}{% endblock title %}
 
 {% block content %}
-<h2 class="page-header">Fabscriptの一覧</h2>
-<table class="table table-striped table-bordered">
-    <thead>
-        <tr>
-            <th>スクリプト名</th>
-            <th>コネクション</th>
-            <th>接続</th>
-            <th>更新日</th>
-        </tr>
-    </thead>
-    <tbody>
-      {% for fabscript in fabscripts %}
-        <tr>
-            <td>{{ fabscript.name }}</td>
-            <td>{{ fabscript.connection }}</td>
-            <td>{{ fabscript.connected_fabscripts }}</td>
-            <td>{{ fabscript.updated_at }}</td>
-        </tr>
-      {% endfor %}
-    </tbody>
-</table>
+    {% include 'fabscript/content.html' %}
 {% endblock content %}
+
+{% block js_extention %}
+
+
+{% endblock %}

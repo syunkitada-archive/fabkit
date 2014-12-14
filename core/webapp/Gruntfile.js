@@ -1,14 +1,29 @@
 module.exports = function(grunt) {
 
     grunt.initConfig({
+        coffee: {
+            build: {
+                files: {
+                    'static/js/common.js': [
+                        'static_src/coffee/common/base.coffee',
+                    ]
+                }
+            }
+        },
         watch: {
             options: {
                 interval: 1000
             },
+            coffee: {
+                files: ['static_src/coffee/**'],
+                tasks: ['coffee'],
+                options: {
+                    livereload: true
+                }
+            },
             views: {
                 files: [
-                    'home/**',
-                    'node/**',
+                    'apps/**',
                     'templates/**',
                     'static/**',
                 ],
@@ -29,5 +44,5 @@ module.exports = function(grunt) {
     }
 
     // grunt.registerTask('default', ['cssmin', 'watch'])
-    grunt.registerTask('default', ['watch'])
+    grunt.registerTask('default', ['coffee', 'watch'])
 };

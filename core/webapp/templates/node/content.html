@@ -1,0 +1,24 @@
+<title>{{title}}</title>
+
+<h3 class="page-header">Node List</h3>
+<table class="table table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>ホスト名</th>
+            <th>fabruns</th>
+        </tr>
+    </thead>
+    <tbody>
+      {% for node in nodes %}
+        <tr>
+            <td>{{ node.host }}</td>
+            <td>
+                <ul>
+                    <li>hello 0</li>
+                    <li>test 0</li>
+                </ul>
+            </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+</table>

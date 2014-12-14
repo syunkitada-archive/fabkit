@@ -1,9 +1,17 @@
 # coding: utf-8
 
 from django.shortcuts import render
-from apps.node.models import Node
+from apps.result.models import Result
 
 
 def index(request):
-    nodes = Node.objects.all()
-    return render(request, 'node/index.html', {'nodes': nodes})
+    results = Result.objects.all()
+    context = {
+        'title': 'Result Log',
+        'results': results,
+    }
+
+    if request.META.get('HTTP_X_PJAX'):
+        return render(request, 'result/content.html', context)
+
+    return render(request, 'result/index.html', context)
