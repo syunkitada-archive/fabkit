@@ -8,6 +8,7 @@ from fabric.api import (env,
                         hosts,)
 from lib import util
 from lib.api import *  # noqa
+from types import StringType
 
 
 @task
@@ -69,7 +70,7 @@ def node(option=None, host=None, edit_key=None, *edit_value):
         if util.confirm('Are you sure you want to create above nodes?', 'Canceled'):
             for host in hosts:
                 if not util.exists_node(host):
-                    util.dump_node(host=host, is_init=True)
+                    util.dump_node(host, is_init=True)
                     if edit_key and edit_value:
                         node = util.load_node(host)
                         node.update({edit_key: __convert_value(edit_key, edit_value)})
@@ -105,7 +106,7 @@ def node(option=None, host=None, edit_key=None, *edit_value):
         util.print_node_map()
 
         print '\n\nEdit above nodes.'
-        node_keys = ['fabrun_list', 'attrs']
+        node_keys = ['fabruns', 'attrs']
         if not edit_key:
             while True:
                 edit_key = raw_input('Enter key: ')
@@ -185,11 +186,10 @@ def __check_to_enter_host(host):
 
 
 def __convert_value(key, value):
-    from types import StringType
-    if key == 'fabrun_list':
+    if key == 'fabruns':
         if type(value) is StringType:
             value = value.split(',')
-        else:
-            value = list(value)
+
+        value = list(value)
 
     return value

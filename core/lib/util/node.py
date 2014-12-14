@@ -2,7 +2,6 @@
 from fabric.api import env
 # import json
 import yaml
-from lib import log
 from lib.api import *  # noqa
 from host import *  # noqa
 import re
@@ -22,21 +21,24 @@ def exists_node(host=None):
     return os.path.exists(get_node_file(host))
 
 
-def dump_node(host=None, node=None, is_init=False):
-    if not host:
-        host = env.host
-        if host is None:
+def dump_node(host_path=None, node=None, is_init=False):
+    if not host_path:
+        host_path = env.host
+        if host_path is None:
             raise Exception('Target host is None')
 
     if is_init:
-        node_path = host
+        node_path = host_path
         node = convert_node()
+        db.update_node(node, host_path)
     elif not node:
-        node = env.node_map.get(host)
+        node = env.node_map.get(host_path)
+        db.update_node(node, host_path)
         node_path = node.get('path')
         node = convert_node(node)
     else:
         node_path = node.get('path')
+        node = convert_node(node)
 
     if not env.is_chef:
         node_file = get_node_file(node_path)
@@ -48,11 +50,6 @@ def dump_node(host=None, node=None, is_init=False):
 
         with open(node_file, 'w') as f:
             f.write(yaml.dump(node))
-
-    node_log_file = log.get_node_log_file(host)
-
-    with open(node_log_file, 'w') as f:
-        f.write(yaml.dump(convert_node_log(node)))
 
 
 def load_node(host=None):
@@ -118,13 +115,13 @@ def print_node_map(node_map=None, option=''):
         if env.is_chef:
             format_str = '{host:<' + str(max_len_host) + '} {run_list}'
         else:
-            format_str = '{host:<' + str(max_len_host) + '} {fabrun_list}'
+            format_str = '{host:<' + str(max_len_host) + '} {fabruns}'
 
         horizontal_line = '-' * (max_len_host + 30)
         print horizontal_line
         print format_str.format(host='host',
                                 run_list='run_list',
-                                fabrun_list='fabrun_list',)
+                                fabruns='fabruns',)
         print horizontal_line
 
     else:
@@ -139,11 +136,12 @@ last_check    : {last_check}
 '''
         else:
             format_str = '''\
-host_info     : {host_info}
-uptime        : {uptime}
-fabrun_list  : {fabrun_list}
-last_fabcooks : {last_fabcooks}
-last_check    : {last_check}
+host_info      : {host_info}
+uptime         : {uptime}
+fabruns        : {fabruns}
+last_fabruns   : {last_fabruns}
+fabrun_history : TODO
+last_check     : {last_check}
 '''
             horizontal_line = '-' * 85
             print horizontal_line
@@ -155,45 +153,34 @@ last_check    : {last_check}
         node = node_tapple[1]
         host = node.get('path', '')
         run_list = node.get('run_list', [])
-        fabrun_list = node.get('fabrun_list', [])
+        fabruns = node.get('fabruns', [])
 
         if not is_verbose:
             print format_str.format(host=host,
                                     run_list=run_list,
-                                    fabrun_list=fabrun_list,)
+                                    fabruns=fabruns,)
         else:
             host_info = '{0}({1}) ssh:{2}'.format(host,
                                                   node.get('ipaddress', ''), node.get('ssh'))
             uptime = node.get('uptime', '')
             environment = node.get('chef_environment', '')
             last_cook = node.get('last_cook', '')
-            last_fabcooks = node.get('last_fabcooks', [])
+            last_fabruns = node.get('last_fabruns', [])
             last_runs = node.get('last_runs', [])
             last_check = node.get('last_check', '')
             print format_str.format(environment=environment,
                                     host_info=host_info,
                                     run_list=run_list,
-                                    fabrun_list=fabrun_list,
+                                    fabruns=fabruns,
                                     uptime=uptime,
                                     last_cook=last_cook,
-                                    last_fabcooks=last_fabcooks,
+                                    last_fabruns=last_fabruns,
                                     last_runs=last_runs,
                                     last_check=last_check,)
 
 
 def convert_node(node={}):
     return {
-        'fabrun_list': node.get('fabrun_list', []),
-        'attr': node.get('data', {}),
-    }
-
-
-def convert_node_log(node={}):
-    return {
-        'ipaddress': node.get('ipaddress', ''),
-        'last_check': node.get('last_check', ''),
-        'last_cook': node.get('last_cook', ''),
-        'last_fabcooks': node.get('last_fabcooks', []),
-        'ssh': node.get('ssh', ''),
-        'uptime': node.get('uptime', ''),
+        'fabruns': node.get('fabruns', []),
+        'attr': node.get('attr', {}),
     }

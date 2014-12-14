@@ -2,6 +2,7 @@
 
 from fabric.api import warn_only
 from api import *  # noqa
+import filer
 from lib import log
 
 
@@ -19,6 +20,42 @@ def install(package_name, path=None, option=''):
                     log.error(msg)
                     raise Exception(msg)
 
+        else:
+            msg = 'It does not support the package manager of remote os.'
+            log.error(msg)
+            raise Exception(msg)
+
+
+def uninstall(package_name):
+    with warn_only():
+        if run('which yum').return_code == 0:
+            sudo('yum remove {0} -y'.format(package_name))
+        else:
+            msg = 'It does not support the package manager of remote os.'
+            log.error(msg)
+            raise Exception(msg)
+
+
+def register_repo(name, baseurl, gpgkey, gpgcheck=1):
+    with warn_only():
+        if run('which yum').return_code == 0:
+            filer.file('/etc/yum.repos.d/{0}.repo'.format(name), src_str='''
+[{0}]
+name={0}
+baseurl={1}
+gpgkey={2}
+gpgcheck={3}'''.format(name, baseurl, gpgkey, gpgcheck))
+
+        else:
+            msg = 'It does not support the package manager of remote os.'
+            log.error(msg)
+            raise Exception(msg)
+
+
+def upgrade(name=''):
+    with warn_only():
+        if run('which yum').return_code == 0:
+            sudo('yum upgrade {0} -y'.format(name))
         else:
             msg = 'It does not support the package manager of remote os.'
             log.error(msg)

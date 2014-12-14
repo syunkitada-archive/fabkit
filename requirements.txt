@@ -1,2 +1,5 @@
 fabric
 pyyaml
+jinja2
+django
+django-bootstrap-form

@@ -42,11 +42,13 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
 
     global CONFIG
     global CHEFREPO_DIR, TEST_CHEFREPO_DIR
-    global STORAGE_DIR, LOG_DIR, TMP_DIR
+    global REMOTE_DIR, REMOTE_STORAGE_DIR, REMOTE_TMP_DIR
+    global STORAGE_DIR, LOG_DIR, TMP_DIR, DATABAG_DIR
     global FABSCRIPT_MODULE, FABSCRIPT_MODULE_DIR
     global COOKBOOKS_DIRS, NODE_DIR, ROLE_DIR, ENVIRONMENT_DIR
     global FABLIB_MODULE_DIR, FABLIB_MAP
     global LOGGER_LEVEL, LOGGER_FORMATTER, NODE_LOGGER_MAX_BYTES, NODE_LOGGER_BACKUP_COUNT
+    global USER, PASSWORD
 
     if test_chefrepo_dir:
         TEST_CHEFREPO_DIR = test_chefrepo_dir
@@ -75,9 +77,13 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
     CONFIG.read(INIFILE)
 
     # read common settings
+    REMOTE_DIR = complement_path(CONFIG.get('common', 'remote_dir'))
+    REMOTE_STORAGE_DIR = os.path.join(REMOTE_DIR, 'storage')
+    REMOTE_TMP_DIR = os.path.join(REMOTE_DIR, 'tmp')
     STORAGE_DIR = complement_path(CONFIG.get('common', 'storage_dir'))
     LOG_DIR = os.path.join(STORAGE_DIR, 'log')
     TMP_DIR = os.path.join(STORAGE_DIR, 'tmp')
+    DATABAG_DIR = complement_path(CONFIG.get('common', 'databag_dir'))
     node_dir = CONFIG.get('common', 'node_dir')
     NODE_DIR = complement_path(node_dir)
     FABSCRIPT_MODULE = CONFIG.get('common', 'fabscript_module')
@@ -85,8 +91,10 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
     FABLIB_MODULE = CONFIG.get('common', 'fablib_module')
     FABLIB_MODULE_DIR = os.path.join(CHEFREPO_DIR, FABLIB_MODULE)
 
-    env.user = CONFIG.get('common', 'user')
-    env.password = CONFIG.get('common', 'password')
+    USER = CONFIG.get('common', 'user')
+    PASSWORD = CONFIG.get('common', 'password')
+    env.user = USER
+    env.password = PASSWORD
 
     import maintenance
     maintenance.create_required_dirs()
