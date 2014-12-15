@@ -1,5 +1,4 @@
 fabric
 pyyaml
 jinja2
-django
-django-bootstrap-form
+django==1.6
