@@ -4,7 +4,7 @@ import os
 import sys
 import subprocess
 from fabric.api import env
-import django
+# import django
 
 
 FABFILE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -19,7 +19,7 @@ sys.path.extend([
 ])
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "webapp.appconf.settings")
-django.setup()
+# django.setup()
 
 # initialize config
 from lib import conf
