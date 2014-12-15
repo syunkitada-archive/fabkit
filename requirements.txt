@@ -1,4 +1,4 @@
 fabric
 pyyaml
 jinja2
-django==1.6
+django==1.6.8
