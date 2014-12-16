@@ -154,18 +154,18 @@ def check_continue():
         print('Empty hosts.')
         return
 
-    is_cook = False
-    is_prepare = False
+    is_setup = False
+    is_manage = False
 
     for task_name in env.tasks:
-        if not is_cook:
-            is_cook = task_name.find('cook') == 0
-        if not is_prepare:
-            is_prepare = task_name.find('prepare') == 0
+        if not is_setup:
+            is_setup = task_name.find('setup') == 0
+        if not is_manage:
+            is_setup = task_name.find('manage') == 0
 
     if len(env.tasks) > 1:
         if util.confirm('Are you sure you want to run task on above nodes?', 'Canceled'):
-            if (is_prepare or is_cook) and not env.password:
+            if (is_setup or is_manage) and not env.password:
                 print 'Enter your password.\n'
                 if platform.system().find('CYGWIN') == 0:
                     env.password = getpass.getpass()

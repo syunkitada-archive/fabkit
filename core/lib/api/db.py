@@ -73,10 +73,7 @@ def get_connection(script_name, key):
     connected_fabscripts.add(connected_fabscript)
     fabscript.connected_fabscripts = json.dumps(list(connected_fabscripts))
     fabscript.save()
-    print '\n\nDEBUG'
-    print fabscript.connection
     connection_str = databag.decode_str(fabscript.connection)
-    print connection_str
     data = json.loads(connection_str)
     return data[key]
 
