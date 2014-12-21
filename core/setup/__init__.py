@@ -16,30 +16,33 @@ def setup(option=None):
         env.is_test = True
 
     node = env.node_map.get(env.host)
-    if env.is_chef:
-        node.update({'last_cook': '{0} [start]'.format(util.get_timestamp())})
-        util.dump_node()
-    else:
-        node.update({'last_fabcooks': ['{0} [start]'.format(util.get_timestamp())]})
-        util.dump_node()
 
     if not check():
-        log.warning('Failed to check(ssh)')
+        db.setuped(-1, 'Failed to check')
+        log.warning('Failed to check')
         return
 
     if env.is_chef:
-        cook_result = sudo('chef-client')
-        node = util.load_node()
-        last_cook = '{0} [{1}]'.format(util.get_timestamp(), cook_result.return_code)
-        node.update({'last_cook': last_cook})
+        result = sudo('chef-client')
+        status = result.return_code
+        if status == 0:
+            msg = 'setuped'
+        else:
+            msg = 'error'
+
+        db.setuped_chef(status, msg)
 
     else:
         filer.mkdir(conf.REMOTE_DIR)
         filer.mkdir(conf.STORAGE_DIR)
         filer.mkdir(conf.TMP_DIR, mode='777')
 
+        db.setuped(-1, 'start setup', is_init=True)
         for fabscript in node.get('fabruns', []):
-            db.setuped(-1, 'start setup', script_name=fabscript)
+            db.create_fabscript(fabscript)
+            util.update_log(fabscript, -1, 'start setup')
+            db.setuped(-1, 'start {0}'.format(fabscript))
+
             script = '.'.join((conf.FABSCRIPT_MODULE, fabscript))
             module = __import__(script, {}, {}, 'setup')
             func = getattr(module, 'setup')
@@ -56,7 +59,11 @@ def setup(option=None):
             if not msg:
                 msg = 'end setup'
 
-            db.setuped(status, msg, script_name=fabscript)
+            util.update_log(fabscript, status, msg)
+            db.setuped(status, msg)
+
+            if status != 0:
+                break
 
     util.dump_node()
 
@@ -67,19 +74,17 @@ def manage(*args):
     if args[0] == 'test':
         env.is_test = True
 
-    node = env.node_map.get(env.host)
-    node.update({'last_manage': '{0} [start]'.format(util.get_timestamp())})
-    util.dump_node()
-
     if not check():
         log.warning('Failed to check(ssh)')
         return
 
+    node = env.node_map.get(env.host)
     filer.mkdir(conf.REMOTE_DIR)
     filer.mkdir(conf.STORAGE_DIR)
     filer.mkdir(conf.TMP_DIR, mode='777')
 
     for fabscript in node.get('fabruns', []):
+        db.create_fabscript(fabscript)
         db.setuped(-1, 'start setup', script_name=fabscript)
         script = '.'.join((conf.FABSCRIPT_MODULE, fabscript))
         module = __import__(script, {}, {}, 'setup')

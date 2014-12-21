@@ -2,10 +2,11 @@
 
 from django.shortcuts import render
 from apps.node.models import Node
+from django.core import serializers
 
 
 def index(request):
-    nodes = Node.objects.all()
+    nodes = serializers.serialize('json', Node.objects.all().order_by('path'))
     context = {
         'title': 'Node List',
         'nodes': nodes,

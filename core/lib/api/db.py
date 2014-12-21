@@ -11,7 +11,7 @@ import databag
 from api import sudo
 from apps.node.models import Node
 from apps.fabscript.models import Fabscript
-from apps.result.models import Result
+from apps.result.models import Result, ChefResult
 
 
 def update_remote_node(data, host=None):
@@ -35,20 +35,32 @@ def get_remote_node():
     return {}
 
 
-def update_node(data, host=None):
+def update_node(host=None):
     if not host:
         host = env.host
 
-    try:
-        node = Node.objects.get(host=host)
-    except Node.DoesNotExist:
-        node = Node(host=host)
+    env_node = env.node_map[host]
 
-    node.path = data.get('path', u'').decode('utf-8')
-    node.ip = data.get('ip', u'').decode('utf-8')
-    node.ssh = data.get('ssh', u'').decode('utf-8')
-    node.uptime = data.get('uptime', u'').decode('utf-8')
+    try:
+        node = Node.objects.get(path=env_node['path'])
+    except Node.DoesNotExist:
+        node = Node(path=env_node['path'])
+
+    node.host = host
+    node.path = env_node.get('path', u'').decode('utf-8')
+    node.ip = env_node.get('ip', u'').decode('utf-8')
+    node.ssh = env_node.get('ssh', u'').decode('utf-8')
+    node.uptime = env_node.get('uptime', u'').decode('utf-8')
     node.save()
+
+
+def create_fabscript(script_name):
+    try:
+        fabscript = Fabscript.objects.get(name=script_name)
+    except Fabscript.DoesNotExist:
+        fabscript = Fabscript(name=script_name)
+
+    fabscript.save()
 
 
 def update_connection(data, script_name=None):
@@ -78,30 +90,44 @@ def get_connection(script_name, key):
     return data[key]
 
 
-def setuped(status, msg, host=None, script_name=None):
+def setuped_chef(status, msg, host=None, script_name=None):
     if not host:
         host = env.host
 
-    if not script_name:
-        script_name = __get_script_name()
-
     try:
-        node = Node.objects.get(host=host)
+        result = ChefResult.objects.get(node=host)
+    except Result.DoesNotExist:
+        result = ChefResult(node=host)
+
+    result.status = status
+    result.msg = msg
+    result.save()
+
+
+def setuped(status, msg, is_init=False, host=None):
+    if not host:
+        host = env.host
+
+    env_node = env.node_map.get(host)
+    try:
+        node = Node.objects.get(path=env_node['path'])
     except Node.DoesNotExist:
-        node = Node(host=host)
+        node = Node(path=env_node['path'])
         node.save()
 
     try:
-        fabscript = Fabscript.objects.get(name=script_name)
-    except Fabscript.DoesNotExist:
-        fabscript = Fabscript(name=script_name)
-        fabscript.save()
-
-    try:
-        result = Result.objects.get(node=node, fabscript=fabscript)
+        result = Result.objects.get(node=node)
     except Result.DoesNotExist:
-        result = Result(node=node, fabscript=fabscript)
+        result = Result(node=node)
 
+    if is_init:
+        logs = json.loads(result.logs)
+        logs_all = json.loads(result.logs_all)
+        logs_all.extend(logs)
+        result.logs_all = json.dumps(logs_all)
+
+    result.node_path = env_node['path']
+    result.logs = json.dumps(env_node['logs'])
     result.status = status
     result.msg = msg
     result.save()
