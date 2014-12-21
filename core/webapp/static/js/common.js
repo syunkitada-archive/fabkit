@@ -1,8 +1,6 @@
 (function() {
   var render_fabscripts, render_nodes, render_results;
 
-  console.log('test');
-
   if ($.support.pjax) {
     $(document).pjax('.pjax', '#pjax-container');
     $(document).on('pjax:end', function() {
@@ -32,13 +30,12 @@
         script = scripts[_i];
         script.fields.connection = JSON.parse(script.fields.connection);
         script.fields.connected_fabscripts = JSON.parse(script.fields.connected_fabscripts);
-        connected_html = '<ul>';
+        connected_html = '';
         _ref = script.fields.connected_fabscripts;
         for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
           connected = _ref[_j];
-          connected_html += "<li>" + connected + "</li>";
+          connected_html += "" + connected + "</br>";
         }
-        connected_html += '</ul>';
         cluster = script.fields.name.split('.')[0];
         if (cluster in fabscript_cluster_map) {
           cluster_data = fabscript_cluster_map[cluster];
@@ -60,7 +57,6 @@
         }
         clusters_html += "<li class=\"" + active + "\"><a href=\"#" + cluster + "\">" + cluster + " (" + scripts.length + ")</a></li>";
       }
-      console.log(clusters_html);
       return $('#fabscript-clusters').html(clusters_html);
     }
   };
@@ -71,7 +67,6 @@
     nodes_tbody = $('#nodes-tbody');
     if (nodes_tbody.length > 0) {
       nodes = JSON.parse(nodes.html());
-      console.log(nodes);
       node_cluster_map = {
         'all': nodes
       };
@@ -103,20 +98,17 @@
         }
         clusters_html += "<li class=\"" + active + "\"><a href=\"#" + cluster + "\">" + cluster + " (" + nodes.length + ")</a></li>";
       }
-      console.log(clusters_html);
       return $('#node-clusters').html(clusters_html);
     }
   };
 
   render_results = function() {
-    var active, cluster, cluster_data, clusters_html, hash, nodes, result, result_cluster_map, results, results_tbody, _i, _len;
+    var active, cluster, cluster_data, clusters_html, hash, i, id_logs, log, logs_all_html, logs_html, nodes, result, result_cluster_map, results, results_tbody, timestamp, tmp_logs_html, _i, _j, _k, _len, _len1, _len2, _ref, _ref1;
     results = $('#results');
     nodes = $('#nodes');
     results_tbody = $('#results-tbody');
-    console.log(results);
     if (results_tbody.length > 0) {
       results = JSON.parse(results.html());
-      console.log(results);
       result_cluster_map = {
         'all': results
       };
@@ -125,8 +117,8 @@
         hash = '#all';
       }
       results_tbody.empty();
-      for (_i = 0, _len = results.length; _i < _len; _i++) {
-        result = results[_i];
+      for (i = _i = 0, _len = results.length; _i < _len; i = ++_i) {
+        result = results[i];
         cluster = result.fields.node_path.split('/')[0];
         if (cluster in result_cluster_map) {
           cluster_data = result_cluster_map[cluster];
@@ -134,9 +126,24 @@
         } else {
           cluster_data = [result];
         }
+        tmp_logs_html = '';
+        _ref = JSON.parse(result.fields.logs);
+        for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
+          log = _ref[_j];
+          tmp_logs_html += "" + log.fabscript + ": " + log.msg + "[" + log.status + "]<br>";
+        }
+        logs_all_html = '';
+        _ref1 = JSON.parse(result.fields.logs_all);
+        for (_k = 0, _len2 = _ref1.length; _k < _len2; _k++) {
+          log = _ref1[_k];
+          timestamp = new Date(log.timestamp * 1000);
+          logs_all_html += "" + log.fabscript + ": " + log.msg + "[" + log.status + "] " + timestamp + "<br>";
+        }
+        id_logs = "log_" + i;
         result_cluster_map[cluster] = cluster_data;
+        logs_html = "<a class=\"\" data-toggle=\"collapse\" data-target=\"#" + id_logs + "\" aria-expanded=\"true\" aria-controls=\"" + id_logs + "\">\n    " + tmp_logs_html + "\n</a>\n\n<div id=\"" + id_logs + "\" class=\"collapse\">\n" + logs_all_html + "\n</div>";
         if (hash === '#all' || hash === ("#" + cluster)) {
-          results_tbody.append("<tr> <td>" + result.fields.node_path + "</td> <td>" + result.fields.status + "</td> <td>" + result.fields.msg + "</td> <td>" + result.fields.logs + "</td> <td>" + result.fields.logs_all + "</td> <td>" + result.fields.updated_at + "</td> </tr>");
+          results_tbody.append("<tr> <td>" + result.fields.node_path + "</td> <td>" + result.fields.status + "</td> <td>" + result.fields.msg + "</td> <td>" + logs_html + "</td> <td>" + result.fields.updated_at + "</td> </tr>");
         }
       }
       clusters_html = '';
@@ -148,7 +155,6 @@
         }
         clusters_html += "<li class=\"" + active + "\"><a href=\"#" + cluster + "\">" + cluster + " (" + results.length + ")</a></li>";
       }
-      console.log(clusters_html);
       return $('#result-clusters').html(clusters_html);
     }
   };

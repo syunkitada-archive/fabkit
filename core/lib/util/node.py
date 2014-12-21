@@ -5,6 +5,7 @@ import yaml
 from lib.api import *  # noqa
 from host import *  # noqa
 import re
+import time
 
 
 RE_UPTIME = re.compile('^.*up (.+),.*user.*$')
@@ -80,6 +81,7 @@ def load_node(host=None):
                 'fabscript': fabrun,
                 'status': -1,
                 'msg': 'registered',
+                'timestamp': time.time(),
             })
 
         node.update({
@@ -121,6 +123,7 @@ def update_log(fabscript, status, msg):
         if log['fabscript'] == fabscript:
             log['status'] = status
             log['msg'] = msg
+            log['timestamp'] = time.time()
 
         tmp_logs.append(log)
 

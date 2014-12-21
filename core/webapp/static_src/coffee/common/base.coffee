@@ -1,5 +1,3 @@
-console.log 'test'
-
 if $.support.pjax
     $(document).pjax('.pjax', '#pjax-container')
     $(document).on('pjax:end', ->
@@ -26,10 +24,9 @@ render_fabscripts = ->
             script.fields.connection = JSON.parse(script.fields.connection)
             script.fields.connected_fabscripts = JSON.parse(script.fields.connected_fabscripts)
 
-            connected_html = '<ul>'
+            connected_html = ''
             for connected in script.fields.connected_fabscripts
-                connected_html += "<li>#{connected}</li>"
-            connected_html += '</ul>'
+                connected_html += "#{connected}</br>"
 
             cluster = script.fields.name.split('.')[0]
             if cluster of fabscript_cluster_map
@@ -56,7 +53,6 @@ render_fabscripts = ->
                 active = "active"
             clusters_html += "<li class=\"#{active}\"><a href=\"##{cluster}\">#{cluster} (#{scripts.length})</a></li>"
 
-        console.log clusters_html
         $('#fabscript-clusters').html(clusters_html)
 
 render_nodes = ->
@@ -64,7 +60,6 @@ render_nodes = ->
     nodes_tbody = $('#nodes-tbody')
     if nodes_tbody.length > 0
         nodes = JSON.parse(nodes.html())
-        console.log(nodes)
         node_cluster_map = {'all': nodes}
         hash = location.hash
         if hash == ''
@@ -99,7 +94,6 @@ render_nodes = ->
                 active = "active"
             clusters_html += "<li class=\"#{active}\"><a href=\"##{cluster}\">#{cluster} (#{nodes.length})</a></li>"
 
-        console.log clusters_html
         $('#node-clusters').html(clusters_html)
 
 
@@ -107,17 +101,15 @@ render_results = ->
     results = $('#results')
     nodes = $('#nodes')
     results_tbody = $('#results-tbody')
-    console.log results
     if results_tbody.length > 0
         results = JSON.parse(results.html())
-        console.log results
         result_cluster_map = {'all': results}
         hash = location.hash
         if hash == ''
             hash = '#all'
 
         results_tbody.empty()
-        for result in results
+        for result, i in results
             cluster = result.fields.node_path.split('/')[0]
             if cluster of result_cluster_map
                 cluster_data = result_cluster_map[cluster]
@@ -125,7 +117,27 @@ render_results = ->
             else
                 cluster_data = [result]
 
+            tmp_logs_html = ''
+            for log in JSON.parse(result.fields.logs)
+                tmp_logs_html += "#{log.fabscript}: #{log.msg}[#{log.status}]<br>"
+
+            logs_all_html = ''
+            for log in JSON.parse(result.fields.logs_all)
+                timestamp = new Date(log.timestamp * 1000)
+                logs_all_html += "#{log.fabscript}: #{log.msg}[#{log.status}] #{timestamp}<br>"
+
+            # TODO Logsの展開機能のビューを整える、日時とかも表示
+            id_logs = "log_#{i}"
             result_cluster_map[cluster] = cluster_data
+            logs_html = """
+                <a class="" data-toggle="collapse" data-target="##{id_logs}" aria-expanded="true" aria-controls="#{id_logs}">
+                    #{tmp_logs_html}
+                </a>
+
+                <div id="#{id_logs}" class="collapse">
+                #{logs_all_html}
+                </div>
+            """
 
             if hash == '#all' or hash == "##{cluster}"
                 results_tbody.append("
@@ -133,8 +145,7 @@ render_results = ->
                     <td>#{result.fields.node_path}</td>
                     <td>#{result.fields.status}</td>
                     <td>#{result.fields.msg}</td>
-                    <td>#{result.fields.logs}</td>
-                    <td>#{result.fields.logs_all}</td>
+                    <td>#{logs_html}</td>
                     <td>#{result.fields.updated_at}</td>
                 </tr>")
 
@@ -146,7 +157,6 @@ render_results = ->
                 active = "active"
             clusters_html += "<li class=\"#{active}\"><a href=\"##{cluster}\">#{cluster} (#{results.length})</a></li>"
 
-        console.log clusters_html
         $('#result-clusters').html(clusters_html)
 
 render_fabscripts()
