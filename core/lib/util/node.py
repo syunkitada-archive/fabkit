@@ -30,10 +30,15 @@ def dump_node(host_path=None, node=None, is_init=False):
     if is_init:
         node_path = host_path
         node = convert_node()
-        db.update_node(node, host_path)
+
+        splited_host = node_path.rsplit('/', 1)
+        if len(splited_host) > 1:
+            host = splited_host[1]
+            env.node_map[host] = node
+        db.update_node()
     elif not node:
         node = env.node_map.get(host_path)
-        db.update_node(node, host_path)
+        db.update_node()
         node_path = node.get('path')
         node = convert_node(node)
     else:
@@ -69,7 +74,18 @@ def load_node(host=None):
             # return json.load(f)
             node = yaml.load(f)
 
-        node.update({'path': node_path})
+        logs = []
+        for fabrun in node['fabruns']:
+            logs.append({
+                'fabscript': fabrun,
+                'status': -1,
+                'msg': 'registered',
+            })
+
+        node.update({
+            'path': node_path,
+            'logs': logs,
+        })
 
         env.node_map.update({host: node})
         env.hosts.append(host)
@@ -96,6 +112,20 @@ def remove_node(host=None):
 
     path = '%s/%s.yaml' % (conf.NODE_DIR, host)
     os.remove(path)
+
+
+def update_log(fabscript, status, msg):
+    node = env.node_map.get(env.host)
+    tmp_logs = []
+    for log in node['logs']:
+        if log['fabscript'] == fabscript:
+            log['status'] = status
+            log['msg'] = msg
+
+        tmp_logs.append(log)
+
+    node['logs'] = tmp_logs
+    env.node_map[env.host] = node
 
 
 def print_node_map(node_map=None, option=''):

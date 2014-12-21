@@ -1,25 +1,25 @@
 <title>{{title}}</title>
 
-<h3 class="page-header">{{title}}</h3>
-<table class="table table-striped table-bordered">
-    <thead>
-        <tr>
-            <th>Node</th>
-            <th>Fabscript</th>
-            <th>Status</th>
-            <th>Msg</th>
-            <th>Udate</th>
-        </tr>
-    </thead>
-    <tbody>
-      {% for result in results %}
-        <tr>
-            <td>{{result.node}}</td>
-            <td>{{result.fabscript}}</td>
-            <td>{{result.status}}</td>
-            <td>{{result.msg}}</td>
-            <td>{{result.updated_at}}</td>
-        </tr>
-      {% endfor %}
-    </tbody>
-</table>
+<div class="col-sm-3 col-md-2 sidebar">
+    <ul class="nav nav-sidebar" id="result-clusters"></ul>
+</div>
+<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+
+    <h2 class="page-header">{{title}}</h2>
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th>Node</th>
+                <th>Status</th>
+                <th>Msg</th>
+                <th>Logs</th>
+                <th>Logs_all</th>
+                <th>Udate</th>
+            </tr>
+        </thead>
+        <tbody id="results-tbody">
+        </tbody>
+    </table>
+</div>
+
+<script type="application/json" id="results">{{ results|safe }}</script>

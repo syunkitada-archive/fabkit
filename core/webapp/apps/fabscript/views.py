@@ -6,7 +6,7 @@ from django.core import serializers
 
 
 def index(request):
-    fabscripts = serializers.serialize('json', Fabscript.objects.all())
+    fabscripts = serializers.serialize('json', Fabscript.objects.all().order_by('name'))
     context = {
         'title': 'Fabscript List',
         'fabscripts': fabscripts,

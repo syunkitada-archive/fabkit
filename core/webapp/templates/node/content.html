@@ -1,24 +1,23 @@
 <title>{{title}}</title>
 
-<h3 class="page-header">Node List</h3>
-<table class="table table-striped table-bordered">
-    <thead>
-        <tr>
-            <th>ホスト名</th>
-            <th>fabruns</th>
-        </tr>
-    </thead>
-    <tbody>
-      {% for node in nodes %}
-        <tr>
-            <td>{{ node.host }}</td>
-            <td>
-                <ul>
-                    <li>hello 0</li>
-                    <li>test 0</li>
-                </ul>
-            </td>
-        </tr>
-      {% endfor %}
-    </tbody>
-</table>
+<div class="col-sm-3 col-md-2 sidebar">
+    <ul class="nav nav-sidebar" id="node-clusters"></ul>
+</div>
+<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+    <h2 class="page-header">{{title}}</h2>
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th>Path</th>
+                <th>Hostname</th>
+                <th>Ip</th>
+                <th>Uptime</th>
+                <th>Ssh</th>
+            </tr>
+        </thead>
+        <tbody id="nodes-tbody">
+        </tbody>
+    </table>
+</div>
+
+<script type="application/json" id="nodes">{{ nodes|safe }}</script>
