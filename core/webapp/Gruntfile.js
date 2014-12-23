@@ -6,6 +6,7 @@ module.exports = function(grunt) {
                 files: {
                     'static/js/common.js': [
                         'static_src/coffee/common/base.coffee',
+                        'static_src/coffee/common/render.coffee',
                     ]
                 }
             }
