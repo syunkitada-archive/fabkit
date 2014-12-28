@@ -1,22 +1,49 @@
 (function() {
-  var render_fabscripts, render_nodes, render_results;
+  var bind_popover, render_fabscript, render_force_layout, render_node, render_result;
 
-  if ($.support.pjax) {
-    $(document).pjax('.pjax', '#pjax-container');
-    $(document).on('pjax:end', function() {
-      $('.pjax').parent().removeClass('active');
-      $('a[href="' + location.pathname + '"]').parent().addClass('active');
-      render_fabscripts();
-      render_nodes();
-      return render_results();
+  render_force_layout = function(id, nodes, links) {
+    var $svg, force, h, link, node, svg, w;
+    console.log(nodes);
+    console.log(links);
+    svg = d3.select(id);
+    $svg = $(id);
+    w = $svg.width();
+    h = $svg.height();
+    force = d3.layout.force().nodes(nodes).links(links).gravity(.05).distance(100).charge(-100).size([w, h]);
+    link = svg.selectAll('.link').data(links).enter().append('line').attr('class', 'link').attr('marker-end', 'url(#markerArrow)');
+    node = svg.selectAll(".node").data(nodes).enter().append('g').attr('class', 'node').call(force.drag);
+    node.append("circle").attr("r", 5).style("fill", "green");
+    node.append('text').attr('dx', 12).attr('dy', '.35em').text(function(d) {
+      return d.name;
     });
-  }
+    force.on("tick", function(e) {
+      link.attr('x1', function(d) {
+        return d.source.x;
+      });
+      link.attr('y1', function(d) {
+        return d.source.y;
+      });
+      link.attr('x2', function(d) {
+        return d.target.x;
+      });
+      link.attr('y2', function(d) {
+        return d.target.y;
+      });
+      return node.attr('transform', function(d) {
+        return "translate(" + d.x + ", " + d.y + ")";
+      });
+    });
+    return force.start();
+  };
 
-  render_fabscripts = function() {
-    var active, cluster, cluster_data, clusters_html, connected, connected_html, fabscript_cluster_map, fabscripts, fabscripts_tbody, hash, script, scripts, _i, _j, _len, _len1, _ref;
+  render_fabscript = function() {
+    var active, cluster, cluster_data, clusters_html, connected, connected_html, fabscript, fabscript_cluster_map, fabscripts, fabscripts_tbody, hash, i, is_exist, linked_index, links, node, node_index, node_map, nodes, script, scripts, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1;
     fabscripts = $('#fabscripts');
     fabscripts_tbody = $('#fabscripts-tbody');
     if (fabscripts_tbody.length > 0) {
+      node_map = {};
+      nodes = [];
+      links = [];
       scripts = JSON.parse(fabscripts.html());
       fabscript_cluster_map = {
         'all': scripts
@@ -46,6 +73,52 @@
         fabscript_cluster_map[cluster] = cluster_data;
         if (hash === '#all' || hash === ("#" + cluster)) {
           fabscripts_tbody.append("<tr> <td>" + script.fields.name + "</td> <td>" + connected_html + "</td> <td>" + script.fields.updated_at + "</td> </tr>");
+          if (hash !== "#all") {
+            is_exist = false;
+            node_index = 0;
+            for (i = _k = 0, _len2 = nodes.length; _k < _len2; i = ++_k) {
+              node = nodes[i];
+              if (node.name === script.fields.name) {
+                is_exist = true;
+                node_index = i;
+                break;
+              }
+            }
+            if (!is_exist) {
+              node_index = nodes.length;
+              nodes.push({
+                'name': script.fields.name
+              });
+            }
+            _ref1 = script.fields.connected_fabscripts;
+            for (_l = 0, _len3 = _ref1.length; _l < _len3; _l++) {
+              fabscript = _ref1[_l];
+              fabscript = fabscript.split(':')[0];
+              is_exist = false;
+              linked_index = 0;
+              for (i = _m = 0, _len4 = nodes.length; _m < _len4; i = ++_m) {
+                node = nodes[i];
+                if (node.name === fabscript) {
+                  console.log('exist');
+                  is_exist = true;
+                  linked_index = i;
+                  break;
+                }
+              }
+              if (!is_exist) {
+                linked_index = nodes.length;
+                nodes.push({
+                  'name': fabscript
+                });
+              }
+              if (node_index !== linked_index) {
+                links.push({
+                  'source': linked_index,
+                  'target': node_index
+                });
+              }
+            }
+          }
         }
       }
       clusters_html = '';
@@ -57,11 +130,15 @@
         }
         clusters_html += "<li class=\"" + active + "\"><a href=\"#" + cluster + "\">" + cluster + " (" + scripts.length + ")</a></li>";
       }
-      return $('#fabscript-clusters').html(clusters_html);
+      $('#fabscript-clusters').html(clusters_html);
+      $('#svg-fabscript').empty();
+      if (hash !== "#all") {
+        return render_force_layout('#svg-fabscript', nodes, links);
+      }
     }
   };
 
-  render_nodes = function() {
+  render_node = function() {
     var active, cluster, cluster_data, clusters_html, hash, node, node_cluster_map, nodes, nodes_tbody, _i, _len;
     nodes = $('#nodes');
     nodes_tbody = $('#nodes-tbody');
@@ -102,7 +179,7 @@
     }
   };
 
-  render_results = function() {
+  render_result = function() {
     var active, cluster, cluster_data, clusters_html, hash, i, id_logs, log, logs_all_html, logs_html, nodes, result, result_cluster_map, results, results_tbody, timestamp, tmp_logs_html, _i, _j, _k, _len, _len1, _len2, _ref, _ref1;
     results = $('#results');
     nodes = $('#nodes');
@@ -141,7 +218,7 @@
         }
         id_logs = "log_" + i;
         result_cluster_map[cluster] = cluster_data;
-        logs_html = "<a class=\"\" data-toggle=\"collapse\" data-target=\"#" + id_logs + "\" aria-expanded=\"true\" aria-controls=\"" + id_logs + "\">\n    " + tmp_logs_html + "\n</a>\n\n<div id=\"" + id_logs + "\" class=\"collapse\">\n" + logs_all_html + "\n</div>";
+        logs_html = "<a class=\"popover-anchor\" data-containe=\"body\" data-toggle=\"popover\" data-placement=\"bottom\" data-html=\"true\" data-content=\"" + logs_all_html + "\">\n    " + tmp_logs_html + "\n </a>";
         if (hash === '#all' || hash === ("#" + cluster)) {
           results_tbody.append("<tr> <td>" + result.fields.node_path + "</td> <td>" + result.fields.status + "</td> <td>" + result.fields.msg + "</td> <td>" + logs_html + "</td> <td>" + result.fields.updated_at + "</td> </tr>");
         }
@@ -159,78 +236,33 @@
     }
   };
 
-  render_fabscripts();
+  bind_popover = function() {
+    return $('[data-toggle=popover]').popover();
+  };
 
-  render_nodes();
+  render_fabscript();
 
-  render_results();
+  render_node();
+
+  render_result();
+
+  bind_popover();
+
+  if ($.support.pjax) {
+    $(document).pjax('.pjax', '#pjax-container');
+    $(document).on('pjax:end', function() {
+      $('.pjax').parent().removeClass('active');
+      $('a[href="' + location.pathname + '"]').parent().addClass('active');
+      render_fabscript();
+      render_node();
+      render_result();
+    });
+  }
 
   $(window).on('hashchange', function() {
-    render_fabscripts();
-    render_nodes();
-    render_results();
+    render_fabscript();
+    render_node();
+    render_result();
   });
-
-}).call(this);
-
-(function() {
-  var force, h, link, links, node, nodes, svg, w;
-
-  w = 400;
-
-  h = 400;
-
-  nodes = [
-    {
-      'name': 'graphite-web'
-    }, {
-      'name': 'mysql'
-    }, {
-      'name': 'carbon-relay'
-    }, {
-      'name': 'carbon-cache'
-    }
-  ];
-
-  links = [
-    {
-      'source': 0,
-      'target': 1
-    }
-  ];
-
-  svg = d3.select("#render").attr("width", w).attr("height", h);
-
-  force = d3.layout.force().nodes(nodes).links(links).gravity(.05).distance(100).charge(-100).size([w, h]);
-
-  link = svg.selectAll('.link').data(links).enter().append('line').attr('class', 'link');
-
-  node = svg.selectAll(".node").data(nodes).enter().append('g').attr('class', 'node').call(force.drag);
-
-  node.append("circle").attr("r", 5).style("fill", "green");
-
-  node.append('text').attr('dx', 12).attr('dy', '.35em').text(function(d) {
-    return d.name;
-  });
-
-  force.on("tick", function(e) {
-    link.attr('x1', function(d) {
-      return d.source.x;
-    });
-    link.attr('y1', function(d) {
-      return d.source.y;
-    });
-    link.attr('x2', function(d) {
-      return d.target.x;
-    });
-    link.attr('y2', function(d) {
-      return d.target.y;
-    });
-    return node.attr('transform', function(d) {
-      return "translate(" + d.x + ", " + d.y + ")";
-    });
-  });
-
-  force.start();
 
 }).call(this);

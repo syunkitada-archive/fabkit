@@ -66,6 +66,8 @@ def create_fabscript(script_name):
 def update_connection(data, script_name=None):
     if not script_name:
         script_name = __get_script_name()
+        print '\n\n\nDEBUG'
+        print script_name
 
     try:
         fabscript = Fabscript.objects.get(name=script_name)
@@ -78,13 +80,18 @@ def update_connection(data, script_name=None):
 
 
 def get_connection(script_name, key):
+    # 参照先のscript
     fabscript = Fabscript.objects.get(name=script_name)
 
-    connected_fabscript = '{0}:{1}'.format(__get_script_name(True), key)
-    connected_fabscripts = set(yaml.load(fabscript.connected_fabscripts))
-    connected_fabscripts.add(connected_fabscript)
-    fabscript.connected_fabscripts = json.dumps(list(connected_fabscripts))
-    fabscript.save()
+    # 参照元のscript
+    tmp_fabscript = __get_script_name()
+    if tmp_fabscript:
+        connected_fabscript = '{0}:{1}'.format(tmp_fabscript, key)
+        connected_fabscripts = set(yaml.load(fabscript.connected_fabscripts))
+        connected_fabscripts.add(connected_fabscript)
+        fabscript.connected_fabscripts = json.dumps(list(connected_fabscripts))
+        fabscript.save()
+
     connection_str = databag.decode_str(fabscript.connection)
     data = json.loads(connection_str)
     return data[key]
@@ -163,7 +170,7 @@ def is_setuped(host, script_name, status=0):
 
 def __get_script_name(is_reqursive=False):
     scripts = []
-    stack = inspect.stack()[1:-11]
+    stack = inspect.stack()[1:]
     for frame in stack:
         file = frame[1]
         if file.find('/fabscript/') > -1:
@@ -171,6 +178,12 @@ def __get_script_name(is_reqursive=False):
             if not is_reqursive:
                 return script
 
+            if 'setup' not in frame[0].f_code.co_names:
+                continue
+
             scripts.insert(0, script)
+
+    if len(scripts) == 0:
+        return None
 
     return '>'.join(scripts)

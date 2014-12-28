@@ -2,11 +2,16 @@
 
 from fabric.api import (task,
                         env,
-                        parallel,)
+                        parallel)
 from lib import conf, util, log
 from lib.api import sudo, db, filer
 from check import check
 from types import IntType, TupleType
+
+
+@task
+def _setup(option=None):
+    setup(option)
 
 
 @task
@@ -66,6 +71,11 @@ def setup(option=None):
                 break
 
     util.dump_node()
+
+
+@task
+def _manage(*args):
+    manage(args)
 
 
 @task
