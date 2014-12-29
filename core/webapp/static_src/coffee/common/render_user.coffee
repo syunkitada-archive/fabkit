@@ -8,9 +8,11 @@ render_user = ->
         $('.user-content').hide()
         if hash == '#user-list'
             users_tbody.empty()
+            console.log users
             for user in users
                 users_tbody.append("
-                <tr>
+                <tr id=\"#{user.pk}\">
+                    <td><input type=\"checkbox\"></td>
                     <td>#{user.fields.username}</td>
                     <td>#{user.fields.is_superuser}</td>
                 </tr>")

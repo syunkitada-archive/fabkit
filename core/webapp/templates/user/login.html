@@ -4,20 +4,27 @@
 
 {% block content %}
 <div class="container">
-    <form class="form-signin" method="post" action="{% url 'user:login' %}">
+    <form class="form-signin form-horizontal" method="post" action="{% url 'user:login' %}">
         {% csrf_token %}
-        <h2 class="form-signin-heading">Please sign in</h2>
-        <label for="inputUsername" class="sr-only">Username</label>
-        <input id="inputUsername" class="form-control" name="{{ form.username.name }}" placeholder="Username" required autofocus>
-        <label for="inputPassword" class="sr-only">Password</label>
-        <input type="password" id="inputPassword" class="form-control" name="{{ form.password.name }}" placeholder="Password" required>
-        <div class="checkbox">
-            <label>
-                <input type="checkbox" value="remember-me"> Remember me
-            </label>
+        <h2 class="page-header">Please sign in</h2>
+        <div class="form-group form-group-lg">
+            <label for="inputUsername" class="col-sm-3 control-label">Username</label>
+            <div class="col-sm-9">
+                <input id="inputUsername" class="form-control" name="{{ form.username.name }}" placeholder="Username" required autofocus>
+            </div>
         </div>
-        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
-        <input type="hidden" name="next" value="{{ next }}">
+        <div class="form-group form-group-lg">
+            <label for="inputPassword" class="col-sm-3 control-label">Password</label>
+            <div class="col-sm-9">
+                <input type="password" id="inputPassword" class="form-control" name="{{ form.password.name }}" placeholder="Password" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-offset-3 col-sm-9">
+                <input class="btn btn-lg btn-block btn-primary" type="submit" value="Sign in">
+                <input type="hidden" name="next" value="{{ next }}">
+            </div>
+        </div>
     </form>
 
 </div> <!-- /container -->

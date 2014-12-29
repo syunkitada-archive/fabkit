@@ -81,7 +81,7 @@
         $('#modal-progress').hide();
       },
       success: function(data) {
-        var fabscript, node, pk, result, target, target_list, targets, tmp_fabscripts, tmp_nodes, tmp_results, tmp_targets, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2;
+        var fabscript, node, pk, result, target, target_list, targets, tmp_fabscripts, tmp_nodes, tmp_results, tmp_targets, tmp_users, user, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1, _ref2, _ref3;
         console.log(data);
         $('#modal-msg').html('<div class="bg-success msg-box">Success</div>').show();
         target_list = $('#target-list');
@@ -124,6 +124,16 @@
             }
           }
           results = tmp_results;
+        } else if ($('#users-tbody').length > 0) {
+          tmp_users = [];
+          for (_m = 0, _len4 = users.length; _m < _len4; _m++) {
+            user = users[_m];
+            pk = user.pk;
+            if (_ref3 = user.pk, __indexOf.call(tmp_targets, _ref3) < 0) {
+              tmp_users.push(user);
+            }
+          }
+          users = tmp_users;
         }
         console.log('DEBUG');
         render_all();
@@ -179,9 +189,10 @@
       $('.user-content').hide();
       if (hash === '#user-list') {
         users_tbody.empty();
+        console.log(users);
         for (_i = 0, _len = users.length; _i < _len; _i++) {
           user = users[_i];
-          users_tbody.append("<tr> <td>" + user.fields.username + "</td> <td>" + user.fields.is_superuser + "</td> </tr>");
+          users_tbody.append("<tr id=\"" + user.pk + "\"> <td><input type=\"checkbox\"></td> <td>" + user.fields.username + "</td> <td>" + user.fields.is_superuser + "</td> </tr>");
         }
         $('#user-list').show();
       } else if (hash === '#change-password') {

@@ -101,6 +101,15 @@ $('#remove-form').on('submit', ->
 
                 results = tmp_results
 
+            else if $('#users-tbody').length > 0
+                tmp_users = []
+                for user in users
+                    pk = user.pk
+                    if user.pk not in tmp_targets
+                        tmp_users.push(user)
+
+                users = tmp_users
+
             console.log 'DEBUG'
             render_all()
             return
