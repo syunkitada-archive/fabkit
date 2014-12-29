@@ -1,23 +1,17 @@
 render_fabscript = ->
-    fabscripts = $('#fabscripts')
     fabscripts_tbody = $('#fabscripts-tbody')
     if fabscripts_tbody.length > 0
         node_map = {}
         nodes = []
         links = []
 
-        scripts = JSON.parse(fabscripts.html())
-        fabscript_cluster_map = {'all': scripts}
+        fabscript_cluster_map = {'all': fabscripts}
         hash = location.hash
         if hash == ''
             hash = '#all'
 
         fabscripts_tbody.empty()
-        for script in scripts
-
-            script.fields.connection = JSON.parse(script.fields.connection)
-            script.fields.connected_fabscripts = JSON.parse(script.fields.connected_fabscripts)
-
+        for script in fabscripts
             connected_html = ''
             for connected in script.fields.connected_fabscripts
                 connected_html += "#{connected}</br>"
@@ -33,7 +27,8 @@ render_fabscript = ->
 
             if hash == '#all' or hash == "##{cluster}"
                 fabscripts_tbody.append("
-                <tr>
+                <tr id=\"#{script.pk}\">
+                    <td><input type=\"checkbox\"></td>
                     <td>#{script.fields.name}</td>
                     <td>#{connected_html}</td>
                     <td>#{script.fields.updated_at}</td>
@@ -59,7 +54,6 @@ render_fabscript = ->
                         linked_index = 0
                         for node, i in nodes
                             if node.name == fabscript
-                                console.log('exist')
                                 is_exist = true
                                 linked_index = i
                                 break
@@ -77,11 +71,11 @@ render_fabscript = ->
                             })
 
         clusters_html = ''
-        for cluster, scripts of fabscript_cluster_map
+        for cluster, fabscripts of fabscript_cluster_map
             active = ""
             if hash == "##{cluster}"
                 active = "active"
-            clusters_html += "<li class=\"#{active}\"><a href=\"##{cluster}\">#{cluster} (#{scripts.length})</a></li>"
+            clusters_html += "<li class=\"#{active}\"><a href=\"##{cluster}\">#{cluster} (#{fabscripts.length})</a></li>"
 
         $('#fabscript-clusters').html(clusters_html)
 

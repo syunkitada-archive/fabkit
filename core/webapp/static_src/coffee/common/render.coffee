@@ -1,49 +1,62 @@
-render_force_layout = (id, nodes, links) ->
-    console.log nodes
-    console.log links
+render_all = ->
+    render_user()
+    render_fabscript()
+    render_node()
+    render_result()
 
-    svg = d3.select(id)
-    $svg = $(id)
-    w = $svg.width()
-    h = $svg.height()
 
-    #forceの設定
-    force = d3.layout.force()
-            .nodes(nodes) #nodesには配列を与える
-            .links(links)
-            .gravity(.05)
-            .distance(100)
-            .charge(-100)
-            .size([w, h])
+init = ->
+    $('[data-toggle=popover]').popover()
 
-    link = svg.selectAll('.link')
-              .data(links)
-              .enter().append('line')
-              .attr('class', 'link')
-              .attr('marker-end', 'url(#markerArrow)')
+    $('#search-input').on('change', filter)
+                      .on('keyup', filter)
 
-    node = svg.selectAll(".node")
-              .data(nodes)
-              .enter().append('g')
-              .attr('class', 'node')
-              .call(force.drag)  # nodeのドラッグを可能にする
+    $('#all-checkbox').on('change', ->
+        is_checked = $(this).prop('checked')
+        trs = $('tbody > tr')
+        for tr in trs
+            tr = $(tr)
+            if tr.is(':visible')
+                tr.find('input[type=checkbox]').prop('checked', is_checked)
+            else
+                tr.find('input[type=checkbox]').prop('checked', false)
+        return)
 
-    node.append("circle")
-        .attr("r", 5)
-        .style("fill", "green")
+    users = $('#users')
+    if users.length > 0
+        users = JSON.parse(users.html())
 
-    node.append('text')
-        .attr('dx', 12)
-        .attr('dy', '.35em')
-        .text((d) -> d.name)
+    nodes = $('#nodes')
+    if nodes.length > 0
+        nodes = JSON.parse(nodes.html())
+        console.log nodes
 
-    #forceシミュレーションをステップごとに実行
-    force.on "tick", (e)->
-        link.attr('x1', (d) -> d.source.x)
-        link.attr('y1', (d) -> d.source.y)
-        link.attr('x2', (d) -> d.target.x)
-        link.attr('y2', (d) -> d.target.y)
-        node.attr('transform', (d) -> "translate(#{d.x}, #{d.y})")
+    fabscripts = $('#fabscripts')
+    if fabscripts.length > 0
+        fabscripts = JSON.parse(fabscripts.html())
+        for fabscript in fabscripts
+            fabscript.fields.connection = JSON.parse(fabscript.fields.connection)
+            fabscript.fields.connected_fabscripts = JSON.parse(fabscript.fields.connected_fabscripts)
 
-    #forceシミュレーションの開始
-    force.start()
+    results = $('#results')
+    if results.length > 0
+        results = JSON.parse(results.html())
+
+    render_all()
+
+
+if $.support.pjax
+    $(document).pjax('.pjax', '#pjax-container')
+    $(document).on('pjax:end', ->
+        $('.pjax').parent().removeClass('active')
+        $('a[href="' + location.pathname + '"]').parent().addClass('active')
+        init()
+        return)
+
+
+$(window).on('hashchange', ->
+    init()
+    return)
+
+
+init()

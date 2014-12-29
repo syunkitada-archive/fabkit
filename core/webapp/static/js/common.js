@@ -1,10 +1,142 @@
 (function() {
-  var bind_popover, render_fabscript, render_force_layout, render_node, render_result;
+  var fabscripts, filter, init, nodes, render_all, render_fabscript, render_force_layout, render_node, render_result, render_user, results, users,
+    __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+
+  window.fabkit = {};
+
+  users = [];
+
+  nodes = [];
+
+  fabscripts = [];
+
+  results = [];
+
+  filter = function() {
+    var is_match, query, td, tds, tr, trs, _i, _j, _len, _len1;
+    query = $(this).val();
+    trs = $('tbody > tr');
+    for (_i = 0, _len = trs.length; _i < _len; _i++) {
+      tr = trs[_i];
+      tr = $(tr);
+      tds = tr.find('td');
+      is_match = false;
+      for (_j = 0, _len1 = tds.length; _j < _len1; _j++) {
+        td = tds[_j];
+        if (td.innerHTML.match(query)) {
+          is_match = true;
+          break;
+        }
+      }
+      if (is_match) {
+        tr.show();
+      } else {
+        tr.hide();
+      }
+    }
+  };
+
+  fabkit.remove_data = function(url) {
+    var target_html, tr, trs, _i, _len;
+    target_html = '';
+    trs = $('tbody > tr');
+    for (_i = 0, _len = trs.length; _i < _len; _i++) {
+      tr = trs[_i];
+      tr = $(tr);
+      if (tr.is(':visible')) {
+        if (tr.find('input[type=checkbox]').prop('checked')) {
+          target_html += "<li>\n    " + (tr.find('td')[1].innerHTML) + "\n</li>\n<input type=\"hidden\" name=\"target\" value=\"" + (tr.prop('id')) + "\">";
+          continue;
+        }
+      }
+    }
+    if (target_html === '') {
+      target_html = '<li>Not selected</li>';
+      $('#remove-submit').attr('disabled', true);
+    } else {
+      $('#remove-submit').attr('disabled', false);
+    }
+    $('#remove-form').prop('action', url);
+    $('#modal-progress').hide();
+    $('#modal-msg').hide();
+    $('#target-list').html(target_html);
+    $('#remove-modal').modal();
+  };
+
+  $('#remove-form').on('submit', function() {
+    var data, form, submit_button;
+    event.preventDefault(false);
+    form = $(this);
+    submit_button = form.find('[type=submit]');
+    data = form.serialize();
+    $.ajax({
+      url: form.attr('action'),
+      type: form.attr('method'),
+      data: form.serialize(),
+      beforeSend: function(xhr, settings) {
+        $('#modal-progress').show();
+        submit_button.attr('disabled', true);
+      },
+      complete: function(xhr, textStatus) {
+        $('#modal-progress').hide();
+      },
+      success: function(data) {
+        var fabscript, node, pk, result, target, target_list, targets, tmp_fabscripts, tmp_nodes, tmp_results, tmp_targets, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2;
+        console.log(data);
+        $('#modal-msg').html('<div class="bg-success msg-box">Success</div>').show();
+        target_list = $('#target-list');
+        targets = $('input[name=target]');
+        tmp_targets = [];
+        for (_i = 0, _len = targets.length; _i < _len; _i++) {
+          target = targets[_i];
+          tmp_targets.push(parseInt($(target).val()));
+        }
+        if ($('#nodes-tbody').length > 0) {
+          tmp_nodes = [];
+          for (_j = 0, _len1 = nodes.length; _j < _len1; _j++) {
+            node = nodes[_j];
+            pk = node.pk;
+            if (_ref = node.pk, __indexOf.call(tmp_targets, _ref) < 0) {
+              tmp_nodes.push(node);
+            }
+          }
+          nodes = tmp_nodes;
+        } else if ($('#fabscripts-tbody').length > 0) {
+          tmp_fabscripts = [];
+          console.log(tmp_targets);
+          console.log(fabscripts);
+          for (_k = 0, _len2 = fabscripts.length; _k < _len2; _k++) {
+            fabscript = fabscripts[_k];
+            pk = fabscript.pk;
+            if (_ref1 = fabscript.pk, __indexOf.call(tmp_targets, _ref1) < 0) {
+              tmp_fabscripts.push(fabscript);
+            }
+          }
+          fabscripts = tmp_fabscripts;
+          console.log(fabscripts);
+        } else if ($('#results-tbody').length > 0) {
+          tmp_results = [];
+          for (_l = 0, _len3 = results.length; _l < _len3; _l++) {
+            result = results[_l];
+            pk = result.pk;
+            if (_ref2 = result.pk, __indexOf.call(tmp_targets, _ref2) < 0) {
+              tmp_results.push(result);
+            }
+          }
+          results = tmp_results;
+        }
+        console.log('DEBUG');
+        render_all();
+      },
+      error: function(xhr, textStatus, error) {
+        $('#modal-msg').html('<div class="bg-danger msg-box">Failed</div>').show();
+        console.log(textStatus);
+      }
+    });
+  });
 
   render_force_layout = function(id, nodes, links) {
     var $svg, force, h, link, node, svg, w;
-    console.log(nodes);
-    console.log(links);
     svg = d3.select(id);
     $svg = $(id);
     w = $svg.width();
@@ -36,27 +168,49 @@
     return force.start();
   };
 
+  render_user = function() {
+    var hash, user, users_tbody, _i, _len;
+    users_tbody = $('#users-tbody');
+    if (users_tbody.length > 0) {
+      hash = location.hash;
+      if (hash === '') {
+        hash = '#user-list';
+      }
+      $('.user-content').hide();
+      if (hash === '#user-list') {
+        users_tbody.empty();
+        for (_i = 0, _len = users.length; _i < _len; _i++) {
+          user = users[_i];
+          users_tbody.append("<tr> <td>" + user.fields.username + "</td> <td>" + user.fields.is_superuser + "</td> </tr>");
+        }
+        $('#user-list').show();
+      } else if (hash === '#change-password') {
+        $('#change-password').show();
+      } else if (hash === '#create-user') {
+        $('#create-user').show();
+      }
+      $("#left-nav > li").removeClass('active');
+      return $("" + hash + "-li").addClass('active');
+    }
+  };
+
   render_fabscript = function() {
-    var active, cluster, cluster_data, clusters_html, connected, connected_html, fabscript, fabscript_cluster_map, fabscripts, fabscripts_tbody, hash, i, is_exist, linked_index, links, node, node_index, node_map, nodes, script, scripts, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1;
-    fabscripts = $('#fabscripts');
+    var active, cluster, cluster_data, clusters_html, connected, connected_html, fabscript, fabscript_cluster_map, fabscripts_tbody, hash, i, is_exist, linked_index, links, node, node_index, node_map, script, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1;
     fabscripts_tbody = $('#fabscripts-tbody');
     if (fabscripts_tbody.length > 0) {
       node_map = {};
       nodes = [];
       links = [];
-      scripts = JSON.parse(fabscripts.html());
       fabscript_cluster_map = {
-        'all': scripts
+        'all': fabscripts
       };
       hash = location.hash;
       if (hash === '') {
         hash = '#all';
       }
       fabscripts_tbody.empty();
-      for (_i = 0, _len = scripts.length; _i < _len; _i++) {
-        script = scripts[_i];
-        script.fields.connection = JSON.parse(script.fields.connection);
-        script.fields.connected_fabscripts = JSON.parse(script.fields.connected_fabscripts);
+      for (_i = 0, _len = fabscripts.length; _i < _len; _i++) {
+        script = fabscripts[_i];
         connected_html = '';
         _ref = script.fields.connected_fabscripts;
         for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
@@ -72,7 +226,7 @@
         }
         fabscript_cluster_map[cluster] = cluster_data;
         if (hash === '#all' || hash === ("#" + cluster)) {
-          fabscripts_tbody.append("<tr> <td>" + script.fields.name + "</td> <td>" + connected_html + "</td> <td>" + script.fields.updated_at + "</td> </tr>");
+          fabscripts_tbody.append("<tr id=\"" + script.pk + "\"> <td><input type=\"checkbox\"></td> <td>" + script.fields.name + "</td> <td>" + connected_html + "</td> <td>" + script.fields.updated_at + "</td> </tr>");
           if (hash !== "#all") {
             is_exist = false;
             node_index = 0;
@@ -99,7 +253,6 @@
               for (i = _m = 0, _len4 = nodes.length; _m < _len4; i = ++_m) {
                 node = nodes[i];
                 if (node.name === fabscript) {
-                  console.log('exist');
                   is_exist = true;
                   linked_index = i;
                   break;
@@ -123,12 +276,12 @@
       }
       clusters_html = '';
       for (cluster in fabscript_cluster_map) {
-        scripts = fabscript_cluster_map[cluster];
+        fabscripts = fabscript_cluster_map[cluster];
         active = "";
         if (hash === ("#" + cluster)) {
           active = "active";
         }
-        clusters_html += "<li class=\"" + active + "\"><a href=\"#" + cluster + "\">" + cluster + " (" + scripts.length + ")</a></li>";
+        clusters_html += "<li class=\"" + active + "\"><a href=\"#" + cluster + "\">" + cluster + " (" + fabscripts.length + ")</a></li>";
       }
       $('#fabscript-clusters').html(clusters_html);
       $('#svg-fabscript').empty();
@@ -139,11 +292,10 @@
   };
 
   render_node = function() {
-    var active, cluster, cluster_data, clusters_html, hash, node, node_cluster_map, nodes, nodes_tbody, _i, _len;
-    nodes = $('#nodes');
+    var active, cluster, cluster_data, clusters_html, hash, node, node_cluster_map, node_clusters, nodes_tbody, _i, _len;
     nodes_tbody = $('#nodes-tbody');
+    node_clusters = $('#node-clusters');
     if (nodes_tbody.length > 0) {
-      nodes = JSON.parse(nodes.html());
       node_cluster_map = {
         'all': nodes
       };
@@ -152,6 +304,7 @@
         hash = '#all';
       }
       nodes_tbody.empty();
+      node_clusters.empty();
       for (_i = 0, _len = nodes.length; _i < _len; _i++) {
         node = nodes[_i];
         cluster = node.fields.path.split('/')[0];
@@ -163,7 +316,7 @@
         }
         node_cluster_map[cluster] = cluster_data;
         if (hash === '#all' || hash === ("#" + cluster)) {
-          nodes_tbody.append("<tr> <td>" + node.fields.path + "</td> <td>" + node.fields.host + "</td> <td>" + node.fields.ip + "</td> <td>" + node.fields.uptime + "</td> <td>" + node.fields.ssh + "</td> </tr>");
+          nodes_tbody.append("<tr id=\"" + node.pk + "\"> <td><input type=\"checkbox\"></td> <td>" + node.fields.path + "</td> <td>" + node.fields.host + "</td> <td>" + node.fields.ip + "</td> <td>" + node.fields.uptime + "</td> <td>" + node.fields.ssh + "</td> </tr>");
         }
       }
       clusters_html = '';
@@ -175,17 +328,14 @@
         }
         clusters_html += "<li class=\"" + active + "\"><a href=\"#" + cluster + "\">" + cluster + " (" + nodes.length + ")</a></li>";
       }
-      return $('#node-clusters').html(clusters_html);
+      return node_clusters.html(clusters_html);
     }
   };
 
   render_result = function() {
-    var active, cluster, cluster_data, clusters_html, hash, i, id_logs, log, logs_all_html, logs_html, nodes, result, result_cluster_map, results, results_tbody, timestamp, tmp_logs_html, _i, _j, _k, _len, _len1, _len2, _ref, _ref1;
-    results = $('#results');
-    nodes = $('#nodes');
+    var active, cluster, cluster_data, clusters_html, hash, i, id_logs, log, logs_all_html, logs_html, result, result_cluster_map, results_tbody, timestamp, tmp_logs_html, _i, _j, _k, _len, _len1, _len2, _ref, _ref1;
     results_tbody = $('#results-tbody');
     if (results_tbody.length > 0) {
-      results = JSON.parse(results.html());
       result_cluster_map = {
         'all': results
       };
@@ -220,7 +370,7 @@
         result_cluster_map[cluster] = cluster_data;
         logs_html = "<a class=\"popover-anchor\" data-containe=\"body\" data-toggle=\"popover\" data-placement=\"bottom\" data-html=\"true\" data-content=\"" + logs_all_html + "\">\n    " + tmp_logs_html + "\n </a>";
         if (hash === '#all' || hash === ("#" + cluster)) {
-          results_tbody.append("<tr> <td>" + result.fields.node_path + "</td> <td>" + result.fields.status + "</td> <td>" + result.fields.msg + "</td> <td>" + logs_html + "</td> <td>" + result.fields.updated_at + "</td> </tr>");
+          results_tbody.append("<tr id=\"" + result.pk + "\"> <td><input type=\"checkbox\"></td> <td>" + result.fields.node_path + "</td> <td>" + result.fields.status + "</td> <td>" + result.fields.msg + "</td> <td>" + logs_html + "</td> <td>" + result.fields.updated_at + "</td> </tr>");
         }
       }
       clusters_html = '';
@@ -236,33 +386,69 @@
     }
   };
 
-  bind_popover = function() {
-    return $('[data-toggle=popover]').popover();
+  render_all = function() {
+    render_user();
+    render_fabscript();
+    render_node();
+    return render_result();
   };
 
-  render_fabscript();
-
-  render_node();
-
-  render_result();
-
-  bind_popover();
+  init = function() {
+    var fabscript, _i, _len;
+    $('[data-toggle=popover]').popover();
+    $('#search-input').on('change', filter).on('keyup', filter);
+    $('#all-checkbox').on('change', function() {
+      var is_checked, tr, trs, _i, _len;
+      is_checked = $(this).prop('checked');
+      trs = $('tbody > tr');
+      for (_i = 0, _len = trs.length; _i < _len; _i++) {
+        tr = trs[_i];
+        tr = $(tr);
+        if (tr.is(':visible')) {
+          tr.find('input[type=checkbox]').prop('checked', is_checked);
+        } else {
+          tr.find('input[type=checkbox]').prop('checked', false);
+        }
+      }
+    });
+    users = $('#users');
+    if (users.length > 0) {
+      users = JSON.parse(users.html());
+    }
+    nodes = $('#nodes');
+    if (nodes.length > 0) {
+      nodes = JSON.parse(nodes.html());
+      console.log(nodes);
+    }
+    fabscripts = $('#fabscripts');
+    if (fabscripts.length > 0) {
+      fabscripts = JSON.parse(fabscripts.html());
+      for (_i = 0, _len = fabscripts.length; _i < _len; _i++) {
+        fabscript = fabscripts[_i];
+        fabscript.fields.connection = JSON.parse(fabscript.fields.connection);
+        fabscript.fields.connected_fabscripts = JSON.parse(fabscript.fields.connected_fabscripts);
+      }
+    }
+    results = $('#results');
+    if (results.length > 0) {
+      results = JSON.parse(results.html());
+    }
+    return render_all();
+  };
 
   if ($.support.pjax) {
     $(document).pjax('.pjax', '#pjax-container');
     $(document).on('pjax:end', function() {
       $('.pjax').parent().removeClass('active');
       $('a[href="' + location.pathname + '"]').parent().addClass('active');
-      render_fabscript();
-      render_node();
-      render_result();
+      init();
     });
   }
 
   $(window).on('hashchange', function() {
-    render_fabscript();
-    render_node();
-    render_result();
+    init();
   });
+
+  init();
 
 }).call(this);

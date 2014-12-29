@@ -36,9 +36,10 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'apps.home',
+    'apps.user',
     'apps.result',
     'apps.node',
-    'apps.home',
     'apps.fabscript',
     'applib',
 )
@@ -104,3 +105,5 @@ STATICFILES_DIRS = (
 TEMPLATE_DIRS = (
     os.path.join(BASE_DIR, 'templates'),
 )
+
+LOGIN_URL = '/user/login/'

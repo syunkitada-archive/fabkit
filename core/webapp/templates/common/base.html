@@ -28,12 +28,31 @@
                 <a class="navbar-brand" href="/">FabKit</a>
             </div>
             <div id="navbar" class="navbar-collapse collapse">
-                <ul class="nav navbar-nav navbar-right">
+              {% if user.is_authenticated %}
+                <ul class="nav navbar-nav navbar-left">
                     <li class="{% if namespace == 'home' %}active{% endif %}"><a class="pjax" href="{% url 'home:index' %}">Home</a></li>
+                    <li class="{% if namespace == 'user' %}active{% endif %}"><a class="pjax" href="{% url 'user:index' %}">User</a></li>
                     <li class="{% if namespace == 'node' %}active{% endif %}"><a class="pjax" href="{% url 'node:index' %}">Node</a></li>
                     <li class="{% if namespace == 'fabscript' %}active{% endif %}"><a class="pjax" href="{% url 'fabscript:index' %}">Fabscript</a></li>
                     <li class="{% if namespace == 'result' %}active{% endif %}"><a class="pjax" href="{% url 'result:index' %}">Result Log</a></li>
                 </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a class="glyphicon glyphicon-user" href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                            {{ user }}
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a href="{% url 'user:logout' %}">Logout</a></li>
+                            <li><a class="pjax" href="{% url 'user:index' %}#change-password">Change Password</a></li>
+                        </ul>
+                    </li>
+                </ul>
+              {% else %}
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a target="blank" href="https://github.com/syunkitada/fabkit/wiki">Github</a></li>
+                </ul>
+              {% endif %}
             </div>
         </div>
     </nav>
@@ -44,6 +63,33 @@
           {% endblock %}
         </div>
     </div>
+
+    <div class="modal fade" id="remove-modal">
+        <div class="modal-dialog">
+            <form class="modal-content" id="remove-form" method="POST">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Remove</h4>
+                </div>
+                <div class="modal-body">
+                    <ul id="target-list">
+                    </ul>
+
+                    <div class="progress" id="modal-progress">
+                        <div class="progress-bar progress-bar-striped active" style="width: 100%">
+                        </div>
+                    </div>
+                    <div id="modal-msg">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-danger" id="remove-submit">Remove</button>
+                </div>
+            </form><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
 
     <script src="{% static 'vendor/js/jquery-2.1.1.min.js' %}"></script>
     <script src="{% static 'vendor/js/jquery.pjax.js' %}"></script>

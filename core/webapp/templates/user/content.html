@@ -1,0 +1,58 @@
+<title>{{title}}</title>
+
+
+<div class="col-sm-3 col-md-2 sidebar">
+    <ul class="nav nav-sidebar" id="left-nav">
+        <li id="user-list-li"><a href="#user-list">User List</a></li>
+        <li id="change-password-li"><a href="#change-password">Change Password</a></li>
+      {% if user.is_superuser %}
+        <li id="create-user-li"><a href="#create-user">Create User</a></li>
+      {% endif %}
+    </ul>
+</div>
+<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+    <div class="user-content" id="user-list">
+        <h2 class="page-header">User List</h2>
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <td>Username</td>
+                </tr>
+            </thead>
+            <tbody id="users-tbody">
+            </tbody>
+        </table>
+    </div>
+    <div class="user-content" id="change-password">
+        <h2>Change Password</h2>
+
+        <form class="form-signin" method="post" action="{% url 'user:change_password' %}">
+            {% csrf_token %}
+            <label for="inputOldPassword" class="sr-only">Old Password</label>
+            <input type="password" id="inputPassword" class="form-control" name="{{ password_change_form.old_password.name }}" placeholder="Old Password" required autofocus>
+            <label for="inputNewPassword" class="sr-only">New Password</label>
+            <input type="password" id="inputPassword" class="form-control" name="{{ password_change_form.new_password1.name }}" placeholder="New Password" required>
+            <label for="inputNewPassword2" class="sr-only">New Password</label>
+            <input type="password" id="inputPassword2" class="form-control" name="{{ password_change_form.new_password2.name }}" placeholder="New Password" required>
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+        </form>
+    </div>
+    <div class="user-content" id="create-user">
+      {% if user.is_superuser %}
+        <h2 class="form-signin-heading">Create User</h2>
+        <form class="form-signin" method="post" action="{% url 'user:create_user' %}">
+            {% csrf_token %}
+            <label for="inputUsername" class="sr-only">Username</label>
+            <input type="text" id="inputUsername" class="form-control" name="{{ user_creation_form.username.name }}" placeholder="Username" required autofocus>
+            <label for="inputNewPassword" class="sr-only">New Password</label>
+            <input type="password" id="inputPassword" class="form-control" name="{{ user_creation_form.password1.name }}" placeholder="Password" required>
+            <label for="inputNewPassword2" class="sr-only">New Password</label>
+            <input type="password" id="inputPassword2" class="form-control" name="{{ user_creation_form.password2.name }}" placeholder="Password" required>
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Create User</button>
+        </form>
+      {% endif %}
+    </div>
+</div> <!-- /container -->
+</div>
+
+<script type="application/json" id="users">{{ users|safe }}</script>

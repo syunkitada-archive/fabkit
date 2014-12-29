@@ -4,20 +4,36 @@
     <ul class="nav nav-sidebar" id="fabscript-clusters"></ul>
 </div>
 <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-
     <h2 class="page-header">{{title}}</h2>
-    <table class="table table-striped table-bordered">
-        <thead>
-            <tr>
-                <th>Script Name</th>
-                <th>Connection</th>
-                <th>Updated</th>
-            </tr>
-        </thead>
-        <tbody id="fabscripts-tbody">
-        </tbody>
-    </table>
-
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="form-group">
+                <div class="input-group">
+                    <div class="input-group-addon">
+                        <span class="glyphicon glyphicon-search"></span>
+                    </div>
+                    <input type="text" class="form-control" id="search-input" placeholder="text">
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-6">
+            <input class="btn btn-default pull-right" type="button" value="Remove" onclick="fabkit.remove_data('{% url 'fabscript:remove' %}')">
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="all-checkbox"></th>
+                    <th>Script Name</th>
+                    <th>Connection</th>
+                    <th>Updated</th>
+                </tr>
+            </thead>
+            <tbody id="fabscripts-tbody">
+            </tbody>
+        </table>
+    </div>
     <hr>
 
     <svg class="svg-defs">

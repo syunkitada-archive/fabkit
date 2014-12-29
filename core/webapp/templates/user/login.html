@@ -1,0 +1,24 @@
+{% extends "common/base.html" %}
+
+{% block title %}{{title}}{% endblock title %}
+
+{% block content %}
+<div class="container">
+    <form class="form-signin" method="post" action="{% url 'user:login' %}">
+        {% csrf_token %}
+        <h2 class="form-signin-heading">Please sign in</h2>
+        <label for="inputUsername" class="sr-only">Username</label>
+        <input id="inputUsername" class="form-control" name="{{ form.username.name }}" placeholder="Username" required autofocus>
+        <label for="inputPassword" class="sr-only">Password</label>
+        <input type="password" id="inputPassword" class="form-control" name="{{ form.password.name }}" placeholder="Password" required>
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" value="remember-me"> Remember me
+            </label>
+        </div>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+        <input type="hidden" name="next" value="{{ next }}">
+    </form>
+
+</div> <!-- /container -->
+{% endblock %}

@@ -1,14 +1,14 @@
 render_node = ->
-    nodes = $('#nodes')
     nodes_tbody = $('#nodes-tbody')
+    node_clusters = $('#node-clusters')
     if nodes_tbody.length > 0
-        nodes = JSON.parse(nodes.html())
         node_cluster_map = {'all': nodes}
         hash = location.hash
         if hash == ''
             hash = '#all'
 
         nodes_tbody.empty()
+        node_clusters.empty()
         for node in nodes
             cluster = node.fields.path.split('/')[0]
             if cluster of node_cluster_map
@@ -21,7 +21,8 @@ render_node = ->
 
             if hash == '#all' or hash == "##{cluster}"
                 nodes_tbody.append("
-                <tr>
+                <tr id=\"#{node.pk}\">
+                    <td><input type=\"checkbox\"></td>
                     <td>#{node.fields.path}</td>
                     <td>#{node.fields.host}</td>
                     <td>#{node.fields.ip}</td>
@@ -37,4 +38,4 @@ render_node = ->
                 active = "active"
             clusters_html += "<li class=\"#{active}\"><a href=\"##{cluster}\">#{cluster} (#{nodes.length})</a></li>"
 
-        $('#node-clusters').html(clusters_html)
+        node_clusters.html(clusters_html)

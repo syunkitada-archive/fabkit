@@ -1,9 +1,6 @@
 render_result = ->
-    results = $('#results')
-    nodes = $('#nodes')
     results_tbody = $('#results-tbody')
     if results_tbody.length > 0
-        results = JSON.parse(results.html())
         result_cluster_map = {'all': results}
         hash = location.hash
         if hash == ''
@@ -27,18 +24,8 @@ render_result = ->
                 timestamp = new Date(log.timestamp * 1000)
                 logs_all_html += "#{log.fabscript}: #{log.msg}[#{log.status}] #{timestamp}<br>"
 
-            # TODO Logsの展開機能のビューを整える、日時とかも表示
             id_logs = "log_#{i}"
             result_cluster_map[cluster] = cluster_data
-            # logs_html = """
-            #     <a class="collapse-logs collapsed" data-toggle="collapse" data-target="##{id_logs}" aria-expanded="true" aria-controls="#{id_logs}">
-            #         #{tmp_logs_html}
-            #     </a>
-
-            #     <div id="#{id_logs}" class="collapse">
-            #     #{logs_all_html}
-            #     </div>
-            # """
             logs_html = """
 <a class="popover-anchor" data-containe="body" data-toggle="popover" data-placement="bottom" data-html="true" data-content="#{logs_all_html}">
     #{tmp_logs_html}
@@ -47,7 +34,8 @@ render_result = ->
 
             if hash == '#all' or hash == "##{cluster}"
                 results_tbody.append("
-                <tr>
+                <tr id=\"#{result.pk}\">
+                    <td><input type=\"checkbox\"></td>
                     <td>#{result.fields.node_path}</td>
                     <td>#{result.fields.status}</td>
                     <td>#{result.fields.msg}</td>
