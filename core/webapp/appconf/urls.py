@@ -11,5 +11,6 @@ urlpatterns = patterns(
     url(r'^fabscript/', include('apps.fabscript.urls', namespace='fabscript')),
     url(r'^node/', include('apps.node.urls', namespace='node')),
     url(r'^result/', include('apps.result.urls', namespace='result')),
-    url(r'^$', include('apps.home.urls', namespace='home')),
+    url(r'^user/', include('apps.user.urls', namespace='user')),
+    url(r'^', include('apps.home.urls', namespace='home')),
 )

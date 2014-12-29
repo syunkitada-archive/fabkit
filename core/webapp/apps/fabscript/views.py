@@ -1,5 +1,7 @@
 # coding: utf-8
 
+import json
+from django.http import HttpResponse
 from django.shortcuts import render
 from apps.fabscript.models import Fabscript
 from django.core import serializers
@@ -16,3 +18,22 @@ def index(request):
         return render(request, 'fabscript/content.html', context)
 
     return render(request, 'fabscript/index.html', context)
+
+
+def remove(request):
+    if request.method == 'POST':
+        targets = request.POST.getlist('target')
+        for target in targets:
+            fabscript = Fabscript.objects.get(pk=target)
+            fabscript.delete()
+
+        result = {
+            'status': True,
+        }
+
+    else:
+        result = {
+            'status': True,
+        }
+
+    return HttpResponse(json.dumps(result))

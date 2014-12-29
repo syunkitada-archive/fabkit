@@ -7,7 +7,6 @@ body {
   padding-top: 50px;
 }
 
-
 /*
  * Global add-ons
  */
@@ -85,6 +84,10 @@ body {
 }
 
 
+
+
+
+
 /*
  * Placeholder dashboard ideas
  */
@@ -102,4 +105,57 @@ body {
 .placeholder img {
   display: inline-block;
   border-radius: 50%;
+}
+
+
+/*
+ * svg
+ */
+.svg-defs {
+    width: 0px;
+    height: 0px;
+}
+
+.svg-wrapper {
+    background-color: #f8f8f8;
+    width: 100%;
+    height: 300px;
+}
+
+.svg-wrapper > svg {
+    width: 100%;
+    height: 100%;
+}
+
+.link {
+    stroke: rgba(0, 0, 0, 0.5);
+}
+.node {
+    cursor: pointer;
+}
+
+
+/*
+ * popover
+ */
+.popover-anchor {
+    cursor: pointer;
+}
+
+.popover {
+    max-width: 600px;
+}
+
+
+.form-signin {
+  max-width: 330px;
+  margin: 0 auto;
+}
+
+.form-user {
+  max-width: 500px;
+}
+
+.msg-box {
+    padding: 5px;
 }

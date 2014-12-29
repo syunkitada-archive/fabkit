@@ -3,9 +3,19 @@ module.exports = function(grunt) {
     grunt.initConfig({
         coffee: {
             build: {
+                options: {
+                    join: true,
+                },
                 files: {
                     'static/js/common.js': [
                         'static_src/coffee/common/base.coffee',
+                        'static_src/coffee/common/filter.coffee',
+                        'static_src/coffee/common/render_force_layout.coffee',
+                        'static_src/coffee/common/render_user.coffee',
+                        'static_src/coffee/common/render_fabscript.coffee',
+                        'static_src/coffee/common/render_node.coffee',
+                        'static_src/coffee/common/render_result.coffee',
+                        'static_src/coffee/common/render.coffee',
                     ]
                 }
             }
