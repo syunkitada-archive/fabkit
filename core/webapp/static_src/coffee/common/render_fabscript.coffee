@@ -2,8 +2,8 @@ render_fabscript = ->
     fabscripts_tbody = $('#fabscripts-tbody')
     if fabscripts_tbody.length > 0
         node_map = {}
-        nodes = []
-        links = []
+        graph_nodes = []
+        graph_links = []
 
         fabscript_cluster_map = {'all': fabscripts}
         hash = location.hash
@@ -12,9 +12,9 @@ render_fabscript = ->
 
         fabscripts_tbody.empty()
         for script in fabscripts
-            connected_html = ''
-            for connected in script.fields.connected_fabscripts
-                connected_html += "#{connected}</br>"
+            linked_html = ''
+            for linked in script.fields.linked_fabscripts
+                linked_html += "#{linked}</br>"
 
             cluster = script.fields.name.split('.')[0]
             if cluster of fabscript_cluster_map
@@ -30,42 +30,42 @@ render_fabscript = ->
                 <tr id=\"#{script.pk}\">
                     <td><input type=\"checkbox\"></td>
                     <td>#{script.fields.name}</td>
-                    <td>#{connected_html}</td>
+                    <td>#{linked_html}</td>
                     <td>#{script.fields.updated_at}</td>
                 </tr>")
 
                 if hash != "#all"
                     is_exist = false
                     node_index = 0
-                    for node, i in nodes
+                    for node, i in graph_nodes
                         if node.name == script.fields.name
                             is_exist = true
                             node_index = i
                             break
                     if not is_exist
-                        node_index = nodes.length
-                        nodes.push(
+                        node_index = graph_nodes.length
+                        graph_nodes.push(
                             'name': script.fields.name,
                         )
 
-                    for fabscript in script.fields.connected_fabscripts
+                    for fabscript in script.fields.linked_fabscripts
                         fabscript = fabscript.split(':')[0]
                         is_exist = false
                         linked_index = 0
-                        for node, i in nodes
+                        for node, i in graph_nodes
                             if node.name == fabscript
                                 is_exist = true
                                 linked_index = i
                                 break
 
                         if not is_exist
-                            linked_index = nodes.length
-                            nodes.push({
+                            linked_index = graph_nodes.length
+                            graph_nodes.push({
                                 'name': fabscript,
                             })
 
                         if node_index != linked_index
-                            links.push({
+                            graph_links.push({
                                 'source': linked_index,
                                 'target': node_index,
                             })
@@ -79,6 +79,7 @@ render_fabscript = ->
 
         $('#fabscript-clusters').html(clusters_html)
 
-        $('#svg-fabscript').empty()
-        if hash != "#all"
-            render_force_layout('#svg-fabscript', nodes, links)
+        if hash == '#all'
+            $('#show-graph').hide()
+        else
+            $('#show-graph').show()

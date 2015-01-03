@@ -1,5 +1,5 @@
 (function() {
-  var fabscripts, filter, init, nodes, render_all, render_fabscript, render_force_layout, render_node, render_result, render_user, results, users,
+  var fabscripts, filter, graph_links, graph_nodes, init, nodes, render_all, render_fabscript, render_force_layout, render_node, render_result, render_user, results, users,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   window.fabkit = {};
@@ -11,6 +11,10 @@
   fabscripts = [];
 
   results = [];
+
+  graph_links = [];
+
+  graph_nodes = [];
 
   filter = function() {
     var is_match, query, td, tds, tr, trs, _i, _j, _len, _len1;
@@ -145,13 +149,16 @@
     });
   });
 
-  render_force_layout = function(id, nodes, links) {
-    var $svg, force, h, link, node, svg, w;
+  render_force_layout = function() {
+    var $svg, force, h, id, link, links, node, svg, w;
+    id = '#graph-svg';
+    nodes = graph_nodes;
+    links = graph_links;
     svg = d3.select(id);
-    $svg = $(id);
+    $svg = $(id).empty();
     w = $svg.width();
     h = $svg.height();
-    force = d3.layout.force().nodes(nodes).links(links).gravity(.05).distance(100).charge(-100).size([w, h]);
+    force = d3.layout.force().nodes(nodes).links(links).linkDistance(200).linkStrength(0).friction(0.8).charge(-300).gravity(.04).size([w, h]);
     link = svg.selectAll('.link').data(links).enter().append('line').attr('class', 'link').attr('marker-end', 'url(#markerArrow)');
     node = svg.selectAll(".node").data(nodes).enter().append('g').attr('class', 'node').call(force.drag);
     node.append("circle").attr("r", 5).style("fill", "green");
@@ -206,12 +213,12 @@
   };
 
   render_fabscript = function() {
-    var active, cluster, cluster_data, clusters_html, connected, connected_html, fabscript, fabscript_cluster_map, fabscripts_tbody, hash, i, is_exist, linked_index, links, node, node_index, node_map, script, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1;
+    var active, cluster, cluster_data, clusters_html, fabscript, fabscript_cluster_map, fabscripts_tbody, hash, i, is_exist, linked, linked_html, linked_index, node, node_index, node_map, script, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1;
     fabscripts_tbody = $('#fabscripts-tbody');
     if (fabscripts_tbody.length > 0) {
       node_map = {};
-      nodes = [];
-      links = [];
+      graph_nodes = [];
+      graph_links = [];
       fabscript_cluster_map = {
         'all': fabscripts
       };
@@ -222,11 +229,11 @@
       fabscripts_tbody.empty();
       for (_i = 0, _len = fabscripts.length; _i < _len; _i++) {
         script = fabscripts[_i];
-        connected_html = '';
-        _ref = script.fields.connected_fabscripts;
+        linked_html = '';
+        _ref = script.fields.linked_fabscripts;
         for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
-          connected = _ref[_j];
-          connected_html += "" + connected + "</br>";
+          linked = _ref[_j];
+          linked_html += "" + linked + "</br>";
         }
         cluster = script.fields.name.split('.')[0];
         if (cluster in fabscript_cluster_map) {
@@ -237,12 +244,12 @@
         }
         fabscript_cluster_map[cluster] = cluster_data;
         if (hash === '#all' || hash === ("#" + cluster)) {
-          fabscripts_tbody.append("<tr id=\"" + script.pk + "\"> <td><input type=\"checkbox\"></td> <td>" + script.fields.name + "</td> <td>" + connected_html + "</td> <td>" + script.fields.updated_at + "</td> </tr>");
+          fabscripts_tbody.append("<tr id=\"" + script.pk + "\"> <td><input type=\"checkbox\"></td> <td>" + script.fields.name + "</td> <td>" + linked_html + "</td> <td>" + script.fields.updated_at + "</td> </tr>");
           if (hash !== "#all") {
             is_exist = false;
             node_index = 0;
-            for (i = _k = 0, _len2 = nodes.length; _k < _len2; i = ++_k) {
-              node = nodes[i];
+            for (i = _k = 0, _len2 = graph_nodes.length; _k < _len2; i = ++_k) {
+              node = graph_nodes[i];
               if (node.name === script.fields.name) {
                 is_exist = true;
                 node_index = i;
@@ -250,19 +257,19 @@
               }
             }
             if (!is_exist) {
-              node_index = nodes.length;
-              nodes.push({
+              node_index = graph_nodes.length;
+              graph_nodes.push({
                 'name': script.fields.name
               });
             }
-            _ref1 = script.fields.connected_fabscripts;
+            _ref1 = script.fields.linked_fabscripts;
             for (_l = 0, _len3 = _ref1.length; _l < _len3; _l++) {
               fabscript = _ref1[_l];
               fabscript = fabscript.split(':')[0];
               is_exist = false;
               linked_index = 0;
-              for (i = _m = 0, _len4 = nodes.length; _m < _len4; i = ++_m) {
-                node = nodes[i];
+              for (i = _m = 0, _len4 = graph_nodes.length; _m < _len4; i = ++_m) {
+                node = graph_nodes[i];
                 if (node.name === fabscript) {
                   is_exist = true;
                   linked_index = i;
@@ -270,13 +277,13 @@
                 }
               }
               if (!is_exist) {
-                linked_index = nodes.length;
-                nodes.push({
+                linked_index = graph_nodes.length;
+                graph_nodes.push({
                   'name': fabscript
                 });
               }
               if (node_index !== linked_index) {
-                links.push({
+                graph_links.push({
                   'source': linked_index,
                   'target': node_index
                 });
@@ -295,9 +302,10 @@
         clusters_html += "<li class=\"" + active + "\"><a href=\"#" + cluster + "\">" + cluster + " (" + fabscripts.length + ")</a></li>";
       }
       $('#fabscript-clusters').html(clusters_html);
-      $('#svg-fabscript').empty();
-      if (hash !== "#all") {
-        return render_force_layout('#svg-fabscript', nodes, links);
+      if (hash === '#all') {
+        return $('#show-graph').hide();
+      } else {
+        return $('#show-graph').show();
       }
     }
   };
@@ -407,6 +415,12 @@
   init = function() {
     var fabscript, _i, _len;
     $('[data-toggle=popover]').popover();
+    $('#show-graph').on('click', function() {
+      $('#graph-modal').modal();
+    });
+    $('#graph-modal').on('shown.bs.modal', function() {
+      render_force_layout();
+    });
     $('#search-input').on('change', filter).on('keyup', filter);
     $('#all-checkbox').on('change', function() {
       var is_checked, tr, trs, _i, _len;
@@ -433,18 +447,19 @@
     }
     fabscripts = $('#fabscripts');
     if (fabscripts.length > 0) {
+      console.log('test');
       fabscripts = JSON.parse(fabscripts.html());
       for (_i = 0, _len = fabscripts.length; _i < _len; _i++) {
         fabscript = fabscripts[_i];
-        fabscript.fields.connection = JSON.parse(fabscript.fields.connection);
-        fabscript.fields.connected_fabscripts = JSON.parse(fabscript.fields.connected_fabscripts);
+        fabscript.fields.link = JSON.parse(fabscript.fields.link);
+        fabscript.fields.linked_fabscripts = JSON.parse(fabscript.fields.linked_fabscripts);
       }
     }
     results = $('#results');
     if (results.length > 0) {
       results = JSON.parse(results.html());
     }
-    return render_all();
+    render_all();
   };
 
   if ($.support.pjax) {

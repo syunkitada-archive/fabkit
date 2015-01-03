@@ -116,13 +116,14 @@ body {
     height: 0px;
 }
 
-.svg-wrapper {
+.graph-svg-wrapper {
+    position: static;
     background-color: #f8f8f8;
     width: 100%;
-    height: 300px;
+    height: 400px;
 }
 
-.svg-wrapper > svg {
+.graph-svg-wrapper > svg {
     width: 100%;
     height: 100%;
 }

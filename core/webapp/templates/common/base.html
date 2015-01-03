@@ -91,6 +91,33 @@
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
 
+    <div class="modal fade" id="graph-modal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Graph</h4>
+                </div>
+                <div class="modal-body" id="graph-modal-body">
+                    <svg class="svg-defs">
+                        <defs>
+                            <marker id="markerArrow" markerWidth="13" markerHeight="13" refx="14" refy="6"
+                                    orient="auto">
+                                <path d="M2,2 L2,11 L10,6 L2,2" style="fill: #000000;" />
+                            </marker>
+                        </defs>
+                    </svg>
+                    <div class="graph-svg-wrapper">
+                        <svg id="graph-svg"></svg>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </form><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
     <script src="{% static 'vendor/js/jquery-2.1.1.min.js' %}"></script>
     <script src="{% static 'vendor/js/jquery.pjax.js' %}"></script>
     <script src="{% static 'vendor/bootstrap-3.2.0-dist/js/bootstrap.min.js' %}"></script>

@@ -8,6 +8,14 @@ render_all = ->
 init = ->
     $('[data-toggle=popover]').popover()
 
+    $('#show-graph').on('click', ->
+        $('#graph-modal').modal()
+        return)
+
+    $('#graph-modal').on('shown.bs.modal', ->
+        render_force_layout()
+        return)
+
     $('#search-input').on('change', filter)
                       .on('keyup', filter)
 
@@ -33,16 +41,19 @@ init = ->
 
     fabscripts = $('#fabscripts')
     if fabscripts.length > 0
+        console.log 'test'
         fabscripts = JSON.parse(fabscripts.html())
         for fabscript in fabscripts
-            fabscript.fields.connection = JSON.parse(fabscript.fields.connection)
-            fabscript.fields.connected_fabscripts = JSON.parse(fabscript.fields.connected_fabscripts)
+            fabscript.fields.link = JSON.parse(fabscript.fields.link)
+            fabscript.fields.linked_fabscripts = JSON.parse(fabscript.fields.linked_fabscripts)
 
     results = $('#results')
     if results.length > 0
         results = JSON.parse(results.html())
 
     render_all()
+
+    return
 
 
 if $.support.pjax
