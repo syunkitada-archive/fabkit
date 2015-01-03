@@ -1,5 +1,5 @@
 (function() {
-  var fabscripts, filter, graph_links, graph_nodes, init, nodes, render_all, render_fabscript, render_force_layout, render_node, render_result, render_user, results, users,
+  var fabscripts, filter, graph_links, graph_nodes, init, mode, nodes, render_all, render_fabscript, render_force_layout, render_node, render_result, render_user, results, users,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   window.fabkit = {};
@@ -15,6 +15,15 @@
   graph_links = [];
 
   graph_nodes = [];
+
+  mode = {
+    current: 0,
+    HOME: 0,
+    USER: 1,
+    NODE: 2,
+    FABSCRIPT: 3,
+    RESULT: 4
+  };
 
   filter = function() {
     var is_match, query, td, tds, tr, trs, _i, _j, _len, _len1;
@@ -158,13 +167,26 @@
     $svg = $(id).empty();
     w = $svg.width();
     h = $svg.height();
-    force = d3.layout.force().nodes(nodes).links(links).linkDistance(200).linkStrength(0).friction(0.8).charge(-300).gravity(.04).size([w, h]);
+    force = d3.layout.force().nodes(nodes).links(links).linkDistance(150).linkStrength(0.1).friction(0.8).charge(-300).gravity(.04).size([w, h]);
     link = svg.selectAll('.link').data(links).enter().append('line').attr('class', 'link').attr('marker-end', 'url(#markerArrow)');
     node = svg.selectAll(".node").data(nodes).enter().append('g').attr('class', 'node').call(force.drag);
-    node.append("circle").attr("r", 5).style("fill", "green");
-    node.append('text').attr('dx', 12).attr('dy', '.35em').text(function(d) {
+    node.append('glyph').attr('class', 'glyphicon glyphicon-star').attr('unicode');
+    node.append("image").attr("xlink:href", "/static/vendor/defaulticon/png/computer-retro.png").attr("x", 6).attr("y", -34).attr('width', 30).attr('height', 30);
+    node.append("circle").attr("r", 6).attr('class', 'node-circle');
+    node.append('text').attr('dx', 12).attr('dy', '.35em').attr('class', 'node-label').text(function(d) {
       return d.name;
     });
+    if (mode.current === mode.RESULT) {
+      node.append('text').attr('dx', 12).attr('dy', '.35em').attr('y', 16).attr('class', function(d) {
+        if (d.failed_length > 0) {
+          return 'node-label-failed';
+        } else {
+          return 'node-label-success';
+        }
+      }).text(function(d) {
+        return "success (" + d.success_length + "), failed (" + d.failed_length + ")";
+      });
+    }
     force.on("tick", function(e) {
       link.attr('x1', function(d) {
         return d.source.x;
@@ -352,7 +374,7 @@
   };
 
   render_result = function() {
-    var active, cluster, cluster_data, clusters_html, hash, i, id_logs, log, logs_all_html, logs_html, result, result_cluster_map, results_tbody, timestamp, tmp_logs_html, _i, _j, _k, _len, _len1, _len2, _ref, _ref1;
+    var active, cluster, cluster_data, clusters_html, current_index, fabscript, fabscript_node, fabscript_node_map, hash, i, id_logs, index, link, log, logs_all_html, logs_html, name, node, result, result_cluster_map, result_node_map, results_tbody, script, timestamp, tmp_logs_html, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _m, _n, _ref, _ref1, _ref2, _ref3;
     results_tbody = $('#results-tbody');
     if (results_tbody.length > 0) {
       result_cluster_map = {
@@ -362,8 +384,51 @@
       if (hash === '') {
         hash = '#all';
       }
+      fabscript_node_map = {};
+      result_node_map = {};
+      if (hash === '#all') {
+        $('#show-graph').hide();
+      } else {
+        $('#show-graph').show();
+        console.log('DEBUG');
+        console.log(fabscripts);
+        index = 0;
+        for (_i = 0, _len = fabscripts.length; _i < _len; _i++) {
+          script = fabscripts[_i];
+          name = script.fields.name;
+          if (!(name in fabscript_node_map)) {
+            fabscript_node_map[name] = {
+              'links': [],
+              'success_nodes': [],
+              'failed_nodes': [],
+              'index': index
+            };
+            current_index = index;
+            index++;
+          } else {
+            current_index = fabscript_node_map[name]['index'];
+          }
+          _ref = script.fields.linked_fabscripts;
+          for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
+            fabscript = _ref[_j];
+            fabscript = fabscript.split(':')[0];
+            if (!(fabscript in fabscript_node_map)) {
+              fabscript_node_map[fabscript] = {
+                'links': [current_index],
+                'success_nodes': [],
+                'failed_nodes': [],
+                'index': index
+              };
+              index++;
+            } else {
+              fabscript_node_map[fabscript]['links'].push(current_index);
+            }
+          }
+        }
+      }
+      console.log(fabscript_node_map);
       results_tbody.empty();
-      for (i = _i = 0, _len = results.length; _i < _len; i = ++_i) {
+      for (i = _k = 0, _len2 = results.length; _k < _len2; i = ++_k) {
         result = results[i];
         cluster = result.fields.node_path.split('/')[0];
         if (cluster in result_cluster_map) {
@@ -373,15 +438,26 @@
           cluster_data = [result];
         }
         tmp_logs_html = '';
-        _ref = JSON.parse(result.fields.logs);
-        for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
-          log = _ref[_j];
+        _ref1 = JSON.parse(result.fields.logs);
+        for (_l = 0, _len3 = _ref1.length; _l < _len3; _l++) {
+          log = _ref1[_l];
+          if (hash !== '#all') {
+            node = {
+              'index': i,
+              'name': result.fields.node_path
+            };
+            if (log.status === 0) {
+              fabscript_node_map[log.fabscript]['success_nodes'].push(node);
+            } else {
+              fabscript_node_map[log.fabscript]['failed_nodes'].push(node);
+            }
+          }
           tmp_logs_html += "" + log.fabscript + ": " + log.msg + "[" + log.status + "]<br>";
         }
         logs_all_html = '';
-        _ref1 = JSON.parse(result.fields.logs_all);
-        for (_k = 0, _len2 = _ref1.length; _k < _len2; _k++) {
-          log = _ref1[_k];
+        _ref2 = JSON.parse(result.fields.logs_all);
+        for (_m = 0, _len4 = _ref2.length; _m < _len4; _m++) {
+          log = _ref2[_m];
           timestamp = new Date(log.timestamp * 1000);
           logs_all_html += "" + log.fabscript + ": " + log.msg + "[" + log.status + "] " + timestamp + "<br>";
         }
@@ -401,7 +477,27 @@
         }
         clusters_html += "<li class=\"" + active + "\"><a href=\"#" + cluster + "\">" + cluster + " (" + results.length + ")</a></li>";
       }
-      return $('#result-clusters').html(clusters_html);
+      $('#result-clusters').html(clusters_html);
+      graph_nodes = [];
+      graph_links = [];
+      for (fabscript in fabscript_node_map) {
+        fabscript_node = fabscript_node_map[fabscript];
+        graph_nodes[fabscript_node.index] = {
+          name: fabscript,
+          success_length: fabscript_node.success_nodes.length,
+          failed_length: fabscript_node.failed_nodes.length
+        };
+        _ref3 = fabscript_node.links;
+        for (_n = 0, _len5 = _ref3.length; _n < _len5; _n++) {
+          link = _ref3[_n];
+          graph_links.push({
+            'source': fabscript_node.index,
+            'target': link
+          });
+        }
+      }
+      console.log(graph_nodes);
+      return console.log(graph_links);
     }
   };
 
@@ -438,16 +534,18 @@
     });
     users = $('#users');
     if (users.length > 0) {
+      mode.current = mode.USER;
       users = JSON.parse(users.html());
     }
     nodes = $('#nodes');
     if (nodes.length > 0) {
+      mode.current = mode.NODE;
       nodes = JSON.parse(nodes.html());
       console.log(nodes);
     }
     fabscripts = $('#fabscripts');
     if (fabscripts.length > 0) {
-      console.log('test');
+      mode.current = mode.FABSCRIPT;
       fabscripts = JSON.parse(fabscripts.html());
       for (_i = 0, _len = fabscripts.length; _i < _len; _i++) {
         fabscript = fabscripts[_i];
@@ -457,6 +555,7 @@
     }
     results = $('#results');
     if (results.length > 0) {
+      mode.current = mode.RESULT;
       results = JSON.parse(results.html());
     }
     render_all();

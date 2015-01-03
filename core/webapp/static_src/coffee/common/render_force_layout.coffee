@@ -12,8 +12,8 @@ render_force_layout = () ->
     force = d3.layout.force()
             .nodes(nodes) #nodesには配列を与える
             .links(links)
-            .linkDistance(200)  # ノードとノードのリンクの長さ
-            .linkStrength(0)  # (1 [0-1]) リンク強度（ノードの引力はリンク強度×リンク数の分だけ強くなる)
+            .linkDistance(150)  # ノードとノードのリンクの長さ
+            .linkStrength(0.1)  # (1 [0-1]) リンク強度（ノードの引力はリンク強度×リンク数の分だけ強くなる)
             .friction(0.8)  # (0.9 [0-1]) 摩擦力（加速度の減衰力）値を小さくすると収束するまでの加速が小さくなる
             .charge(-300)  # (-30) 推進力（反発力) 負の値だとノード同士が反発し、正の値だと引き合う
             # .chargeDistance(500)
@@ -34,14 +34,38 @@ render_force_layout = () ->
               .attr('class', 'node')
               .call(force.drag)  # nodeのドラッグを可能にする
 
+    node.append('glyph')
+        .attr('class', 'glyphicon glyphicon-star')
+        .attr('unicode')
+
+    node.append("image")
+        .attr("xlink:href", "/static/vendor/defaulticon/png/computer-retro.png")
+        .attr("x", 6)
+        .attr("y", -34)
+        .attr('width', 30)
+        .attr('height', 30)
+
     node.append("circle")
-        .attr("r", 5)
-        .style("fill", "green")
+        .attr("r", 6)
+        .attr('class', 'node-circle')
 
     node.append('text')
         .attr('dx', 12)
         .attr('dy', '.35em')
+        .attr('class', 'node-label')
         .text((d) -> d.name)
+
+    if mode.current == mode.RESULT
+        node.append('text')
+            .attr('dx', 12)
+            .attr('dy', '.35em')
+            .attr('y', 16)
+            .attr('class', (d) ->
+                if d.failed_length > 0
+                    return 'node-label-failed'
+                else
+                    return 'node-label-success')
+            .text((d) -> "success (#{d.success_length}), failed (#{d.failed_length})")
 
     #forceシミュレーションをステップごとに実行
     force.on "tick", (e)->

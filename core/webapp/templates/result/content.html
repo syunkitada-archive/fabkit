@@ -18,6 +18,7 @@
             </div>
         </div>
         <div class="col-xs-6">
+            <input id="show-graph" class="btn btn-default" type="button" value="Show Graph">
             <input class="btn btn-default pull-right" type="button" value="Remove" onclick="fabkit.remove_data('{% url 'result:remove' %}')">
         </div>
     </div>
@@ -40,3 +41,4 @@
 </div>
 
 <script type="application/json" id="results">{{ results|safe }}</script>
+<script type="application/json" id="fabscripts">{{ fabscripts|safe }}</script>

@@ -32,16 +32,18 @@ init = ->
 
     users = $('#users')
     if users.length > 0
+        mode.current = mode.USER
         users = JSON.parse(users.html())
 
     nodes = $('#nodes')
     if nodes.length > 0
+        mode.current = mode.NODE
         nodes = JSON.parse(nodes.html())
         console.log nodes
 
     fabscripts = $('#fabscripts')
     if fabscripts.length > 0
-        console.log 'test'
+        mode.current = mode.FABSCRIPT
         fabscripts = JSON.parse(fabscripts.html())
         for fabscript in fabscripts
             fabscript.fields.link = JSON.parse(fabscript.fields.link)
@@ -49,6 +51,7 @@ init = ->
 
     results = $('#results')
     if results.length > 0
+        mode.current = mode.RESULT
         results = JSON.parse(results.html())
 
     render_all()

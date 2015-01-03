@@ -5,13 +5,16 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.core import serializers
 from apps.result.models import Result
+from apps.fabscript.models import Fabscript
 
 
 def index(request):
     results = serializers.serialize('json', Result.objects.all().order_by('node_path'))
+    fabscripts = serializers.serialize('json', Fabscript.objects.all())
     context = {
         'title': 'Result Log',
         'results': results,
+        'fabscripts': fabscripts,
     }
 
     if request.META.get('HTTP_X_PJAX'):
