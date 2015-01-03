@@ -9,7 +9,7 @@ from apps.fabscript.models import Fabscript
 
 
 def index(request):
-    results = serializers.serialize('json', Result.objects.all().order_by('node_path'))
+    results = serializers.serialize('json', Result.objects.all().order_by('-status', 'node_path'))
     fabscripts = serializers.serialize('json', Fabscript.objects.all())
     context = {
         'title': 'Result Log',

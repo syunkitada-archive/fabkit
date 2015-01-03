@@ -17,3 +17,5 @@ mode = {
     FABSCRIPT: 3,
     RESULT: 4,
 }
+
+WARNING_STATUS_THRESHOLD = 10000

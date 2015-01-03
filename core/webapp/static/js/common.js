@@ -1,5 +1,5 @@
 (function() {
-  var fabscripts, filter, graph_links, graph_nodes, init, mode, nodes, render_all, render_fabscript, render_force_layout, render_node, render_result, render_user, results, users,
+  var WARNING_STATUS_THRESHOLD, fabscripts, filter, graph_links, graph_nodes, init, mode, nodes, render_all, render_fabscript, render_force_layout, render_node, render_result, render_user, results, users,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   window.fabkit = {};
@@ -24,6 +24,8 @@
     FABSCRIPT: 3,
     RESULT: 4
   };
+
+  WARNING_STATUS_THRESHOLD = 10000;
 
   filter = function() {
     var is_match, query, td, tds, tr, trs, _i, _j, _len, _len1;
@@ -178,13 +180,16 @@
     });
     if (mode.current === mode.RESULT) {
       node.append('text').attr('dx', 12).attr('dy', '.35em').attr('y', 16).attr('class', function(d) {
-        if (d.failed_length > 0) {
-          return 'node-label-failed';
+        if (d.danger_length > 0) {
+          return 'node-label-danger';
+        }
+        if (d.warning_length > 0) {
+          return 'node-label-warning';
         } else {
           return 'node-label-success';
         }
       }).text(function(d) {
-        return "success (" + d.success_length + "), failed (" + d.failed_length + ")";
+        return "✔ " + d.success_length + ", ▲ " + d.warning_length + ", ✘ " + d.danger_length;
       });
     }
     force.on("tick", function(e) {
@@ -374,7 +379,7 @@
   };
 
   render_result = function() {
-    var active, cluster, cluster_data, clusters_html, current_index, fabscript, fabscript_node, fabscript_node_map, hash, i, id_logs, index, link, log, logs_all_html, logs_html, name, node, result, result_cluster_map, result_node_map, results_tbody, script, timestamp, tmp_logs_html, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _m, _n, _ref, _ref1, _ref2, _ref3;
+    var active, cluster, cluster_data, clusters_html, current_index, fabscript, fabscript_node, fabscript_node_map, hash, i, id_logs, index, link, log, logs_all_html, logs_html, name, node, result, result_cluster_map, result_node_map, results_tbody, script, timestamp, tmp_logs_html, tr_class, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _m, _n, _ref, _ref1, _ref2, _ref3;
     results_tbody = $('#results-tbody');
     if (results_tbody.length > 0) {
       result_cluster_map = {
@@ -400,7 +405,8 @@
             fabscript_node_map[name] = {
               'links': [],
               'success_nodes': [],
-              'failed_nodes': [],
+              'warning_nodes': [],
+              'danger_nodes': [],
               'index': index
             };
             current_index = index;
@@ -416,7 +422,8 @@
               fabscript_node_map[fabscript] = {
                 'links': [current_index],
                 'success_nodes': [],
-                'failed_nodes': [],
+                'warning_nodes': [],
+                'danger_nodes': [],
                 'index': index
               };
               index++;
@@ -448,8 +455,10 @@
             };
             if (log.status === 0) {
               fabscript_node_map[log.fabscript]['success_nodes'].push(node);
+            } else if (log.status < WARNING_STATUS_THRESHOLD) {
+              fabscript_node_map[log.fabscript]['warning_nodes'].push(node);
             } else {
-              fabscript_node_map[log.fabscript]['failed_nodes'].push(node);
+              fabscript_node_map[log.fabscript]['danger_nodes'].push(node);
             }
           }
           tmp_logs_html += "" + log.fabscript + ": " + log.msg + "[" + log.status + "]<br>";
@@ -465,7 +474,14 @@
         result_cluster_map[cluster] = cluster_data;
         logs_html = "<a class=\"popover-anchor\" data-containe=\"body\" data-toggle=\"popover\" data-placement=\"bottom\" data-html=\"true\" data-content=\"" + logs_all_html + "\">\n    " + tmp_logs_html + "\n </a>";
         if (hash === '#all' || hash === ("#" + cluster)) {
-          results_tbody.append("<tr id=\"" + result.pk + "\"> <td><input type=\"checkbox\"></td> <td>" + result.fields.node_path + "</td> <td>" + result.fields.status + "</td> <td>" + result.fields.msg + "</td> <td>" + logs_html + "</td> <td>" + result.fields.updated_at + "</td> </tr>");
+          if (result.fields.status === 0) {
+            tr_class = '';
+          } else if (result.fields.status < WARNING_STATUS_THRESHOLD) {
+            tr_class = 'warning';
+          } else {
+            tr_class = 'danger';
+          }
+          results_tbody.append("<tr id=\"" + result.pk + "\" class=\"" + tr_class + "\"> <td><input type=\"checkbox\"></td> <td>" + result.fields.node_path + "</td> <td>" + result.fields.status + "</td> <td>" + result.fields.msg + "</td> <td>" + logs_html + "</td> <td>" + result.fields.updated_at + "</td> </tr>");
         }
       }
       clusters_html = '';
@@ -485,7 +501,8 @@
         graph_nodes[fabscript_node.index] = {
           name: fabscript,
           success_length: fabscript_node.success_nodes.length,
-          failed_length: fabscript_node.failed_nodes.length
+          warning_length: fabscript_node.warning_nodes.length,
+          danger_length: fabscript_node.danger_nodes.length
         };
         _ref3 = fabscript_node.links;
         for (_n = 0, _len5 = _ref3.length; _n < _len5; _n++) {

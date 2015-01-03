@@ -61,11 +61,15 @@ render_force_layout = () ->
             .attr('dy', '.35em')
             .attr('y', 16)
             .attr('class', (d) ->
-                if d.failed_length > 0
-                    return 'node-label-failed'
+                if d.danger_length > 0
+                    return 'node-label-danger'
+                if d.warning_length > 0
+                    return 'node-label-warning'
                 else
                     return 'node-label-success')
-            .text((d) -> "success (#{d.success_length}), failed (#{d.failed_length})")
+            .text((d) -> "✔ #{d.success_length},
+                          ▲ #{d.warning_length},
+                          ✘ #{d.danger_length}")
 
     #forceシミュレーションをステップごとに実行
     force.on "tick", (e)->

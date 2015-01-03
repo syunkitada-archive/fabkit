@@ -22,7 +22,8 @@ render_result = ->
                     fabscript_node_map[name] = {
                         'links': [],
                         'success_nodes': [],
-                        'failed_nodes': [],
+                        'warning_nodes': [],
+                        'danger_nodes': [],
                         'index': index,
                     }
                     current_index = index
@@ -36,7 +37,8 @@ render_result = ->
                         fabscript_node_map[fabscript] = {
                             'links': [current_index],
                             'success_nodes': [],
-                            'failed_nodes': [],
+                            'warning_nodes': [],
+                            'danger_nodes': [],
                             'index': index
                         }
                         index++
@@ -63,8 +65,10 @@ render_result = ->
 
                     if log.status == 0
                         fabscript_node_map[log.fabscript]['success_nodes'].push(node)
+                    else if log.status < WARNING_STATUS_THRESHOLD
+                        fabscript_node_map[log.fabscript]['warning_nodes'].push(node)
                     else
-                        fabscript_node_map[log.fabscript]['failed_nodes'].push(node)
+                        fabscript_node_map[log.fabscript]['danger_nodes'].push(node)
 
                 tmp_logs_html += "#{log.fabscript}: #{log.msg}[#{log.status}]<br>"
 
@@ -82,8 +86,15 @@ render_result = ->
             """
 
             if hash == '#all' or hash == "##{cluster}"
+                if result.fields.status == 0
+                    tr_class = ''
+                else if result.fields.status < WARNING_STATUS_THRESHOLD
+                    tr_class = 'warning'
+                else
+                    tr_class = 'danger'
+
                 results_tbody.append("
-                <tr id=\"#{result.pk}\">
+                <tr id=\"#{result.pk}\" class=\"#{tr_class}\">
                     <td><input type=\"checkbox\"></td>
                     <td>#{result.fields.node_path}</td>
                     <td>#{result.fields.status}</td>
@@ -107,7 +118,8 @@ render_result = ->
             graph_nodes[fabscript_node.index] = {
                 name: fabscript,
                 success_length: fabscript_node.success_nodes.length,
-                failed_length: fabscript_node.failed_nodes.length,
+                warning_length: fabscript_node.warning_nodes.length,
+                danger_length: fabscript_node.danger_nodes.length,
             }
 
             for link in fabscript_node.links

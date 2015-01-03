@@ -148,7 +148,11 @@ body {
     fill: #5cb85c;
 }
 
-.node-label-failed {
+.node-label-warning {
+    fill: #f0ad4e;
+}
+
+.node-label-danger {
     fill: #d9534f;
 }
 
