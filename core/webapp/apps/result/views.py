@@ -4,14 +4,35 @@ import json
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.core import serializers
+from apps.node.models import NodeCluster
 from apps.result.models import Result
+from apps.fabscript.models import Fabscript
+from django.contrib.auth.decorators import login_required
 
 
-def index(request):
-    results = serializers.serialize('json', Result.objects.all().order_by('node_path'))
+@login_required
+def index(request, cluster=None):
+    if cluster:
+        if int(cluster) == 0:
+            results = serializers.serialize(
+                'json',
+                Result.objects.filter(cluster=None).order_by('-status', 'node_path').all())
+        else:
+            results = serializers.serialize(
+                'json',
+                Result.objects.filter(cluster=cluster).order_by('-status', 'node_path').all())
+    else:
+        results = serializers.serialize(
+            'json',
+            Result.objects.order_by('-status', 'node_path').all()[:50])
+
+    node_clusters = serializers.serialize('json', NodeCluster.objects.all())
+    fabscripts = serializers.serialize('json', Fabscript.objects.all())
     context = {
         'title': 'Result Log',
         'results': results,
+        'fabscripts': fabscripts,
+        'node_clusters': node_clusters,
     }
 
     if request.META.get('HTTP_X_PJAX'):
@@ -20,6 +41,7 @@ def index(request):
     return render(request, 'result/index.html', context)
 
 
+@login_required
 def remove(request):
     if request.method == 'POST':
         targets = request.POST.getlist('target')

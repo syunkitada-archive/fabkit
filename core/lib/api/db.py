@@ -9,9 +9,10 @@ import status_code
 import filer
 import databag
 from api import sudo
-from apps.node.models import Node
+from apps.node.models import Node, NodeCluster
 from apps.fabscript.models import Fabscript
 from apps.result.models import Result, ChefResult
+from django.db import transaction
 
 
 def update_remote_node(data, host=None):
@@ -35,18 +36,42 @@ def get_remote_node():
     return {}
 
 
+def get_node(env_node):
+    path = env_node['path']
+    try:
+        node = Node.objects.get(path=path)
+    except Node.DoesNotExist:
+        node = Node(path=path)
+
+        rsplited_path = path.rsplit('/', 1)
+        if len(rsplited_path) > 1:
+            cluster = rsplited_path[0]
+
+            try:
+                node_cluster = NodeCluster.objects.get(name=cluster)
+            except NodeCluster.DoesNotExist:
+                node_cluster = NodeCluster(name=cluster)
+                node_cluster.save()
+
+        else:
+            node_cluster = None
+
+        node.cluster = node_cluster
+        node.save()
+
+    return node
+
+
 def update_node(host=None):
     if not host:
         host = env.host
 
     env_node = env.node_map[host]
 
-    try:
-        node = Node.objects.get(path=env_node['path'])
-    except Node.DoesNotExist:
-        node = Node(path=env_node['path'])
+    node = get_node(env_node)
 
     node.host = host
+    node.data = json.dumps(env_node.get('data', {}))
     node.path = env_node.get('path', u'').decode('utf-8')
     node.ip = env_node.get('ip', u'').decode('utf-8')
     node.ssh = env_node.get('ssh', u'').decode('utf-8')
@@ -56,18 +81,26 @@ def update_node(host=None):
 
 def create_fabscript(script_name):
     try:
-        fabscript = Fabscript.objects.get(name=script_name)
+        Fabscript.objects.get(name=script_name)
     except Fabscript.DoesNotExist:
+        # 並列実行時に、同時に新規作成しようとすると刺さるためトランザクション化
+        create_new_fabscript(script_name)
+
+
+@transaction.commit_manually
+def create_new_fabscript(script_name):
+    try:
         fabscript = Fabscript(name=script_name)
+        fabscript.save()
+    except:
+        transaction.rollback()
+    else:
+        transaction.commit()
 
-    fabscript.save()
 
-
-def update_connection(data, script_name=None):
+def update_data(data, script_name=None):
     if not script_name:
         script_name = __get_script_name()
-        print '\n\n\nDEBUG'
-        print script_name
 
     try:
         fabscript = Fabscript.objects.get(name=script_name)
@@ -75,25 +108,39 @@ def update_connection(data, script_name=None):
         fabscript = Fabscript(name=script_name)
 
     data_str = json.dumps(data)
-    fabscript.connection = data_str
+    fabscript.data = data_str
     fabscript.save()
 
 
-def get_connection(script_name, key):
+def update_link(data, script_name=None):
+    if not script_name:
+        script_name = __get_script_name()
+
+    try:
+        fabscript = Fabscript.objects.get(name=script_name)
+    except Fabscript.DoesNotExist:
+        fabscript = Fabscript(name=script_name)
+
+    data_str = json.dumps(data)
+    fabscript.link = data_str
+    fabscript.save()
+
+
+def get_link(script_name, key):
     # 参照先のscript
     fabscript = Fabscript.objects.get(name=script_name)
 
     # 参照元のscript
     tmp_fabscript = __get_script_name()
     if tmp_fabscript:
-        connected_fabscript = '{0}:{1}'.format(tmp_fabscript, key)
-        connected_fabscripts = set(yaml.load(fabscript.connected_fabscripts))
-        connected_fabscripts.add(connected_fabscript)
-        fabscript.connected_fabscripts = json.dumps(list(connected_fabscripts))
+        linked_fabscript = '{0}:{1}'.format(tmp_fabscript, key)
+        linked_fabscripts = set(yaml.load(fabscript.linked_fabscripts))
+        linked_fabscripts.add(linked_fabscript)
+        fabscript.linked_fabscripts = json.dumps(list(linked_fabscripts))
         fabscript.save()
 
-    connection_str = databag.decode_str(fabscript.connection)
-    data = json.loads(connection_str)
+    link_str = databag.decode_str(fabscript.link)
+    data = json.loads(link_str)
     return data[key]
 
 
@@ -116,11 +163,7 @@ def setuped(status, msg, is_init=False, host=None):
         host = env.host
 
     env_node = env.node_map.get(host)
-    try:
-        node = Node.objects.get(path=env_node['path'])
-    except Node.DoesNotExist:
-        node = Node(path=env_node['path'])
-        node.save()
+    node = get_node(env_node)
 
     try:
         result = Result.objects.get(node=node)
@@ -133,6 +176,7 @@ def setuped(status, msg, is_init=False, host=None):
         logs_all.extend(logs)
         result.logs_all = json.dumps(logs_all)
 
+    result.cluster = node.cluster
     result.node_path = env_node['path']
     result.logs = json.dumps(env_node['logs'])
     result.status = status

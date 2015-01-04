@@ -5,8 +5,10 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from apps.fabscript.models import Fabscript
 from django.core import serializers
+from django.contrib.auth.decorators import login_required
 
 
+@login_required
 def index(request):
     fabscripts = serializers.serialize('json', Fabscript.objects.all().order_by('name'))
     context = {
@@ -20,6 +22,7 @@ def index(request):
     return render(request, 'fabscript/index.html', context)
 
 
+@login_required
 def remove(request):
     if request.method == 'POST':
         targets = request.POST.getlist('target')

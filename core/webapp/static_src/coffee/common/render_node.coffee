@@ -1,41 +1,38 @@
 render_node = ->
-    nodes_tbody = $('#nodes-tbody')
-    node_clusters = $('#node-clusters')
-    if nodes_tbody.length > 0
-        node_cluster_map = {'all': nodes}
-        hash = location.hash
-        if hash == ''
-            hash = '#all'
+    nodes_tbody_html = ''
+    for node in nodes
+        data = JSON.parse(node.fields.data)
+        console.log data
+        if Object.keys(data).length == 0
+            data_html = "No data"
+        else
+            data_html = "<table class='table table-bordered'><tbody>"
+            for key, value of data
+                # TODO valueがObjectだったら再帰的に展開
+                data_html += """
+                    <tr>
+                        <td>#{key}</td>
+                        <td>#{value}</td>
+                    </tr>"""
 
-        nodes_tbody.empty()
-        node_clusters.empty()
-        for node in nodes
-            cluster = node.fields.path.split('/')[0]
-            if cluster of node_cluster_map
-                cluster_data = node_cluster_map[cluster]
-                cluster_data.push(node)
-            else
-                cluster_data = [node]
+            data_html += '</tbody></table>'
 
-            node_cluster_map[cluster] = cluster_data
+        host_html = """
+            <a class="popover-anchor" data-containe="body" data-toggle="popover"
+                data-placement="bottom" data-html="true" data-title="Data" data-content="#{data_html}">
+                #{node.fields.host}
+            </a>"""
 
-            if hash == '#all' or hash == "##{cluster}"
-                nodes_tbody.append("
-                <tr id=\"#{node.pk}\">
-                    <td><input type=\"checkbox\"></td>
-                    <td>#{node.fields.path}</td>
-                    <td>#{node.fields.host}</td>
-                    <td>#{node.fields.ip}</td>
-                    <td>#{node.fields.uptime}</td>
-                    <td>#{node.fields.ssh}</td>
-                </tr>")
+        nodes_tbody_html += "
+        <tr id=\"#{node.pk}\">
+            <td><input type=\"checkbox\"></td>
+            <td>#{node.fields.path}</td>
+            <td>#{host_html}</td>
+            <td>#{node.fields.ip}</td>
+            <td>#{node.fields.uptime}</td>
+            <td>#{node.fields.ssh}</td>
+        </tr>"
 
+    $('#nodes-tbody').empty().html(nodes_tbody_html)
 
-        clusters_html = ''
-        for cluster, nodes of node_cluster_map
-            active = ""
-            if hash == "##{cluster}"
-                active = "active"
-            clusters_html += "<li class=\"#{active}\"><a href=\"##{cluster}\">#{cluster} (#{nodes.length})</a></li>"
-
-        node_clusters.html(clusters_html)
+    render_node_clusters()

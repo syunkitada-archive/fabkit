@@ -116,24 +116,45 @@ body {
     height: 0px;
 }
 
-.svg-wrapper {
+.graph-svg-wrapper {
+    position: static;
     background-color: #f8f8f8;
     width: 100%;
-    height: 300px;
+    height: 450px;
 }
 
-.svg-wrapper > svg {
+.graph-svg-wrapper > svg {
     width: 100%;
     height: 100%;
 }
 
 .link {
-    stroke: rgba(0, 0, 0, 0.5);
+    stroke: rgba(0, 0, 0, 0.3);
 }
+
 .node {
     cursor: pointer;
 }
 
+.node-circle {
+    fill: #222;
+}
+
+.node-label {
+    fill: #337ab7;
+}
+
+.node-label-success {
+    fill: #5cb85c;
+}
+
+.node-label-warning {
+    fill: #f0ad4e;
+}
+
+.node-label-danger {
+    fill: #d9534f;
+}
 
 /*
  * popover

@@ -1,84 +1,93 @@
 render_fabscript = ->
-    fabscripts_tbody = $('#fabscripts-tbody')
-    if fabscripts_tbody.length > 0
-        node_map = {}
-        nodes = []
-        links = []
+    hash = location.hash
+    if hash == ''
+        hash = '#all'
 
-        fabscript_cluster_map = {'all': fabscripts}
-        hash = location.hash
-        if hash == ''
-            hash = '#all'
+    if hash == '#all'
+        $('#show-graph').hide()
+    else
+        $('#show-graph').show()
 
-        fabscripts_tbody.empty()
-        for script in fabscripts
-            connected_html = ''
-            for connected in script.fields.connected_fabscripts
-                connected_html += "#{connected}</br>"
+    graph_nodes = []
+    graph_links = []
 
-            cluster = script.fields.name.split('.')[0]
-            if cluster of fabscript_cluster_map
-                cluster_data = fabscript_cluster_map[cluster]
-                cluster_data.push(script)
-            else
-                cluster_data = [script]
+    fabscript_cluster_map = {'all': fabscripts}
 
-            fabscript_cluster_map[cluster] = cluster_data
+    fabscripts_tbody = ''
+    for fabscript in fabscripts
+        linked_html = ''
+        for linked in fabscript.fields.linked_fabscripts
+            linked_html += "#{linked}</br>"
 
-            if hash == '#all' or hash == "##{cluster}"
-                fabscripts_tbody.append("
-                <tr id=\"#{script.pk}\">
-                    <td><input type=\"checkbox\"></td>
-                    <td>#{script.fields.name}</td>
-                    <td>#{connected_html}</td>
-                    <td>#{script.fields.updated_at}</td>
-                </tr>")
+        cluster = fabscript.fields.name.split('.')[0]
+        if cluster of fabscript_cluster_map
+            cluster_data = fabscript_cluster_map[cluster]
+            cluster_data.push(fabscript)
+        else
+            cluster_data = [fabscript]
 
-                if hash != "#all"
+        fabscript_cluster_map[cluster] = cluster_data
+
+        if hash == '#all' or hash == "##{cluster}"
+            fabscripts_tbody += "
+            <tr id=\"#{fabscript.pk}\">
+                <td><input type=\"checkbox\"></td>
+                <td>#{fabscript.fields.name}</td>
+                <td>#{linked_html}</td>
+                <td>#{fabscript.fields.updated_at}</td>
+            </tr>"
+
+            if hash != "#all"
+                is_exist = false
+                node_index = 0
+                for node, i in graph_nodes
+                    if node.name == fabscript.fields.name
+                        is_exist = true
+                        node_index = i
+                        break
+
+                if not is_exist
+                    node_index = graph_nodes.length
+                    graph_nodes.push(
+                        'name': fabscript.fields.name,
+                    )
+
+                for linked in fabscript.fields.linked_fabscripts
+                    linked = linked.split(':')[0]
                     is_exist = false
-                    node_index = 0
-                    for node, i in nodes
-                        if node.name == script.fields.name
+                    linked_index = 0
+                    for node, i in graph_nodes
+                        if node.name == linked
                             is_exist = true
-                            node_index = i
+                            linked_index = i
                             break
+
                     if not is_exist
-                        node_index = nodes.length
-                        nodes.push(
-                            'name': script.fields.name,
-                        )
+                        linked_index = graph_nodes.length
+                        graph_nodes.push({
+                            'name': linked,
+                        })
 
-                    for fabscript in script.fields.connected_fabscripts
-                        fabscript = fabscript.split(':')[0]
-                        is_exist = false
-                        linked_index = 0
-                        for node, i in nodes
-                            if node.name == fabscript
-                                is_exist = true
-                                linked_index = i
-                                break
+                    if node_index != linked_index
+                        graph_links.push({
+                            'source': linked_index,
+                            'target': node_index,
+                        })
 
-                        if not is_exist
-                            linked_index = nodes.length
-                            nodes.push({
-                                'name': fabscript,
-                            })
 
-                        if node_index != linked_index
-                            links.push({
-                                'source': linked_index,
-                                'target': node_index,
-                            })
+    $('#fabscripts-tbody').html(fabscripts_tbody)
 
-        clusters_html = ''
-        for cluster, fabscripts of fabscript_cluster_map
-            active = ""
-            if hash == "##{cluster}"
-                active = "active"
-            clusters_html += "<li class=\"#{active}\"><a href=\"##{cluster}\">#{cluster} (#{fabscripts.length})</a></li>"
+    fabscript_clusters_ul = ''
+    for cluster, scripts of fabscript_cluster_map
+        active = ""
+        if hash == "##{cluster}"
+            active = "active"
 
-        $('#fabscript-clusters').html(clusters_html)
+        fabscript_clusters_ul += """
+            <li class="#{active}">
+                <a href="##{cluster}">
+                #{cluster} (#{scripts.length})
+                </a>
+            </li>"""
 
-        $('#svg-fabscript').empty()
-        if hash != "#all"
-            render_force_layout('#svg-fabscript', nodes, links)
+    $('#fabscript-clusters-ul').html(fabscript_clusters_ul)

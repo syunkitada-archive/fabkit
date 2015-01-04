@@ -31,12 +31,17 @@ def dump_node(host_path=None, node=None, is_init=False):
     if is_init:
         node_path = host_path
         node = convert_node()
+        node['path'] = node_path
 
         splited_host = node_path.rsplit('/', 1)
         if len(splited_host) > 1:
             host = splited_host[1]
             env.node_map[host] = node
-        db.update_node()
+        else:
+            host = node_path
+
+        db.update_node(host)
+
     elif not node:
         node = env.node_map.get(host_path)
         db.update_node()
@@ -215,5 +220,5 @@ last_check     : {last_check}
 def convert_node(node={}):
     return {
         'fabruns': node.get('fabruns', []),
-        'attr': node.get('attr', {}),
+        'data': node.get('data', {}),
     }

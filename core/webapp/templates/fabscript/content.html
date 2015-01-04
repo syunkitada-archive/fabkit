@@ -1,7 +1,7 @@
 <title>{{title}}</title>
 
 <div class="col-sm-3 col-md-2 sidebar">
-    <ul class="nav nav-sidebar" id="fabscript-clusters"></ul>
+    <ul class="nav nav-sidebar" id="fabscript-clusters-ul"></ul>
 </div>
 <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
     <h2 class="page-header">{{title}}</h2>
@@ -17,6 +17,7 @@
             </div>
         </div>
         <div class="col-xs-6">
+            <input id="show-graph" class="btn btn-default" type="button" value="Show Graph">
             <input class="btn btn-default pull-right" type="button" value="Remove" onclick="fabkit.remove_data('{% url 'fabscript:remove' %}')">
         </div>
     </div>
@@ -26,7 +27,7 @@
                 <tr>
                     <th><input type="checkbox" id="all-checkbox"></th>
                     <th>Script Name</th>
-                    <th>Connection</th>
+                    <th>Linked</th>
                     <th>Updated</th>
                 </tr>
             </thead>
@@ -34,20 +35,6 @@
             </tbody>
         </table>
     </div>
-    <hr>
-
-    <svg class="svg-defs">
-        <defs>
-            <marker id="markerArrow" markerWidth="13" markerHeight="13" refx="14" refy="6"
-                    orient="auto">
-                <path d="M2,2 L2,11 L10,6 L2,2" style="fill: #000000;" />
-            </marker>
-        </defs>
-    </svg>
-    <div class="svg-wrapper">
-        <svg id="svg-fabscript"></svg>
-    </div>
-
 </div>
 
 

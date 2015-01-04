@@ -1,6 +1,10 @@
-render_force_layout = (id, nodes, links) ->
+render_force_layout = () ->
+    id = '#graph-svg'
+    nodes = graph_nodes
+    links = graph_links
+
     svg = d3.select(id)
-    $svg = $(id)
+    $svg = $(id).empty()
     w = $svg.width()
     h = $svg.height()
 
@@ -8,9 +12,14 @@ render_force_layout = (id, nodes, links) ->
     force = d3.layout.force()
             .nodes(nodes) #nodesには配列を与える
             .links(links)
-            .gravity(.05)
-            .distance(100)
-            .charge(-100)
+            .linkDistance(150)  # ノードとノードのリンクの長さ
+            .linkStrength(0.1)  # (1 [0-1]) リンク強度（ノードの引力はリンク強度×リンク数の分だけ強くなる)
+            .friction(0.8)  # (0.9 [0-1]) 摩擦力（加速度の減衰力）値を小さくすると収束するまでの加速が小さくなる
+            .charge(-300)  # (-30) 推進力（反発力) 負の値だとノード同士が反発し、正の値だと引き合う
+            # .chargeDistance(500)
+            .gravity(.04)  # (0.1) 重力 画面の中心に動く力
+            # .distance(200)
+            # theta(0.8)
             .size([w, h])
 
     link = svg.selectAll('.link')
@@ -25,14 +34,43 @@ render_force_layout = (id, nodes, links) ->
               .attr('class', 'node')
               .call(force.drag)  # nodeのドラッグを可能にする
 
+    node.append('glyph')
+        .attr('class', 'glyphicon glyphicon-star')
+        .attr('unicode')
+
+    node.append("image")
+        .attr("xlink:href", (d) ->
+            "/static/vendor/defaulticon/png/#{d.icon}.png")
+        .attr("x", 6)
+        .attr("y", -34)
+        .attr('width', 30)
+        .attr('height', 30)
+
     node.append("circle")
-        .attr("r", 5)
-        .style("fill", "green")
+        .attr("r", 6)
+        .attr('class', 'node-circle')
 
     node.append('text')
         .attr('dx', 12)
         .attr('dy', '.35em')
+        .attr('class', 'node-label')
         .text((d) -> d.name)
+
+    if mode.current == mode.RESULT
+        node.append('text')
+            .attr('dx', 12)
+            .attr('dy', '.35em')
+            .attr('y', 16)
+            .attr('class', (d) ->
+                if d.danger_length > 0
+                    return 'node-label-danger'
+                if d.warning_length > 0
+                    return 'node-label-warning'
+                else
+                    return 'node-label-success')
+            .text((d) -> "✔ #{d.success_length},
+                          ▲ #{d.warning_length},
+                          ✘ #{d.danger_length}")
 
     #forceシミュレーションをステップごとに実行
     force.on "tick", (e)->
