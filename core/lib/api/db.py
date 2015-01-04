@@ -9,7 +9,7 @@ import status_code
 import filer
 import databag
 from api import sudo
-from apps.node.models import Node
+from apps.node.models import Node, NodeCluster
 from apps.fabscript.models import Fabscript
 from apps.result.models import Result, ChefResult
 from django.db import transaction
@@ -36,16 +36,39 @@ def get_remote_node():
     return {}
 
 
+def get_node(env_node):
+    path = env_node['path']
+    try:
+        node = Node.objects.get(path=path)
+    except Node.DoesNotExist:
+        node = Node(path=path)
+
+        rsplited_path = path.rsplit('/', 1)
+        if len(rsplited_path) > 1:
+            cluster = rsplited_path[0]
+
+            try:
+                node_cluster = NodeCluster.objects.get(name=cluster)
+            except NodeCluster.DoesNotExist:
+                node_cluster = NodeCluster(name=cluster)
+                node_cluster.save()
+
+        else:
+            node_cluster = None
+
+        node.cluster = node_cluster
+        node.save()
+
+    return node
+
+
 def update_node(host=None):
     if not host:
         host = env.host
 
     env_node = env.node_map[host]
 
-    try:
-        node = Node.objects.get(path=env_node['path'])
-    except Node.DoesNotExist:
-        node = Node(path=env_node['path'])
+    node = get_node(env_node)
 
     node.host = host
     node.path = env_node.get('path', u'').decode('utf-8')
@@ -125,11 +148,7 @@ def setuped(status, msg, is_init=False, host=None):
         host = env.host
 
     env_node = env.node_map.get(host)
-    try:
-        node = Node.objects.get(path=env_node['path'])
-    except Node.DoesNotExist:
-        node = Node(path=env_node['path'])
-        node.save()
+    node = get_node(env_node)
 
     try:
         result = Result.objects.get(node=node)
@@ -142,6 +161,7 @@ def setuped(status, msg, is_init=False, host=None):
         logs_all.extend(logs)
         result.logs_all = json.dumps(logs_all)
 
+    result.cluster = node.cluster
     result.node_path = env_node['path']
     result.logs = json.dumps(env_node['logs'])
     result.status = status

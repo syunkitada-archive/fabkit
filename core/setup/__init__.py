@@ -45,7 +45,7 @@ def setup(option=None):
         db.setuped(-1, 'start setup', is_init=True)
         for fabscript in node.get('fabruns', []):
             db.create_fabscript(fabscript)
-            util.update_log(fabscript, -1, 'start setup')
+            util.update_log(fabscript, 1, 'start setup')
             db.setuped(-1, 'start {0}'.format(fabscript))
 
             script = '.'.join((conf.FABSCRIPT_MODULE, fabscript))

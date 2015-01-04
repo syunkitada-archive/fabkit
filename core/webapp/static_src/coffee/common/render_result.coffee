@@ -1,132 +1,105 @@
 render_result = ->
-    results_tbody = $('#results-tbody')
-    if results_tbody.length > 0
-        result_cluster_map = {'all': results}
-        hash = location.hash
-        if hash == ''
-            hash = '#all'
+    console.log 'result'
+    fabscript_node_map = {}
+    result_node_map = {}
 
-        fabscript_node_map = {}
-        result_node_map = {}
-        if hash == '#all'
-            $('#show-graph').hide()
+    index = 0
+    for script in fabscripts
+        name = script.fields.name
+        if name not of fabscript_node_map
+            fabscript_node_map[name] = {
+                'links': [],
+                'success_nodes': [],
+                'warning_nodes': [],
+                'danger_nodes': [],
+                'index': index,
+            }
+            current_index = index
+            index++
         else
-            $('#show-graph').show()
+            current_index = fabscript_node_map[name]['index']
 
-            console.log 'DEBUG'
-            console.log fabscripts
-            index = 0
-            for script in fabscripts
-                name = script.fields.name
-                if name not of fabscript_node_map
-                    fabscript_node_map[name] = {
-                        'links': [],
-                        'success_nodes': [],
-                        'warning_nodes': [],
-                        'danger_nodes': [],
-                        'index': index,
-                    }
-                    current_index = index
-                    index++
-                else
-                    current_index = fabscript_node_map[name]['index']
-
-                for fabscript in script.fields.linked_fabscripts
-                    fabscript = fabscript.split(':')[0]
-                    if fabscript not of fabscript_node_map
-                        fabscript_node_map[fabscript] = {
-                            'links': [current_index],
-                            'success_nodes': [],
-                            'warning_nodes': [],
-                            'danger_nodes': [],
-                            'index': index
-                        }
-                        index++
-                    else
-                        fabscript_node_map[fabscript]['links'].push(current_index)
-        console.log fabscript_node_map
-
-        results_tbody.empty()
-        for result, i in results
-            cluster = result.fields.node_path.split('/')[0]
-            if cluster of result_cluster_map
-                cluster_data = result_cluster_map[cluster]
-                cluster_data.push(result)
+        for fabscript in script.fields.linked_fabscripts
+            fabscript = fabscript.split(':')[0]
+            if fabscript not of fabscript_node_map
+                fabscript_node_map[fabscript] = {
+                    'links': [current_index],
+                    'success_nodes': [],
+                    'warning_nodes': [],
+                    'danger_nodes': [],
+                    'index': index
+                }
+                index++
             else
-                cluster_data = [result]
+                fabscript_node_map[fabscript]['links'].push(current_index)
 
-            tmp_logs_html = ''
-            for log in JSON.parse(result.fields.logs)
-                if hash != '#all'
-                    node = {
-                        'index': i,
-                        'name': result.fields.node_path,
-                    }
+    console.log fabscript_node_map
 
-                    if log.status == 0
-                        fabscript_node_map[log.fabscript]['success_nodes'].push(node)
-                    else if log.status < WARNING_STATUS_THRESHOLD
-                        fabscript_node_map[log.fabscript]['warning_nodes'].push(node)
-                    else
-                        fabscript_node_map[log.fabscript]['danger_nodes'].push(node)
-
-                tmp_logs_html += "#{log.fabscript}: #{log.msg}[#{log.status}]<br>"
-
-            logs_all_html = ''
-            for log in JSON.parse(result.fields.logs_all)
-                timestamp = new Date(log.timestamp * 1000)
-                logs_all_html += "#{log.fabscript}: #{log.msg}[#{log.status}] #{timestamp}<br>"
-
-            id_logs = "log_#{i}"
-            result_cluster_map[cluster] = cluster_data
-            logs_html = """
-<a class="popover-anchor" data-containe="body" data-toggle="popover" data-placement="bottom" data-html="true" data-content="#{logs_all_html}">
-    #{tmp_logs_html}
- </a>
-            """
-
-            if hash == '#all' or hash == "##{cluster}"
-                if result.fields.status == 0
-                    tr_class = ''
-                else if result.fields.status < WARNING_STATUS_THRESHOLD
-                    tr_class = 'warning'
-                else
-                    tr_class = 'danger'
-
-                results_tbody.append("
-                <tr id=\"#{result.pk}\" class=\"#{tr_class}\">
-                    <td><input type=\"checkbox\"></td>
-                    <td>#{result.fields.node_path}</td>
-                    <td>#{result.fields.status}</td>
-                    <td>#{result.fields.msg}</td>
-                    <td>#{logs_html}</td>
-                    <td>#{result.fields.updated_at}</td>
-                </tr>")
-
-        clusters_html = ''
-        for cluster, results of result_cluster_map
-            active = ""
-            if hash == "##{cluster}"
-                active = "active"
-            clusters_html += "<li class=\"#{active}\"><a href=\"##{cluster}\">#{cluster} (#{results.length})</a></li>"
-
-        $('#result-clusters').html(clusters_html)
-
-        graph_nodes = []
-        graph_links = []
-        for fabscript, fabscript_node of fabscript_node_map
-            graph_nodes[fabscript_node.index] = {
-                name: fabscript,
-                success_length: fabscript_node.success_nodes.length,
-                warning_length: fabscript_node.warning_nodes.length,
-                danger_length: fabscript_node.danger_nodes.length,
+    results_tbody_html = ''
+    for result, i in results
+        tmp_logs_html = ''
+        for log in JSON.parse(result.fields.logs)
+            node = {
+                'index': i,
+                'name': result.fields.node_path,
             }
 
-            for link in fabscript_node.links
-                graph_links.push({
-                    'source': fabscript_node.index,
-                    'target': link,
-                })
+            if log.status == 0
+                fabscript_node_map[log.fabscript]['success_nodes'].push(node)
+            else if log.status < WARNING_STATUS_THRESHOLD
+                fabscript_node_map[log.fabscript]['warning_nodes'].push(node)
+            else
+                fabscript_node_map[log.fabscript]['danger_nodes'].push(node)
 
-        console.log graph_nodes
-        console.log graph_links
+            tmp_logs_html += "#{log.fabscript}: #{log.msg}[#{log.status}]<br>"
+
+        logs_all_html = ''
+        for log in JSON.parse(result.fields.logs_all)
+            timestamp = new Date(log.timestamp * 1000)
+            logs_all_html += "#{log.fabscript}: #{log.msg}[#{log.status}] #{timestamp}<br>"
+
+        logs_html = """
+<a class="popover-anchor" data-containe="body" data-toggle="popover" data-placement="bottom" data-html="true" data-content="#{logs_all_html}">
+#{tmp_logs_html}
+</a>
+        """
+
+        if result.fields.status == 0
+            tr_class = ''
+        else if result.fields.status < WARNING_STATUS_THRESHOLD
+            tr_class = 'warning'
+        else
+            tr_class = 'danger'
+
+        results_tbody_html += "
+            <tr id=\"#{result.pk}\" class=\"#{tr_class}\">
+                <td><input type=\"checkbox\"></td>
+                <td>#{result.fields.node_path}</td>
+                <td>#{result.fields.status}</td>
+                <td>#{result.fields.msg}</td>
+                <td>#{logs_html}</td>
+                <td>#{result.fields.updated_at}</td>
+            </tr>"
+
+    $('#results-tbody').html(results_tbody_html)
+
+    render_node_clusters()
+
+    graph_nodes = []
+    graph_links = []
+    for fabscript, fabscript_node of fabscript_node_map
+        graph_nodes[fabscript_node.index] = {
+            name: fabscript,
+            success_length: fabscript_node.success_nodes.length,
+            warning_length: fabscript_node.warning_nodes.length,
+            danger_length: fabscript_node.danger_nodes.length,
+        }
+
+        for link in fabscript_node.links
+            graph_links.push({
+                'source': fabscript_node.index,
+                'target': link,
+            })
+
+    console.log graph_nodes
+    console.log graph_links

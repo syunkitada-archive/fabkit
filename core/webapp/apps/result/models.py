@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from django.db import models
-from apps.node.models import Node
+from apps.node.models import Node, NodeCluster
 
 
 class Result(models.Model):
@@ -19,6 +19,7 @@ class Result(models.Model):
     ]
     """
     node = models.ForeignKey(Node, null=True, unique=True)
+    cluster = models.ForeignKey(NodeCluster, null=True)
     node_path = models.CharField(default=u'', max_length=255)
     status = models.IntegerField(default=0)
     msg = models.CharField(default=u'', max_length=1024)

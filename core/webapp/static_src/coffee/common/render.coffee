@@ -1,8 +1,12 @@
 render_all = ->
-    render_user()
-    render_fabscript()
-    render_node()
-    render_result()
+    if mode.current == mode.USER
+        render_user()
+    else if mode.current == mode.FABSCRIPT
+        render_fabscript()
+    else if mode.current == mode.RESULT
+        render_result()
+    else if mode.current == mode.NODE
+        render_node()
 
 
 init = ->
@@ -39,7 +43,10 @@ init = ->
     if nodes.length > 0
         mode.current = mode.NODE
         nodes = JSON.parse(nodes.html())
-        console.log nodes
+
+    node_clusters = $('#node_clusters')
+    if node_clusters.length > 0
+        node_clusters = JSON.parse(node_clusters.html())
 
     fabscripts = $('#fabscripts')
     if fabscripts.length > 0
@@ -56,21 +63,20 @@ init = ->
 
     render_all()
 
-    return
+    if $.support.pjax
+        $(document).pjax('.pjax', '#pjax-container')
+        $(document).on('pjax:end', ->
+            pathname = location.pathname.split('/', 2)
+            $('.pjax').parent().removeClass('active')
+            $('a[href="/' + pathname[1] + '/"]').parent().addClass('active')
+            init()
+            return)
 
-
-if $.support.pjax
-    $(document).pjax('.pjax', '#pjax-container')
-    $(document).on('pjax:end', ->
-        $('.pjax').parent().removeClass('active')
-        $('a[href="' + location.pathname + '"]').parent().addClass('active')
-        init()
+    $(window).on('hashchange', ->
+        render_all()
         return)
 
-
-$(window).on('hashchange', ->
-    init()
-    return)
+    return
 
 
 init()

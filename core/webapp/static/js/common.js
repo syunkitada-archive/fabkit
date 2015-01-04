@@ -1,5 +1,5 @@
 (function() {
-  var WARNING_STATUS_THRESHOLD, fabscripts, filter, graph_links, graph_nodes, init, mode, nodes, render_all, render_fabscript, render_force_layout, render_node, render_result, render_user, results, users,
+  var WARNING_STATUS_THRESHOLD, fabscripts, filter, graph_links, graph_nodes, init, mode, node_clusters, nodes, render_all, render_fabscript, render_force_layout, render_node, render_node_clusters, render_result, render_user, results, users,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   window.fabkit = {};
@@ -7,6 +7,8 @@
   users = [];
 
   nodes = [];
+
+  node_clusters = [];
 
   fabscripts = [];
 
@@ -212,6 +214,30 @@
     return force.start();
   };
 
+  render_node_clusters = function() {
+    var active, cluster_pk, clusters_html, node_cluster, page, paths, _i, _len;
+    console.log('test');
+    console.log(node_clusters);
+    paths = location.pathname.split('/', 3);
+    page = paths[1];
+    cluster_pk = parseInt(paths[2]);
+    if (cluster_pk === 0) {
+      active = 'active';
+    } else {
+      active = '';
+    }
+    clusters_html = "<li class=\"" + active + "\"><a class=\"pjax\" href=\"/" + page + "/0/\">root</a></li>";
+    for (_i = 0, _len = node_clusters.length; _i < _len; _i++) {
+      node_cluster = node_clusters[_i];
+      active = '';
+      if (node_cluster.pk === cluster_pk) {
+        active = "active";
+      }
+      clusters_html += "<li class=\"" + active + "\"> <a class=\"pjax\" href=\"/" + page + "/" + node_cluster.pk + "/\"> " + node_cluster.fields.name + "</a> </li>";
+    }
+    return $('#node-clusters-ul').html(clusters_html);
+  };
+
   render_user = function() {
     var hash, user, users_tbody, _i, _len;
     users_tbody = $('#users-tbody');
@@ -240,289 +266,224 @@
   };
 
   render_fabscript = function() {
-    var active, cluster, cluster_data, clusters_html, fabscript, fabscript_cluster_map, fabscripts_tbody, hash, i, is_exist, linked, linked_html, linked_index, node, node_index, node_map, script, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1;
-    fabscripts_tbody = $('#fabscripts-tbody');
-    if (fabscripts_tbody.length > 0) {
-      node_map = {};
-      graph_nodes = [];
-      graph_links = [];
-      fabscript_cluster_map = {
-        'all': fabscripts
-      };
-      hash = location.hash;
-      if (hash === '') {
-        hash = '#all';
+    var active, cluster, cluster_data, clusters_html, fabscript, fabscript_cluster_map, fabscripts_tbody, hash, i, is_exist, linked, linked_html, linked_index, node, node_index, script, scripts, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1;
+    hash = location.hash;
+    if (hash === '') {
+      hash = '#all';
+    }
+    graph_nodes = [];
+    graph_links = [];
+    fabscript_cluster_map = {
+      'all': fabscripts
+    };
+    fabscripts_tbody = '';
+    for (_i = 0, _len = fabscripts.length; _i < _len; _i++) {
+      script = fabscripts[_i];
+      linked_html = '';
+      _ref = script.fields.linked_fabscripts;
+      for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
+        linked = _ref[_j];
+        linked_html += "" + linked + "</br>";
       }
-      fabscripts_tbody.empty();
-      for (_i = 0, _len = fabscripts.length; _i < _len; _i++) {
-        script = fabscripts[_i];
-        linked_html = '';
-        _ref = script.fields.linked_fabscripts;
-        for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
-          linked = _ref[_j];
-          linked_html += "" + linked + "</br>";
-        }
-        cluster = script.fields.name.split('.')[0];
-        if (cluster in fabscript_cluster_map) {
-          cluster_data = fabscript_cluster_map[cluster];
-          cluster_data.push(script);
-        } else {
-          cluster_data = [script];
-        }
-        fabscript_cluster_map[cluster] = cluster_data;
-        if (hash === '#all' || hash === ("#" + cluster)) {
-          fabscripts_tbody.append("<tr id=\"" + script.pk + "\"> <td><input type=\"checkbox\"></td> <td>" + script.fields.name + "</td> <td>" + linked_html + "</td> <td>" + script.fields.updated_at + "</td> </tr>");
-          if (hash !== "#all") {
+      cluster = script.fields.name.split('.')[0];
+      if (cluster in fabscript_cluster_map) {
+        cluster_data = fabscript_cluster_map[cluster];
+        cluster_data.push(script);
+      } else {
+        cluster_data = [script];
+      }
+      fabscript_cluster_map[cluster] = cluster_data;
+      if (hash === '#all' || hash === ("#" + cluster)) {
+        fabscripts_tbody += "<tr id=\"" + script.pk + "\"> <td><input type=\"checkbox\"></td> <td>" + script.fields.name + "</td> <td>" + linked_html + "</td> <td>" + script.fields.updated_at + "</td> </tr>";
+        if (hash !== "#all") {
+          is_exist = false;
+          node_index = 0;
+          for (i = _k = 0, _len2 = graph_nodes.length; _k < _len2; i = ++_k) {
+            node = graph_nodes[i];
+            if (node.name === script.fields.name) {
+              is_exist = true;
+              node_index = i;
+              break;
+            }
+          }
+          if (!is_exist) {
+            node_index = graph_nodes.length;
+            graph_nodes.push({
+              'name': script.fields.name
+            });
+          }
+          _ref1 = script.fields.linked_fabscripts;
+          for (_l = 0, _len3 = _ref1.length; _l < _len3; _l++) {
+            fabscript = _ref1[_l];
+            fabscript = fabscript.split(':')[0];
             is_exist = false;
-            node_index = 0;
-            for (i = _k = 0, _len2 = graph_nodes.length; _k < _len2; i = ++_k) {
+            linked_index = 0;
+            for (i = _m = 0, _len4 = graph_nodes.length; _m < _len4; i = ++_m) {
               node = graph_nodes[i];
-              if (node.name === script.fields.name) {
+              if (node.name === fabscript) {
                 is_exist = true;
-                node_index = i;
+                linked_index = i;
                 break;
               }
             }
             if (!is_exist) {
-              node_index = graph_nodes.length;
+              linked_index = graph_nodes.length;
               graph_nodes.push({
-                'name': script.fields.name
+                'name': fabscript
               });
             }
-            _ref1 = script.fields.linked_fabscripts;
-            for (_l = 0, _len3 = _ref1.length; _l < _len3; _l++) {
-              fabscript = _ref1[_l];
-              fabscript = fabscript.split(':')[0];
-              is_exist = false;
-              linked_index = 0;
-              for (i = _m = 0, _len4 = graph_nodes.length; _m < _len4; i = ++_m) {
-                node = graph_nodes[i];
-                if (node.name === fabscript) {
-                  is_exist = true;
-                  linked_index = i;
-                  break;
-                }
-              }
-              if (!is_exist) {
-                linked_index = graph_nodes.length;
-                graph_nodes.push({
-                  'name': fabscript
-                });
-              }
-              if (node_index !== linked_index) {
-                graph_links.push({
-                  'source': linked_index,
-                  'target': node_index
-                });
-              }
+            if (node_index !== linked_index) {
+              graph_links.push({
+                'source': linked_index,
+                'target': node_index
+              });
             }
           }
         }
       }
-      clusters_html = '';
-      for (cluster in fabscript_cluster_map) {
-        fabscripts = fabscript_cluster_map[cluster];
-        active = "";
-        if (hash === ("#" + cluster)) {
-          active = "active";
-        }
-        clusters_html += "<li class=\"" + active + "\"><a href=\"#" + cluster + "\">" + cluster + " (" + fabscripts.length + ")</a></li>";
+    }
+    $('#fabscripts-tbody').html(fabscripts_tbody);
+    clusters_html = '';
+    for (cluster in fabscript_cluster_map) {
+      scripts = fabscript_cluster_map[cluster];
+      active = "";
+      if (hash === ("#" + cluster)) {
+        active = "active";
       }
-      $('#fabscript-clusters').html(clusters_html);
-      if (hash === '#all') {
-        return $('#show-graph').hide();
-      } else {
-        return $('#show-graph').show();
-      }
+      clusters_html += "<li class=\"" + active + "\"><a href=\"#" + cluster + "\">" + cluster + " (" + scripts.length + ")</a></li>";
+    }
+    $('#fabscript-clusters').html(clusters_html);
+    if (hash === '#all') {
+      return $('#show-graph').hide();
+    } else {
+      return $('#show-graph').show();
     }
   };
 
   render_node = function() {
-    var active, cluster, cluster_data, clusters_html, hash, node, node_cluster_map, node_clusters, nodes_tbody, _i, _len;
-    nodes_tbody = $('#nodes-tbody');
-    node_clusters = $('#node-clusters');
-    if (nodes_tbody.length > 0) {
-      node_cluster_map = {
-        'all': nodes
-      };
-      hash = location.hash;
-      if (hash === '') {
-        hash = '#all';
-      }
-      nodes_tbody.empty();
-      node_clusters.empty();
-      for (_i = 0, _len = nodes.length; _i < _len; _i++) {
-        node = nodes[_i];
-        cluster = node.fields.path.split('/')[0];
-        if (cluster in node_cluster_map) {
-          cluster_data = node_cluster_map[cluster];
-          cluster_data.push(node);
-        } else {
-          cluster_data = [node];
-        }
-        node_cluster_map[cluster] = cluster_data;
-        if (hash === '#all' || hash === ("#" + cluster)) {
-          nodes_tbody.append("<tr id=\"" + node.pk + "\"> <td><input type=\"checkbox\"></td> <td>" + node.fields.path + "</td> <td>" + node.fields.host + "</td> <td>" + node.fields.ip + "</td> <td>" + node.fields.uptime + "</td> <td>" + node.fields.ssh + "</td> </tr>");
-        }
-      }
-      clusters_html = '';
-      for (cluster in node_cluster_map) {
-        nodes = node_cluster_map[cluster];
-        active = "";
-        if (hash === ("#" + cluster)) {
-          active = "active";
-        }
-        clusters_html += "<li class=\"" + active + "\"><a href=\"#" + cluster + "\">" + cluster + " (" + nodes.length + ")</a></li>";
-      }
-      return node_clusters.html(clusters_html);
+    var node, nodes_tbody_html, _i, _len;
+    nodes_tbody_html = '';
+    for (_i = 0, _len = nodes.length; _i < _len; _i++) {
+      node = nodes[_i];
+      nodes_tbody_html += "<tr id=\"" + node.pk + "\"> <td><input type=\"checkbox\"></td> <td>" + node.fields.path + "</td> <td>" + node.fields.host + "</td> <td>" + node.fields.ip + "</td> <td>" + node.fields.uptime + "</td> <td>" + node.fields.ssh + "</td> </tr>";
     }
+    $('#nodes-tbody').empty().html(nodes_tbody_html);
+    return render_node_clusters();
   };
 
   render_result = function() {
-    var active, cluster, cluster_data, clusters_html, current_index, fabscript, fabscript_node, fabscript_node_map, hash, i, id_logs, index, link, log, logs_all_html, logs_html, name, node, result, result_cluster_map, result_node_map, results_tbody, script, timestamp, tmp_logs_html, tr_class, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _m, _n, _ref, _ref1, _ref2, _ref3;
-    results_tbody = $('#results-tbody');
-    if (results_tbody.length > 0) {
-      result_cluster_map = {
-        'all': results
-      };
-      hash = location.hash;
-      if (hash === '') {
-        hash = '#all';
-      }
-      fabscript_node_map = {};
-      result_node_map = {};
-      if (hash === '#all') {
-        $('#show-graph').hide();
-      } else {
-        $('#show-graph').show();
-        console.log('DEBUG');
-        console.log(fabscripts);
-        index = 0;
-        for (_i = 0, _len = fabscripts.length; _i < _len; _i++) {
-          script = fabscripts[_i];
-          name = script.fields.name;
-          if (!(name in fabscript_node_map)) {
-            fabscript_node_map[name] = {
-              'links': [],
-              'success_nodes': [],
-              'warning_nodes': [],
-              'danger_nodes': [],
-              'index': index
-            };
-            current_index = index;
-            index++;
-          } else {
-            current_index = fabscript_node_map[name]['index'];
-          }
-          _ref = script.fields.linked_fabscripts;
-          for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
-            fabscript = _ref[_j];
-            fabscript = fabscript.split(':')[0];
-            if (!(fabscript in fabscript_node_map)) {
-              fabscript_node_map[fabscript] = {
-                'links': [current_index],
-                'success_nodes': [],
-                'warning_nodes': [],
-                'danger_nodes': [],
-                'index': index
-              };
-              index++;
-            } else {
-              fabscript_node_map[fabscript]['links'].push(current_index);
-            }
-          }
-        }
-      }
-      console.log(fabscript_node_map);
-      results_tbody.empty();
-      for (i = _k = 0, _len2 = results.length; _k < _len2; i = ++_k) {
-        result = results[i];
-        cluster = result.fields.node_path.split('/')[0];
-        if (cluster in result_cluster_map) {
-          cluster_data = result_cluster_map[cluster];
-          cluster_data.push(result);
-        } else {
-          cluster_data = [result];
-        }
-        tmp_logs_html = '';
-        _ref1 = JSON.parse(result.fields.logs);
-        for (_l = 0, _len3 = _ref1.length; _l < _len3; _l++) {
-          log = _ref1[_l];
-          if (hash !== '#all') {
-            node = {
-              'index': i,
-              'name': result.fields.node_path
-            };
-            if (log.status === 0) {
-              fabscript_node_map[log.fabscript]['success_nodes'].push(node);
-            } else if (log.status < WARNING_STATUS_THRESHOLD) {
-              fabscript_node_map[log.fabscript]['warning_nodes'].push(node);
-            } else {
-              fabscript_node_map[log.fabscript]['danger_nodes'].push(node);
-            }
-          }
-          tmp_logs_html += "" + log.fabscript + ": " + log.msg + "[" + log.status + "]<br>";
-        }
-        logs_all_html = '';
-        _ref2 = JSON.parse(result.fields.logs_all);
-        for (_m = 0, _len4 = _ref2.length; _m < _len4; _m++) {
-          log = _ref2[_m];
-          timestamp = new Date(log.timestamp * 1000);
-          logs_all_html += "" + log.fabscript + ": " + log.msg + "[" + log.status + "] " + timestamp + "<br>";
-        }
-        id_logs = "log_" + i;
-        result_cluster_map[cluster] = cluster_data;
-        logs_html = "<a class=\"popover-anchor\" data-containe=\"body\" data-toggle=\"popover\" data-placement=\"bottom\" data-html=\"true\" data-content=\"" + logs_all_html + "\">\n    " + tmp_logs_html + "\n </a>";
-        if (hash === '#all' || hash === ("#" + cluster)) {
-          if (result.fields.status === 0) {
-            tr_class = '';
-          } else if (result.fields.status < WARNING_STATUS_THRESHOLD) {
-            tr_class = 'warning';
-          } else {
-            tr_class = 'danger';
-          }
-          results_tbody.append("<tr id=\"" + result.pk + "\" class=\"" + tr_class + "\"> <td><input type=\"checkbox\"></td> <td>" + result.fields.node_path + "</td> <td>" + result.fields.status + "</td> <td>" + result.fields.msg + "</td> <td>" + logs_html + "</td> <td>" + result.fields.updated_at + "</td> </tr>");
-        }
-      }
-      clusters_html = '';
-      for (cluster in result_cluster_map) {
-        results = result_cluster_map[cluster];
-        active = "";
-        if (hash === ("#" + cluster)) {
-          active = "active";
-        }
-        clusters_html += "<li class=\"" + active + "\"><a href=\"#" + cluster + "\">" + cluster + " (" + results.length + ")</a></li>";
-      }
-      $('#result-clusters').html(clusters_html);
-      graph_nodes = [];
-      graph_links = [];
-      for (fabscript in fabscript_node_map) {
-        fabscript_node = fabscript_node_map[fabscript];
-        graph_nodes[fabscript_node.index] = {
-          name: fabscript,
-          success_length: fabscript_node.success_nodes.length,
-          warning_length: fabscript_node.warning_nodes.length,
-          danger_length: fabscript_node.danger_nodes.length
+    var current_index, fabscript, fabscript_node, fabscript_node_map, i, index, link, log, logs_all_html, logs_html, name, node, result, result_node_map, results_tbody_html, script, timestamp, tmp_logs_html, tr_class, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _m, _n, _ref, _ref1, _ref2, _ref3;
+    console.log('result');
+    fabscript_node_map = {};
+    result_node_map = {};
+    index = 0;
+    for (_i = 0, _len = fabscripts.length; _i < _len; _i++) {
+      script = fabscripts[_i];
+      name = script.fields.name;
+      if (!(name in fabscript_node_map)) {
+        fabscript_node_map[name] = {
+          'links': [],
+          'success_nodes': [],
+          'warning_nodes': [],
+          'danger_nodes': [],
+          'index': index
         };
-        _ref3 = fabscript_node.links;
-        for (_n = 0, _len5 = _ref3.length; _n < _len5; _n++) {
-          link = _ref3[_n];
-          graph_links.push({
-            'source': fabscript_node.index,
-            'target': link
-          });
+        current_index = index;
+        index++;
+      } else {
+        current_index = fabscript_node_map[name]['index'];
+      }
+      _ref = script.fields.linked_fabscripts;
+      for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
+        fabscript = _ref[_j];
+        fabscript = fabscript.split(':')[0];
+        if (!(fabscript in fabscript_node_map)) {
+          fabscript_node_map[fabscript] = {
+            'links': [current_index],
+            'success_nodes': [],
+            'warning_nodes': [],
+            'danger_nodes': [],
+            'index': index
+          };
+          index++;
+        } else {
+          fabscript_node_map[fabscript]['links'].push(current_index);
         }
       }
-      console.log(graph_nodes);
-      return console.log(graph_links);
     }
+    console.log(fabscript_node_map);
+    results_tbody_html = '';
+    for (i = _k = 0, _len2 = results.length; _k < _len2; i = ++_k) {
+      result = results[i];
+      tmp_logs_html = '';
+      _ref1 = JSON.parse(result.fields.logs);
+      for (_l = 0, _len3 = _ref1.length; _l < _len3; _l++) {
+        log = _ref1[_l];
+        node = {
+          'index': i,
+          'name': result.fields.node_path
+        };
+        if (log.status === 0) {
+          fabscript_node_map[log.fabscript]['success_nodes'].push(node);
+        } else if (log.status < WARNING_STATUS_THRESHOLD) {
+          fabscript_node_map[log.fabscript]['warning_nodes'].push(node);
+        } else {
+          fabscript_node_map[log.fabscript]['danger_nodes'].push(node);
+        }
+        tmp_logs_html += "" + log.fabscript + ": " + log.msg + "[" + log.status + "]<br>";
+      }
+      logs_all_html = '';
+      _ref2 = JSON.parse(result.fields.logs_all);
+      for (_m = 0, _len4 = _ref2.length; _m < _len4; _m++) {
+        log = _ref2[_m];
+        timestamp = new Date(log.timestamp * 1000);
+        logs_all_html += "" + log.fabscript + ": " + log.msg + "[" + log.status + "] " + timestamp + "<br>";
+      }
+      logs_html = "<a class=\"popover-anchor\" data-containe=\"body\" data-toggle=\"popover\" data-placement=\"bottom\" data-html=\"true\" data-content=\"" + logs_all_html + "\">\n" + tmp_logs_html + "\n</a>";
+      if (result.fields.status === 0) {
+        tr_class = '';
+      } else if (result.fields.status < WARNING_STATUS_THRESHOLD) {
+        tr_class = 'warning';
+      } else {
+        tr_class = 'danger';
+      }
+      results_tbody_html += "<tr id=\"" + result.pk + "\" class=\"" + tr_class + "\"> <td><input type=\"checkbox\"></td> <td>" + result.fields.node_path + "</td> <td>" + result.fields.status + "</td> <td>" + result.fields.msg + "</td> <td>" + logs_html + "</td> <td>" + result.fields.updated_at + "</td> </tr>";
+    }
+    $('#results-tbody').html(results_tbody_html);
+    render_node_clusters();
+    graph_nodes = [];
+    graph_links = [];
+    for (fabscript in fabscript_node_map) {
+      fabscript_node = fabscript_node_map[fabscript];
+      graph_nodes[fabscript_node.index] = {
+        name: fabscript,
+        success_length: fabscript_node.success_nodes.length,
+        warning_length: fabscript_node.warning_nodes.length,
+        danger_length: fabscript_node.danger_nodes.length
+      };
+      _ref3 = fabscript_node.links;
+      for (_n = 0, _len5 = _ref3.length; _n < _len5; _n++) {
+        link = _ref3[_n];
+        graph_links.push({
+          'source': fabscript_node.index,
+          'target': link
+        });
+      }
+    }
+    console.log(graph_nodes);
+    return console.log(graph_links);
   };
 
   render_all = function() {
-    render_user();
-    render_fabscript();
-    render_node();
-    return render_result();
+    if (mode.current === mode.USER) {
+      return render_user();
+    } else if (mode.current === mode.FABSCRIPT) {
+      return render_fabscript();
+    } else if (mode.current === mode.RESULT) {
+      return render_result();
+    } else if (mode.current === mode.NODE) {
+      return render_node();
+    }
   };
 
   init = function() {
@@ -558,7 +519,10 @@
     if (nodes.length > 0) {
       mode.current = mode.NODE;
       nodes = JSON.parse(nodes.html());
-      console.log(nodes);
+    }
+    node_clusters = $('#node_clusters');
+    if (node_clusters.length > 0) {
+      node_clusters = JSON.parse(node_clusters.html());
     }
     fabscripts = $('#fabscripts');
     if (fabscripts.length > 0) {
@@ -576,20 +540,20 @@
       results = JSON.parse(results.html());
     }
     render_all();
-  };
-
-  if ($.support.pjax) {
-    $(document).pjax('.pjax', '#pjax-container');
-    $(document).on('pjax:end', function() {
-      $('.pjax').parent().removeClass('active');
-      $('a[href="' + location.pathname + '"]').parent().addClass('active');
-      init();
+    if ($.support.pjax) {
+      $(document).pjax('.pjax', '#pjax-container');
+      $(document).on('pjax:end', function() {
+        var pathname;
+        pathname = location.pathname.split('/', 2);
+        $('.pjax').parent().removeClass('active');
+        $('a[href="/' + pathname[1] + '/"]').parent().addClass('active');
+        init();
+      });
+    }
+    $(window).on('hashchange', function() {
+      render_all();
     });
-  }
-
-  $(window).on('hashchange', function() {
-    init();
-  });
+  };
 
   init();
 
