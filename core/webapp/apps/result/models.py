@@ -13,6 +13,8 @@ class Result(models.Model):
             'msg': '',
         }
     ]
+
+    TODO logs_allを100件までしか保存できないようにする
     実行開始時にlogsをlogs_allに移す
     logs_all = [  # すべてのlog(100件)
 

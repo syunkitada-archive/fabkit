@@ -20,7 +20,7 @@ def index(request, cluster=None):
                 'json',
                 Node.objects.filter(cluster=cluster).order_by('path').all())
     else:
-        nodes = serializers.serialize('json', Node.objects.order_by('path').all()[:20])
+        nodes = serializers.serialize('json', Node.objects.order_by('path').all()[:50])
 
     node_clusters = serializers.serialize('json', NodeCluster.objects.all().order_by('name'))
     context = {

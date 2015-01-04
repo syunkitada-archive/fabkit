@@ -23,7 +23,7 @@ def setup(option=None):
     node = env.node_map.get(env.host)
 
     if not check():
-        db.setuped(-1, 'Failed to check')
+        db.setuped(1, 'Failed to check')
         log.warning('Failed to check')
         return
 
@@ -42,11 +42,11 @@ def setup(option=None):
         filer.mkdir(conf.STORAGE_DIR)
         filer.mkdir(conf.TMP_DIR, mode='777')
 
-        db.setuped(-1, 'start setup', is_init=True)
+        db.setuped(1, 'start setup', is_init=True)
         for fabscript in node.get('fabruns', []):
             db.create_fabscript(fabscript)
             util.update_log(fabscript, 1, 'start setup')
-            db.setuped(-1, 'start {0}'.format(fabscript))
+            db.setuped(1, 'start {0}'.format(fabscript))
 
             script = '.'.join((conf.FABSCRIPT_MODULE, fabscript))
             module = __import__(script, {}, {}, 'setup')
@@ -95,7 +95,7 @@ def manage(*args):
 
     for fabscript in node.get('fabruns', []):
         db.create_fabscript(fabscript)
-        db.setuped(-1, 'start setup', script_name=fabscript)
+        db.setuped(1, 'start setup', script_name=fabscript)
         script = '.'.join((conf.FABSCRIPT_MODULE, fabscript))
         module = __import__(script, {}, {}, 'setup')
 

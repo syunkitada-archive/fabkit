@@ -1,39 +1,7 @@
 render_result = ->
-    console.log 'result'
+    render_node_clusters()
+
     fabscript_node_map = {}
-    result_node_map = {}
-
-    index = 0
-    for script in fabscripts
-        name = script.fields.name
-        if name not of fabscript_node_map
-            fabscript_node_map[name] = {
-                'links': [],
-                'success_nodes': [],
-                'warning_nodes': [],
-                'danger_nodes': [],
-                'index': index,
-            }
-            current_index = index
-            index++
-        else
-            current_index = fabscript_node_map[name]['index']
-
-        for fabscript in script.fields.linked_fabscripts
-            fabscript = fabscript.split(':')[0]
-            if fabscript not of fabscript_node_map
-                fabscript_node_map[fabscript] = {
-                    'links': [current_index],
-                    'success_nodes': [],
-                    'warning_nodes': [],
-                    'danger_nodes': [],
-                    'index': index
-                }
-                index++
-            else
-                fabscript_node_map[fabscript]['links'].push(current_index)
-
-    console.log fabscript_node_map
 
     results_tbody_html = ''
     for result, i in results
@@ -43,6 +11,14 @@ render_result = ->
                 'index': i,
                 'name': result.fields.node_path,
             }
+
+            if log.fabscript not of fabscript_node_map
+                fabscript_node_map[log.fabscript] = {
+                    'links': [],
+                    'success_nodes': [],
+                    'warning_nodes': [],
+                    'danger_nodes': [],
+                }
 
             if log.status == 0
                 fabscript_node_map[log.fabscript]['success_nodes'].push(node)
@@ -54,15 +30,19 @@ render_result = ->
             tmp_logs_html += "#{log.fabscript}: #{log.msg}[#{log.status}]<br>"
 
         logs_all_html = ''
-        for log in JSON.parse(result.fields.logs_all)
-            timestamp = new Date(log.timestamp * 1000)
-            logs_all_html += "#{log.fabscript}: #{log.msg}[#{log.status}] #{timestamp}<br>"
+        logs_all = JSON.parse(result.fields.logs_all)
+        if logs_all.length == 0
+            logs_all_html = 'No data'
+        else
+            for log in logs_all
+                timestamp = new Date(log.timestamp * 1000)
+                logs_all_html += "#{log.fabscript}: #{log.msg}[#{log.status}] #{timestamp}<br>"
 
         logs_html = """
-<a class="popover-anchor" data-containe="body" data-toggle="popover" data-placement="bottom" data-html="true" data-content="#{logs_all_html}">
-#{tmp_logs_html}
-</a>
-        """
+            <a class="popover-anchor" data-containe="body" data-toggle="popover"
+                data-placement="bottom" data-html="true" data-title="Logs all" data-content="#{logs_all_html}">
+                #{tmp_logs_html}
+            </a>"""
 
         if result.fields.status == 0
             tr_class = ''
@@ -83,16 +63,37 @@ render_result = ->
 
     $('#results-tbody').html(results_tbody_html)
 
-    render_node_clusters()
+    index = 0
+    for fabscript in fabscripts
+        name = fabscript.fields.name
+        if name not of fabscript_node_map
+            continue
+
+        fabscript_node_map[name].index = index
+
+        if 'icon' of fabscript.fields.data
+            fabscript_node_map[name].icon = fabscript.fields.data.icon
+        else
+            fabscript_node_map[name].icon = 'computer-retro'
+
+        for linked_fabscript in fabscript.fields.linked_fabscripts
+            script_name = linked_fabscript.split(':')[0]
+            fabscript_node_map[script_name]['links'].push(index)
+
+        index++
 
     graph_nodes = []
     graph_links = []
     for fabscript, fabscript_node of fabscript_node_map
+        success_length = fabscript_node.success_nodes.length
+        warning_length = fabscript_node.warning_nodes.length
+        danger_length = fabscript_node.danger_nodes.length
         graph_nodes[fabscript_node.index] = {
             name: fabscript,
-            success_length: fabscript_node.success_nodes.length,
-            warning_length: fabscript_node.warning_nodes.length,
-            danger_length: fabscript_node.danger_nodes.length,
+            icon: fabscript_node.icon,
+            success_length: success_length,
+            warning_length: warning_length,
+            danger_length: danger_length,
         }
 
         for link in fabscript_node.links
@@ -100,6 +101,3 @@ render_result = ->
                 'source': fabscript_node.index,
                 'target': link,
             })
-
-    console.log graph_nodes
-    console.log graph_links

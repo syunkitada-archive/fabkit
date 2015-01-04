@@ -13,6 +13,7 @@ class NodeCluster(models.Model):
 class Node(models.Model):
     path = models.CharField(default=u'', max_length=255, unique=True)
     cluster = models.ForeignKey(NodeCluster, null=True)
+    data = models.CharField(default=u'{}', max_length=10000)
     host = models.CharField(default=u'', max_length=255)
     ip = models.CharField(default=u'', max_length=255)
     uptime = models.CharField(default=u'', max_length=255)

@@ -220,5 +220,5 @@ last_check     : {last_check}
 def convert_node(node={}):
     return {
         'fabruns': node.get('fabruns', []),
-        'attr': node.get('attr', {}),
+        'data': node.get('data', {}),
     }

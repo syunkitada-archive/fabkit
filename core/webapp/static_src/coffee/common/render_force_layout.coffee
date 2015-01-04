@@ -39,7 +39,8 @@ render_force_layout = () ->
         .attr('unicode')
 
     node.append("image")
-        .attr("xlink:href", "/static/vendor/defaulticon/png/computer-retro.png")
+        .attr("xlink:href", (d) ->
+            "/static/vendor/defaulticon/png/#{d.icon}.png")
         .attr("x", 6)
         .attr("y", -34)
         .attr('width', 30)

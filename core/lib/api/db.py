@@ -71,6 +71,7 @@ def update_node(host=None):
     node = get_node(env_node)
 
     node.host = host
+    node.data = json.dumps(env_node.get('data', {}))
     node.path = env_node.get('path', u'').decode('utf-8')
     node.ip = env_node.get('ip', u'').decode('utf-8')
     node.ssh = env_node.get('ssh', u'').decode('utf-8')
@@ -95,6 +96,20 @@ def create_new_fabscript(script_name):
         transaction.rollback()
     else:
         transaction.commit()
+
+
+def update_data(data, script_name=None):
+    if not script_name:
+        script_name = __get_script_name()
+
+    try:
+        fabscript = Fabscript.objects.get(name=script_name)
+    except Fabscript.DoesNotExist:
+        fabscript = Fabscript(name=script_name)
+
+    data_str = json.dumps(data)
+    fabscript.data = data_str
+    fabscript.save()
 
 
 def update_link(data, script_name=None):
