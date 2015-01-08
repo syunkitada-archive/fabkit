@@ -24,7 +24,7 @@ def index(request, cluster=None):
     else:
         results = serializers.serialize(
             'json',
-            Result.objects.order_by('-status', 'node_path').all()[:50])
+            Result.objects.order_by('-status', '-updated_at').all()[:50])
 
     node_clusters = serializers.serialize('json', NodeCluster.objects.all())
     fabscripts = serializers.serialize('json', Fabscript.objects.all())

@@ -174,6 +174,7 @@ def setuped(status, msg, is_init=False, host=None):
         logs = json.loads(result.logs)
         logs_all = json.loads(result.logs_all)
         logs_all.extend(logs)
+        logs_all = logs_all[-conf.WEB_LOG_LENGTH:]
         result.logs_all = json.dumps(logs_all)
 
     result.cluster = node.cluster
