@@ -457,6 +457,14 @@
       for (_m = 0, _len3 = _ref1.length; _m < _len3; _m++) {
         linked_fabscript = _ref1[_m];
         script_name = linked_fabscript.split(':')[0];
+        if (!(script_name in fabscript_node_map)) {
+          fabscript_node_map[script_name] = {
+            'links': [],
+            'success_nodes': [],
+            'warning_nodes': [],
+            'danger_nodes': []
+          };
+        }
         fabscript_node_map[script_name]['links'].push(index);
       }
       index++;

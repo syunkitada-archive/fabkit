@@ -78,6 +78,15 @@ render_result = ->
 
         for linked_fabscript in fabscript.fields.linked_fabscripts
             script_name = linked_fabscript.split(':')[0]
+
+            if script_name not of fabscript_node_map
+                fabscript_node_map[script_name] = {
+                    'links': [],
+                    'success_nodes': [],
+                    'warning_nodes': [],
+                    'danger_nodes': [],
+                }
+
             fabscript_node_map[script_name]['links'].push(index)
 
         index++
