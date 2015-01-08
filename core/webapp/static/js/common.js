@@ -387,7 +387,7 @@
   };
 
   render_result = function() {
-    var danger_length, fabscript, fabscript_node, fabscript_node_map, i, index, link, linked_fabscript, log, logs_all, logs_all_html, logs_html, name, node, result, results_tbody_html, script_name, success_length, timestamp, tmp_logs_html, tr_class, warning_length, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1, _results;
+    var danger_length, fabscript, fabscript_node, fabscript_node_map, i, index, link, linked_fabscript, log, logs_all, logs_all_html, logs_html, name, node, result, results_tbody_html, script_name, success_length, timestamp, tmp_logs_html, tr_class, warning_length, _i, _j, _k, _l, _len, _len1, _len2, _len3, _m, _ref, _ref1, _results;
     render_node_clusters();
     fabscript_node_map = {};
     results_tbody_html = '';
@@ -423,7 +423,7 @@
       if (logs_all.length === 0) {
         logs_all_html = 'No data';
       } else {
-        for (_k = 0, _len2 = logs_all.length; _k < _len2; _k++) {
+        for (_k = logs_all.length - 1; _k >= 0; _k += -1) {
           log = logs_all[_k];
           timestamp = new Date(log.timestamp * 1000);
           logs_all_html += "" + log.fabscript + ": " + log.msg + "[" + log.status + "] " + timestamp + "<br>";
@@ -441,7 +441,7 @@
     }
     $('#results-tbody').html(results_tbody_html);
     index = 0;
-    for (_l = 0, _len3 = fabscripts.length; _l < _len3; _l++) {
+    for (_l = 0, _len2 = fabscripts.length; _l < _len2; _l++) {
       fabscript = fabscripts[_l];
       name = fabscript.fields.name;
       if (!(name in fabscript_node_map)) {
@@ -454,7 +454,7 @@
         fabscript_node_map[name].icon = 'computer-retro';
       }
       _ref1 = fabscript.fields.linked_fabscripts;
-      for (_m = 0, _len4 = _ref1.length; _m < _len4; _m++) {
+      for (_m = 0, _len3 = _ref1.length; _m < _len3; _m++) {
         linked_fabscript = _ref1[_m];
         script_name = linked_fabscript.split(':')[0];
         fabscript_node_map[script_name]['links'].push(index);
@@ -477,10 +477,10 @@
         danger_length: danger_length
       };
       _results.push((function() {
-        var _len5, _n, _ref2, _results1;
+        var _len4, _n, _ref2, _results1;
         _ref2 = fabscript_node.links;
         _results1 = [];
-        for (_n = 0, _len5 = _ref2.length; _n < _len5; _n++) {
+        for (_n = 0, _len4 = _ref2.length; _n < _len4; _n++) {
           link = _ref2[_n];
           _results1.push(graph_links.push({
             'source': fabscript_node.index,

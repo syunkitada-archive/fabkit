@@ -34,7 +34,7 @@ render_result = ->
         if logs_all.length == 0
             logs_all_html = 'No data'
         else
-            for log in logs_all
+            for log in logs_all by -1
                 timestamp = new Date(log.timestamp * 1000)
                 logs_all_html += "#{log.fabscript}: #{log.msg}[#{log.status}] #{timestamp}<br>"
 

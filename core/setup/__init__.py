@@ -83,6 +83,7 @@ def _manage(*args):
 def manage(*args):
     if args[0] == 'test':
         env.is_test = True
+        args = args[1:]
 
     if not check():
         log.warning('Failed to check(ssh)')
@@ -93,9 +94,11 @@ def manage(*args):
     filer.mkdir(conf.STORAGE_DIR)
     filer.mkdir(conf.TMP_DIR, mode='777')
 
+    db.setuped(1, 'start manage', True)
     for fabscript in node.get('fabruns', []):
         db.create_fabscript(fabscript)
-        db.setuped(1, 'start setup', script_name=fabscript)
+        util.update_log(fabscript, 1, 'start manage')
+        db.setuped(1, 'start manage: {0}'.format(fabscript))
         script = '.'.join((conf.FABSCRIPT_MODULE, fabscript))
         module = __import__(script, {}, {}, 'setup')
 
@@ -120,8 +123,9 @@ def manage(*args):
                 if status != 0:
                     break
 
+        util.update_log(fabscript, 0, 'end manage')
         msg = 'end manage: [{0}]'.format(', '.join(msgs))
 
-        db.setuped(status, msg, script_name=fabscript)
+        db.setuped(status, msg)
 
     util.dump_node()

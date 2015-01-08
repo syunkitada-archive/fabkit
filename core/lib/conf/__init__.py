@@ -48,6 +48,7 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
     global COOKBOOKS_DIRS, NODE_DIR, ROLE_DIR, ENVIRONMENT_DIR
     global FABLIB_MODULE_DIR, FABLIB_MAP
     global LOGGER_LEVEL, LOGGER_FORMATTER, NODE_LOGGER_MAX_BYTES, NODE_LOGGER_BACKUP_COUNT
+    global WEB_LOG_LENGTH
     global USER, PASSWORD
 
     if test_chefrepo_dir:
@@ -136,3 +137,5 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
     error_file_rotaiting_handler.setFormatter(LOGGER_FORMATTER)
     error_file_rotaiting_handler.setLevel(logging.ERROR)
     root_logger.addHandler(error_file_rotaiting_handler)
+
+    WEB_LOG_LENGTH = CONFIG.getint('web', 'log_length')
