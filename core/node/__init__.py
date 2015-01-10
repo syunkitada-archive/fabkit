@@ -66,18 +66,16 @@ def node(option=None, host=None, edit_key=None, *edit_value):
         host = __check_to_enter_host(host)
         hosts = util.get_expanded_hosts(host)
 
-        print hosts
+        for host in hosts:
+            print host
+
         if util.confirm('Are you sure you want to create above nodes?', 'Canceled'):
             for host in hosts:
-                if not util.exists_node(host):
-                    util.dump_node(host, is_init=True)
-                    if edit_key and edit_value:
-                        node = util.load_node(host)
-                        node.update({edit_key: __convert_value(edit_key, edit_value)})
-                        util.dump_node(host, node)
-
-                else:
-                    print '{0} is already created.'.format(host)
+                util.dump_node(host[0], is_init=True)
+                if edit_key and edit_value:
+                    node = util.load_node(host[0])
+                    node.update({edit_key: __convert_value(edit_key, edit_value, host[1])})
+                    util.dump_node(host, node)
 
         util.load_node_map(host)
         util.print_node_map()
@@ -185,11 +183,16 @@ def __check_to_enter_host(host):
     return host
 
 
-def __convert_value(key, value):
+def __convert_value(key, value, fragments):
     if key == 'fabruns':
         if type(value) is StringType:
             value = value.split(',')
 
-        value = list(value)
+        result = []
+        for v in value:
+            result.append(v.format(*fragments))
 
-    return value
+        return result
+
+    else:
+        return value

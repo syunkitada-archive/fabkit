@@ -5,6 +5,8 @@ from django.db import models
 
 class NodeCluster(models.Model):
     name = models.CharField(default=u'', max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now=False, auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, auto_now_add=True)
 
     def __unicode__(self):
         return self.path
