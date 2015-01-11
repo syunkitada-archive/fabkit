@@ -80,7 +80,7 @@ def node(option=None, host=None, edit_key=None, *edit_value):
         util.load_node_map(host)
         util.print_node_map()
 
-        return
+        exit(0)
 
     elif option == 'remove':
         host = __check_to_enter_host(host)
@@ -96,7 +96,7 @@ def node(option=None, host=None, edit_key=None, *edit_value):
 
             print '{0} removed.'.format(host)
 
-        return
+        exit(0)
 
     elif option == 'edit':
         host = __check_to_enter_host(host)
@@ -123,21 +123,30 @@ def node(option=None, host=None, edit_key=None, *edit_value):
             util.dump_node(node['path'], node)
 
         util.print_node_map()
-        check_continue()
 
-        return
+        exit(0)
 
     elif option == 'error':
-        nodes = db.get_error_nodes()
+        if host:
+            length = int(host)
+        else:
+            length = None
+        nodes = db.get_error_nodes(length)
         for node in nodes:
             util.load_node(node.path)
         util.print_node_map(option='status')
+        exit(0)
 
     elif option == 'recent':
-        nodes = db.get_recent_nodes()
+        if host:
+            length = int(host)
+        else:
+            length = None
+        nodes = db.get_recent_nodes(length)
         for node in nodes:
             util.load_node(node.path)
         util.print_node_map(option='status')
+        exit(0)
 
     else:
         # node:host,option の形式となるように引数を調整
@@ -148,10 +157,10 @@ def node(option=None, host=None, edit_key=None, *edit_value):
         util.print_node_map(option=tmp_option)
 
         # option入力時は、続行せず出力するだけ
-        if tmp_option is None:
-            check_continue()
+        if tmp_option is not None:
+            exit(0)
 
-        exit(0)
+        check_continue()
 
 
 def check_continue():
