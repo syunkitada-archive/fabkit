@@ -40,7 +40,7 @@ body {
     left: 0;
     z-index: 1000;
     display: block;
-    padding: 20px;
+    padding-top: 20px;
     overflow-x: hidden;
     overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
     background-color: #f5f5f5;
@@ -64,6 +64,57 @@ body {
   color: #fff;
   background-color: #428bca;
 }
+
+.node-cluster {
+  margin-right: -21px; /* 20px padding + 1px border */
+  margin-top: -16px;
+  margin-bottom: 20px;
+  margin-left: -20px;
+}
+
+.panel-group .panel-heading {
+    padding: 2px 6px;
+}
+
+.panel-group {
+    margin-bottom: 5px;
+}
+
+.panel-body {
+    padding: 5px;
+}
+
+.collpse {
+}
+
+.panel-title {
+    padding-left: 20px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-image: url(../vendor/defaulticon/png/arrow-7-down.png);
+}
+
+.panel-title.collapsed {
+    background-image: url(../vendor/defaulticon/png/arrow-7-right.png);
+}
+
+.panel-title.active {
+}
+
+.panel-title:hover {
+}
+
+.show {
+    padding-right: 8px;
+    border-right: 3px solid #fff
+}
+.show.active {
+    border-right: 3px solid #6f5499
+}
+.show:hover {
+    border-right: 3px solid #563d7c
+}
+
 
 
 /*

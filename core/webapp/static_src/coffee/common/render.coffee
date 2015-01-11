@@ -10,6 +10,7 @@ render_all = ->
 
     $('[data-toggle=popover]').popover()
 
+
 init = ->
     $('#show-graph').on('click', ->
         $('#graph-modal').modal()

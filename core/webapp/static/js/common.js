@@ -217,9 +217,7 @@
   };
 
   render_node_clusters = function() {
-    var active, cluster_pk, clusters_html, node_cluster, page, paths, _i, _len;
-    console.log('test');
-    console.log(node_clusters);
+    var active, cluster_pk, clusters_html, expand_clusters, node_cluster, page, paths, _i, _len, _results;
     paths = location.pathname.split('/', 3);
     page = paths[1];
     cluster_pk = parseInt(paths[2]);
@@ -228,16 +226,64 @@
     } else {
       active = '';
     }
-    clusters_html = "<li class=\"" + active + "\"><a class=\"pjax\" href=\"/" + page + "/0/\">root</a></li>";
+    clusters_html = $('<div class="panel-group" id="accordion"></div>');
+    expand_clusters = function(html, clusters) {
+      var collapse_body, collapse_body_id, collapse_head_id, collapse_id, collapse_panel_id, full_name, name, node_cluster, parent_id, show, splited_cluster, tmp_cluster, tmp_clusters, tmp_name, _i, _len, _results;
+      parent_id = html.attr('id');
+      console.log('DEBUG');
+      console.log(clusters);
+      _results = [];
+      for (_i = 0, _len = clusters.length; _i < _len; _i++) {
+        node_cluster = clusters[_i];
+        tmp_clusters = [];
+        full_name = node_cluster.fields.name;
+        if (node_cluster.name == null) {
+          node_cluster.name = full_name;
+        }
+        splited_cluster = node_cluster.name.split('/');
+        if (splited_cluster.length > 1) {
+          tmp_name = splited_cluster.slice(1).join('/');
+          tmp_cluster = node_cluster;
+          tmp_cluster.name = tmp_name;
+          tmp_clusters.push(tmp_cluster);
+        }
+        name = splited_cluster[0];
+        collapse_id = "" + parent_id + "-" + name;
+        collapse_panel_id = "" + parent_id + "-panel-" + name;
+        collapse_head_id = "" + parent_id + "-head-" + name;
+        collapse_body_id = "" + parent_id + "-body-" + name;
+        collapse_body = html.find("#" + collapse_body_id);
+        console.log(collapse_head_id);
+        if (collapse_body.length === 0) {
+          active = '';
+          if (splited_cluster.length === 1) {
+            if (cluster_pk === node_cluster.pk) {
+              active = 'active';
+            }
+            show = "<a class=\"pjax pull-right show " + active + "\" href=\"/" + page + "/" + node_cluster.pk + "/\">show</a>";
+          } else {
+            show = "";
+          }
+          html.append("<div class=\"panel\" id=\"" + collapse_panel_id + "\">\n    <div class=\"panel-heading\" id=\"" + collapse_head_id + "\">\n        <span>\n            <a class=\"panel-title collapsed\" data-toggle=\"collapse\"\n                    data-parent=\"#" + parent_id + "\" href=\"#" + collapse_id + "\"\n                    aria-controls=\"" + collapse_id + "\">" + name + "</a>\n            " + show + "\n        </span>\n    </div>\n    <div id=\"" + collapse_id + "\" class=\"panel-collapse collapse\"\n            aria-labelledby=\"" + collapse_head_id + "\">\n        <div class=\"panel-body panel-group\" id=\"" + collapse_body_id + "\">\n        </div>\n    </div>\n</div>");
+          if (cluster_pk === node_cluster.pk && splited_cluster.length === 1) {
+            console.log(cluster_pk);
+            html.find("#" + collapse_id).parents('.collapse').addClass('in');
+            html.find("#" + collapse_panel_id).parents('.panel').find('> .panel-heading .panel-title').removeClass('collapsed');
+          }
+        }
+        _results.push(expand_clusters(collapse_body, tmp_clusters));
+      }
+      return _results;
+    };
+    expand_clusters(clusters_html, node_clusters);
+    $('#node-clusters').html(clusters_html);
+    console.log('DEBUG END');
+    _results = [];
     for (_i = 0, _len = node_clusters.length; _i < _len; _i++) {
       node_cluster = node_clusters[_i];
-      active = '';
-      if (node_cluster.pk === cluster_pk) {
-        active = "active";
-      }
-      clusters_html += "<li class=\"" + active + "\"> <a class=\"pjax\" href=\"/" + page + "/" + node_cluster.pk + "/\"> " + node_cluster.fields.name + "</a> </li>";
+      _results.push(node_cluster.fields.name);
     }
-    return $('#node-clusters-ul').html(clusters_html);
+    return _results;
   };
 
   render_user = function() {
