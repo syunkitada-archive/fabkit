@@ -2,6 +2,7 @@
 from fabric.api import env
 # import json
 import yaml
+import json
 from lib.api import *  # noqa
 from host import *  # noqa
 import re
@@ -136,85 +137,72 @@ def update_log(fabscript, status, msg):
     env.node_map[env.host] = node
 
 
-def print_node_map(node_map=None, option=''):
+def print_node_map(node_map=None, option=None):
     if not node_map:
         node_map = env.node_map
 
-    is_verbose = False
+    if len(node_map) == 0:
+        max_len_host = 10
+    else:
+        max_len_host = max([len(node['path']) for node in node_map.values()])
 
-    if option is not None and option.find('v') > -1:
-        is_verbose = True
-
-    if not is_verbose:
-        if len(node_map) == 0:
-            max_len_host = 10
-        else:
-            max_len_host = max([len(node['path']) for node in node_map.values()])
-        if env.is_chef:
-            format_str = '{host:<' + str(max_len_host) + '} {run_list}'
+    if env.is_chef:
+        format_str = '{host:<' + str(max_len_host) + '} {run_list}'
+    else:
+        if option:
+            format_str = '{host:<' + str(max_len_host) + '} {status:<6} {logs}'
         else:
             format_str = '{host:<' + str(max_len_host) + '} {fabruns}'
 
-        horizontal_line = '-' * (max_len_host + 30)
-        print horizontal_line
-        print format_str.format(host='host',
-                                run_list='run_list',
-                                fabruns='fabruns',)
-        print horizontal_line
-
-    else:
-        if env.is_chef:
-            format_str = '''\
-host_info     : {host_info}
-uptime        : {uptime}
-environment   : {environment}
-run_list      : {run_list}
-last_cook     : {last_cook}
-last_check    : {last_check}
-'''
-        else:
-            format_str = '''\
-host_info      : {host_info}
-uptime         : {uptime}
-fabruns        : {fabruns}
-last_fabruns   : {last_fabruns}
-fabrun_history : TODO
-last_check     : {last_check}
-'''
-            horizontal_line = '-' * 85
-            print horizontal_line
-            format_str += horizontal_line
+    horizontal_line = '-' * (max_len_host + 30)
+    print horizontal_line
+    print format_str.format(host='host',
+                            run_list='run_list',
+                            status='status',
+                            logs='logs',
+                            fabruns='fabruns',)
+    print horizontal_line
 
     nodes = sorted(node_map.items(), reverse=False)
 
     for node_tapple in nodes:
         node = node_tapple[1]
         host = node.get('path', '')
+        if option == 'status' or option == 'error':
+            tmp_node = db.get_node(node)
+            status = tmp_node.status
+            if option == 'error' and status == 0:
+                continue
+
+            logs = ''
+            tmp_logs = json.loads(tmp_node.logs)
+            last_log_i = len(tmp_logs) - 1
+            for i, log in enumerate(tmp_logs):
+                if log['status'] != 0:
+                    logs += '\033[93m{0[fabscript]}: {0[msg]} [{0[status]}]\033[0m'.format(log)
+                else:
+                    logs += '{0[fabscript]}: {0[msg]} [{0[status]}]'.format(log)
+                if not i == last_log_i:
+                    logs += '\n' + (' ' * (max_len_host + 8))
+
+        else:
+            status = ''
+            logs = ''
+
         run_list = node.get('run_list', [])
         fabruns = node.get('fabruns', [])
 
-        if not is_verbose:
-            print format_str.format(host=host,
-                                    run_list=run_list,
-                                    fabruns=fabruns,)
-        else:
-            host_info = '{0}({1}) ssh:{2}'.format(host,
-                                                  node.get('ipaddress', ''), node.get('ssh'))
-            uptime = node.get('uptime', '')
-            environment = node.get('chef_environment', '')
-            last_cook = node.get('last_cook', '')
-            last_fabruns = node.get('last_fabruns', [])
-            last_runs = node.get('last_runs', [])
-            last_check = node.get('last_check', '')
-            print format_str.format(environment=environment,
-                                    host_info=host_info,
-                                    run_list=run_list,
-                                    fabruns=fabruns,
-                                    uptime=uptime,
-                                    last_cook=last_cook,
-                                    last_fabruns=last_fabruns,
-                                    last_runs=last_runs,
-                                    last_check=last_check,)
+        print format_str.format(host=host,
+                                run_list=run_list,
+                                status=status,
+                                logs=logs,
+                                fabruns=fabruns,
+                                )
+
+
+def print_db_nodes(nodes=[], option=''):
+    for node in nodes:
+        print node
 
 
 def convert_node(node={}):

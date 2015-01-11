@@ -44,4 +44,4 @@ class Node(models.Model):
     updated_at = models.DateTimeField(auto_now=True, auto_now_add=True)
 
     def __unicode__(self):
-        return self.host
+        return self.path

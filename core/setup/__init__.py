@@ -70,8 +70,6 @@ def setup(option=None):
             if status != 0:
                 break
 
-    util.dump_node()
-
 
 @task
 def _manage(*args):

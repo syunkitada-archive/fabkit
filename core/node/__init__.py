@@ -127,30 +127,31 @@ def node(option=None, host=None, edit_key=None, *edit_value):
 
         return
 
-    elif option == 'resent':
-        print 'resent'
-
     elif option == 'error':
-        print 'errors'
+        nodes = db.get_error_nodes()
+        for node in nodes:
+            util.load_node(node.path)
+        util.print_node_map(option='status')
+
+    elif option == 'recent':
+        nodes = db.get_recent_nodes()
+        for node in nodes:
+            util.load_node(node.path)
+        util.print_node_map(option='status')
 
     else:
-        # optionなし、もしくは、vの場合は、hostは*ワイルドカードとなる
-        if not option:
-            host = '*'
-            print_option = None
-        elif option == 'v':
-            host = '*'
-            print_option = 'v'
-        else:
-            # node:host,option の形式となるように引数を調整
-            host = option
-            print_option = host
+        # node:host,option の形式となるように引数を調整
+        tmp_host = option
+        tmp_option = host
 
-        util.load_node_map(host)
-        util.print_node_map(option=print_option)
-        check_continue()
+        util.load_node_map(tmp_host)
+        util.print_node_map(option=tmp_option)
 
-        return
+        # option入力時は、続行せず出力するだけ
+        if tmp_option is None:
+            check_continue()
+
+        exit(0)
 
 
 def check_continue():

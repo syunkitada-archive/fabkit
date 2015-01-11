@@ -35,8 +35,13 @@ def get_remote_node():
     return {}
 
 
-def get_recent_node_list(length=30):
+def get_recent_nodes(length=30):
     nodes = Node.objects.order_by('updated_at').all()[:length]
+    return nodes
+
+
+def get_error_nodes(length=30):
+    nodes = Node.objects.filter(status__gt=0)[:length]
     return nodes
 
 
@@ -44,6 +49,8 @@ def get_node(env_node):
     path = env_node['path']
     try:
         node = Node.objects.get(path=path)
+        node.data = env_node['data']
+        node.save()
     except Node.DoesNotExist:
         node = Node(path=path)
 
@@ -64,23 +71,6 @@ def get_node(env_node):
         node.save()
 
     return node
-
-
-def update_node(host=None):
-    if not host:
-        host = env.host
-
-    env_node = env.node_map[host]
-
-    node = get_node(env_node)
-
-    node.host = host
-    node.data = json.dumps(env_node.get('data', {}))
-    node.path = env_node.get('path', u'').decode('utf-8')
-    node.ip = env_node.get('ip', u'').decode('utf-8')
-    node.ssh = env_node.get('ssh', u'').decode('utf-8')
-    node.uptime = env_node.get('uptime', u'').decode('utf-8')
-    node.save()
 
 
 def create_fabscript(script_name):
