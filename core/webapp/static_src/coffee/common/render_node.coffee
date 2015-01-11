@@ -1,38 +1,112 @@
 render_node = ->
-    nodes_tbody_html = ''
-    for node in nodes
-        data = JSON.parse(node.fields.data)
-        console.log data
-        if Object.keys(data).length == 0
-            data_html = "No data"
+    render_node_clusters()
+
+    fabscript_node_map = {}
+
+    results_tbody_html = ''
+    for result, i in nodes
+        tmp_logs_html = ''
+        for log in JSON.parse(result.fields.logs)
+            node = {
+                'index': i,
+                'name': result.fields.node_path,
+            }
+
+            if log.fabscript not of fabscript_node_map
+                fabscript_node_map[log.fabscript] = {
+                    'links': [],
+                    'success_nodes': [],
+                    'warning_nodes': [],
+                    'danger_nodes': [],
+                }
+
+            if log.status == 0
+                fabscript_node_map[log.fabscript]['success_nodes'].push(node)
+            else if log.status < WARNING_STATUS_THRESHOLD
+                fabscript_node_map[log.fabscript]['warning_nodes'].push(node)
+            else
+                fabscript_node_map[log.fabscript]['danger_nodes'].push(node)
+
+            tmp_logs_html += "#{log.fabscript}: #{log.msg}[#{log.status}]<br>"
+
+        logs_all_html = ''
+        logs_all = JSON.parse(result.fields.logs_all)
+        if logs_all.length == 0
+            logs_all_html = 'No data'
         else
-            data_html = "<table class='table table-bordered'><tbody>"
-            for key, value of data
-                # TODO valueがObjectだったら再帰的に展開
-                data_html += """
-                    <tr>
-                        <td>#{key}</td>
-                        <td>#{value}</td>
-                    </tr>"""
+            for log in logs_all by -1
+                timestamp = new Date(log.timestamp * 1000)
+                logs_all_html += "#{log.fabscript}: #{log.msg}[#{log.status}] #{timestamp}<br>"
 
-            data_html += '</tbody></table>'
-
-        host_html = """
+        logs_html = """
             <a class="popover-anchor" data-containe="body" data-toggle="popover"
-                data-placement="bottom" data-html="true" data-title="Data" data-content="#{data_html}">
-                #{node.fields.host}
+                data-placement="bottom" data-html="true" data-title="Logs all" data-content="#{logs_all_html}">
+                #{tmp_logs_html}
             </a>"""
 
-        nodes_tbody_html += "
-        <tr id=\"#{node.pk}\">
-            <td><input type=\"checkbox\"></td>
-            <td>#{node.fields.path}</td>
-            <td>#{host_html}</td>
-            <td>#{node.fields.ip}</td>
-            <td>#{node.fields.uptime}</td>
-            <td>#{node.fields.ssh}</td>
-        </tr>"
+        if result.fields.status == 0
+            tr_class = ''
+        else if result.fields.status < WARNING_STATUS_THRESHOLD
+            tr_class = 'warning'
+        else
+            tr_class = 'danger'
 
-    $('#nodes-tbody').empty().html(nodes_tbody_html)
+        results_tbody_html += "
+            <tr id=\"#{result.pk}\" class=\"#{tr_class}\">
+                <td><input type=\"checkbox\"></td>
+                <td>#{result.fields.path}</td>
+                <td>#{result.fields.status}</td>
+                <td>#{result.fields.msg}</td>
+                <td>#{logs_html}</td>
+                <td>#{result.fields.updated_at}</td>
+            </tr>"
 
-    render_node_clusters()
+    $('#nodes-tbody').html(results_tbody_html)
+
+    index = 0
+    for fabscript in fabscripts
+        name = fabscript.fields.name
+        if name not of fabscript_node_map
+            continue
+
+        fabscript_node_map[name].index = index
+
+        if 'icon' of fabscript.fields.data
+            fabscript_node_map[name].icon = fabscript.fields.data.icon
+        else
+            fabscript_node_map[name].icon = 'computer-retro'
+
+        for linked_fabscript in fabscript.fields.linked_fabscripts
+            script_name = linked_fabscript.split(':')[0]
+
+            if script_name not of fabscript_node_map
+                fabscript_node_map[script_name] = {
+                    'links': [],
+                    'success_nodes': [],
+                    'warning_nodes': [],
+                    'danger_nodes': [],
+                }
+
+            fabscript_node_map[script_name]['links'].push(index)
+
+        index++
+
+    graph_nodes = []
+    graph_links = []
+    for fabscript, fabscript_node of fabscript_node_map
+        success_length = fabscript_node.success_nodes.length
+        warning_length = fabscript_node.warning_nodes.length
+        danger_length = fabscript_node.danger_nodes.length
+        graph_nodes[fabscript_node.index] = {
+            name: fabscript,
+            icon: fabscript_node.icon,
+            success_length: success_length,
+            warning_length: warning_length,
+            danger_length: danger_length,
+        }
+
+        for link in fabscript_node.links
+            graph_links.push({
+                'source': fabscript_node.index,
+                'target': link,
+            })

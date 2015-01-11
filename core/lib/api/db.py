@@ -11,7 +11,6 @@ import databag
 from api import sudo
 from apps.node.models import Node, NodeCluster
 from apps.fabscript.models import Fabscript
-from apps.result.models import Result, ChefResult
 from django.db import transaction
 
 
@@ -34,6 +33,11 @@ def get_remote_node():
         return yaml.load(sudo('cat {0}'.format(node_file)))
 
     return {}
+
+
+def get_recent_node_list(length=30):
+    nodes = Node.objects.order_by('updated_at').all()[:length]
+    return nodes
 
 
 def get_node(env_node):
@@ -144,20 +148,6 @@ def get_link(script_name, key):
     return data[key]
 
 
-def setuped_chef(status, msg, host=None, script_name=None):
-    if not host:
-        host = env.host
-
-    try:
-        result = ChefResult.objects.get(node=host)
-    except Result.DoesNotExist:
-        result = ChefResult(node=host)
-
-    result.status = status
-    result.msg = msg
-    result.save()
-
-
 def setuped(status, msg, is_init=False, host=None):
     if not host:
         host = env.host
@@ -165,52 +155,47 @@ def setuped(status, msg, is_init=False, host=None):
     env_node = env.node_map.get(host)
     node = get_node(env_node)
 
-    try:
-        result = Result.objects.get(node=node)
-    except Result.DoesNotExist:
-        result = Result(node=node)
-
     if is_init:
-        logs = json.loads(result.logs)
-        logs_all = json.loads(result.logs_all)
+        logs = json.loads(node.logs)
+        logs_all = json.loads(node.logs_all)
         logs_all.extend(logs)
         logs_all = logs_all[-conf.WEB_LOG_LENGTH:]
-        result.logs_all = json.dumps(logs_all)
+        node.logs_all = json.dumps(logs_all)
 
-    result.cluster = node.cluster
-    result.node_path = env_node['path']
-    result.logs = json.dumps(env_node['logs'])
-    result.status = status
-    result.msg = msg
-    result.save()
+    node.logs = json.dumps(env_node['logs'])
+    node.status = status
+    node.msg = msg
+    node.save()
 
 
 def is_setuped(host, script_name, status=0):
-    try:
-        node = Node.objects.get(host=host)
-        fabscript = Fabscript.objects.get(name=script_name)
-        result = Result.objects.get(node=node, fabscript=fabscript)
-        if result.status == status:
-            return 0
+    return True
+    # TODO is_setuped
+    # try:
+    #     node = Node.objects.get(host=host)
+    #     fabscript = Fabscript.objects.get(name=script_name)
+    #     result = Result.objects.get(node=node, fabscript=fabscript)
+    #     if result.status == status:
+    #         return 0
 
-    except Node.DoesNotExist:
-        msg = '{0} does not exist'.format(host)
-        log.warning(msg)
-        return status_code.NODE_DOES_NOT_EXIST, msg
+    # except Node.DoesNotExist:
+    #     msg = '{0} does not exist'.format(host)
+    #     log.warning(msg)
+    #     return status_code.NODE_DOES_NOT_EXIST, msg
 
-    except Fabscript.DoesNotExist:
-        msg = '{0} does not exist'.format(script_name)
-        log.warning(msg)
-        return status_code.FABSCRIPT_DOES_NOT_EXIST, msg
+    # except Fabscript.DoesNotExist:
+    #     msg = '{0} does not exist'.format(script_name)
+    #     log.warning(msg)
+    #     return status_code.FABSCRIPT_DOES_NOT_EXIST, msg
 
-    except Result.DoesNotExist:
-        msg = '{0} does not exist'.format(host, script_name)
-        log.warning(msg)
-        return status_code.RESULT_DOES_NOT_EXIST, msg
+    # except Result.DoesNotExist:
+    #     msg = '{0} does not exist'.format(host, script_name)
+    #     log.warning(msg)
+    #     return status_code.RESULT_DOES_NOT_EXIST, msg
 
-    msg = '{0}:{1} is not setuped'. format(host, script_name)
-    log.warning(msg)
-    return status_code.IS_NOT_SETUPED, msg
+    # msg = '{0}:{1} is not setuped'. format(host, script_name)
+    # log.warning(msg)
+    # return status_code.IS_NOT_SETUPED, msg
 
 
 def __get_script_name(is_reqursive=False):

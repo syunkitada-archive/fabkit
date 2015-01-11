@@ -1,5 +1,5 @@
 (function() {
-  var WARNING_STATUS_THRESHOLD, fabscripts, filter, graph_links, graph_nodes, init, mode, node_clusters, nodes, render_all, render_fabscript, render_force_layout, render_node, render_node_clusters, render_result, render_user, results, users,
+  var WARNING_STATUS_THRESHOLD, fabscripts, filter, graph_links, graph_nodes, init, mode, node_clusters, nodes, render_all, render_fabscript, render_fabscript_clusters, render_force_layout, render_node, render_node_clusters, render_user, users,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   window.fabkit = {};
@@ -12,8 +12,6 @@
 
   fabscripts = [];
 
-  results = [];
-
   graph_links = [];
 
   graph_nodes = [];
@@ -23,8 +21,7 @@
     HOME: 0,
     USER: 1,
     NODE: 2,
-    FABSCRIPT: 3,
-    RESULT: 4
+    FABSCRIPT: 3
   };
 
   WARNING_STATUS_THRESHOLD = 10000;
@@ -98,7 +95,7 @@
         $('#modal-progress').hide();
       },
       success: function(data) {
-        var fabscript, node, pk, result, target, target_list, targets, tmp_fabscripts, tmp_nodes, tmp_results, tmp_targets, tmp_users, user, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1, _ref2, _ref3;
+        var fabscript, node, pk, result, results, target, target_list, targets, tmp_fabscripts, tmp_nodes, tmp_results, tmp_targets, tmp_users, user, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1, _ref2, _ref3;
         console.log(data);
         $('#modal-msg').html('<div class="bg-success msg-box">Success</div>').show();
         target_list = $('#target-list');
@@ -182,7 +179,7 @@
     node.append('text').attr('dx', 12).attr('dy', '.35em').attr('class', 'node-label').text(function(d) {
       return d.name;
     });
-    if (mode.current === mode.RESULT) {
+    if (mode.current === mode.NODE) {
       node.append('text').attr('dx', 12).attr('dy', '.35em').attr('y', 16).attr('class', function(d) {
         if (d.danger_length > 0) {
           return 'node-label-danger';
@@ -217,7 +214,8 @@
   };
 
   render_node_clusters = function() {
-    var active, cluster_pk, clusters_html, expand_clusters, node_cluster, page, paths, _i, _len, _results;
+    var active, cluster_pk, clusters_html, expand_clusters, page, paths;
+    console.log(node_clusters);
     paths = location.pathname.split('/', 3);
     page = paths[1];
     cluster_pk = parseInt(paths[2]);
@@ -226,11 +224,12 @@
     } else {
       active = '';
     }
-    clusters_html = $('<div class="panel-group" id="accordion"></div>');
+    clusters_html = $("<div class=\"panel-group\" id=\"accordion\">\n    <div class=\"panel\">\n        <div class=\"panel-heading\">\n            <span>\n                <span class=\"panel-title\">root</span>\n                <a class=\"pjax pull-right show " + active + "\"\n                        href=\"/" + page + "/0/\">show</a>\n            </span>\n        </div>\n    </div>\n</div>");
     expand_clusters = function(html, clusters) {
       var collapse_body, collapse_body_id, collapse_head_id, collapse_id, collapse_panel_id, full_name, name, node_cluster, parent_id, show, splited_cluster, tmp_cluster, tmp_clusters, tmp_name, _i, _len, _results;
-      parent_id = html.attr('id');
-      console.log('DEBUG');
+      console.log(html);
+      parent_id = html.prop('id');
+      console.log(parent_id);
       console.log(clusters);
       _results = [];
       for (_i = 0, _len = clusters.length; _i < _len; _i++) {
@@ -253,7 +252,6 @@
         collapse_head_id = "" + parent_id + "-head-" + name;
         collapse_body_id = "" + parent_id + "-body-" + name;
         collapse_body = html.find("#" + collapse_body_id);
-        console.log(collapse_head_id);
         if (collapse_body.length === 0) {
           active = '';
           if (splited_cluster.length === 1) {
@@ -265,8 +263,8 @@
             show = "";
           }
           html.append("<div class=\"panel\" id=\"" + collapse_panel_id + "\">\n    <div class=\"panel-heading\" id=\"" + collapse_head_id + "\">\n        <span>\n            <a class=\"panel-title collapsed\" data-toggle=\"collapse\"\n                    data-parent=\"#" + parent_id + "\" href=\"#" + collapse_id + "\"\n                    aria-controls=\"" + collapse_id + "\">" + name + "</a>\n            " + show + "\n        </span>\n    </div>\n    <div id=\"" + collapse_id + "\" class=\"panel-collapse collapse\"\n            aria-labelledby=\"" + collapse_head_id + "\">\n        <div class=\"panel-body panel-group\" id=\"" + collapse_body_id + "\">\n        </div>\n    </div>\n</div>");
+          collapse_body = html.find("#" + collapse_body_id);
           if (cluster_pk === node_cluster.pk && splited_cluster.length === 1) {
-            console.log(cluster_pk);
             html.find("#" + collapse_id).parents('.collapse').addClass('in');
             html.find("#" + collapse_panel_id).parents('.panel').find('> .panel-heading .panel-title').removeClass('collapsed');
           }
@@ -276,14 +274,65 @@
       return _results;
     };
     expand_clusters(clusters_html, node_clusters);
-    $('#node-clusters').html(clusters_html);
-    console.log('DEBUG END');
-    _results = [];
-    for (_i = 0, _len = node_clusters.length; _i < _len; _i++) {
-      node_cluster = node_clusters[_i];
-      _results.push(node_cluster.fields.name);
-    }
-    return _results;
+    return $('#node-clusters').html(clusters_html);
+  };
+
+  render_fabscript_clusters = function() {
+    var cluster_hash, clusters_html, expand_clusters, page, paths;
+    paths = location.pathname.split('/', 3);
+    page = paths[1];
+    cluster_hash = location.hash;
+    clusters_html = $("<div class=\"panel-group\" id=\"accordion\">\n    <div class=\"panel\">\n        <div class=\"panel-heading\">\n            <span>\n                <span class=\"panel-title\">root</span>\n                <a class=\"pjax pull-right show\"\n                        href=\"#root\">show</a>\n            </span>\n        </div>\n    </div>\n</div>");
+    expand_clusters = function(html, clusters, parent, is_init) {
+      var active, collapse_body, collapse_body_id, collapse_head_id, collapse_id, collapse_panel_id, full_name, name, node_cluster, parent_id, parent_name, show, splited_cluster, tmp_cluster, tmp_clusters, tmp_name, _i, _len, _results;
+      clusters = clusters;
+      parent_id = html.attr('id');
+      _results = [];
+      for (_i = 0, _len = clusters.length; _i < _len; _i++) {
+        node_cluster = clusters[_i];
+        tmp_clusters = [];
+        full_name = node_cluster.fields.name;
+        if (is_init) {
+          node_cluster.name = full_name;
+        }
+        splited_cluster = node_cluster.name.split('.');
+        if (splited_cluster.length > 1) {
+          tmp_name = splited_cluster.slice(1).join('.');
+          tmp_cluster = node_cluster;
+          tmp_cluster.name = tmp_name;
+          tmp_clusters.push(tmp_cluster);
+        }
+        name = splited_cluster[0];
+        if (parent === null) {
+          parent_name = name;
+        } else {
+          parent_name = "" + parent + "." + name;
+        }
+        collapse_id = "" + parent_id + "-" + name;
+        collapse_panel_id = "" + parent_id + "-panel-" + name;
+        collapse_head_id = "" + parent_id + "-head-" + name;
+        collapse_body_id = "" + parent_id + "-body-" + name;
+        collapse_body = html.find("#" + collapse_body_id);
+        if (collapse_body.length === 0) {
+          if (cluster_hash === ("#" + parent_name)) {
+            active = 'active';
+          } else {
+            active = '';
+          }
+          show = "<a class=\"pjax pull-right show " + active + "\" href=\"#" + parent_name + "\">show</a>";
+          html.append("<div class=\"panel\" id=\"" + collapse_panel_id + "\">\n    <div class=\"panel-heading\" id=\"" + collapse_head_id + "\">\n        <span>\n            <a class=\"panel-title collapsed\" data-toggle=\"collapse\"\n                    data-parent=\"#" + parent_id + "\" href=\"#" + collapse_id + "\"\n                    aria-controls=\"" + collapse_id + "\">" + name + "</a>\n            " + show + "\n        </span>\n    </div>\n    <div id=\"" + collapse_id + "\" class=\"panel-collapse collapse\"\n            aria-labelledby=\"" + collapse_head_id + "\">\n        <div class=\"panel-body panel-group\" id=\"" + collapse_body_id + "\">\n        </div>\n    </div>\n</div>");
+          collapse_body = html.find("#" + collapse_body_id);
+          if (cluster_hash === ("#" + parent_name)) {
+            html.find("#" + collapse_id).parents('.collapse').addClass('in');
+            html.find("#" + collapse_panel_id).parents('.panel').find('> .panel-heading .panel-title').removeClass('collapsed');
+          }
+        }
+        _results.push(expand_clusters(collapse_body, tmp_clusters, parent_name, false));
+      }
+      return _results;
+    };
+    expand_clusters(clusters_html, fabscripts, null, true);
+    return $('#fabscript-clusters').html(clusters_html);
   };
 
   render_user = function() {
@@ -314,21 +363,19 @@
   };
 
   render_fabscript = function() {
-    var active, cluster, cluster_data, fabscript, fabscript_cluster_map, fabscript_clusters_ul, fabscripts_tbody, hash, i, is_exist, linked, linked_html, linked_index, node, node_index, scripts, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1;
+    var fabscript, fabscripts_tbody, hash, i, icon, is_exist, linked, linked_html, linked_index, node, node_index, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1;
+    render_fabscript_clusters();
     hash = location.hash;
     if (hash === '') {
-      hash = '#all';
+      hash = '#root';
     }
-    if (hash === '#all') {
+    if (hash === '#root') {
       $('#show-graph').hide();
     } else {
       $('#show-graph').show();
     }
     graph_nodes = [];
     graph_links = [];
-    fabscript_cluster_map = {
-      'all': fabscripts
-    };
     fabscripts_tbody = '';
     for (_i = 0, _len = fabscripts.length; _i < _len; _i++) {
       fabscript = fabscripts[_i];
@@ -338,17 +385,9 @@
         linked = _ref[_j];
         linked_html += "" + linked + "</br>";
       }
-      cluster = fabscript.fields.name.split('.')[0];
-      if (cluster in fabscript_cluster_map) {
-        cluster_data = fabscript_cluster_map[cluster];
-        cluster_data.push(fabscript);
-      } else {
-        cluster_data = [fabscript];
-      }
-      fabscript_cluster_map[cluster] = cluster_data;
-      if (hash === '#all' || hash === ("#" + cluster)) {
+      if (hash === '#root' || ("#" + fabscript.fields.name).indexOf("" + hash + ".") === 0) {
         fabscripts_tbody += "<tr id=\"" + fabscript.pk + "\"> <td><input type=\"checkbox\"></td> <td>" + fabscript.fields.name + "</td> <td>" + linked_html + "</td> <td>" + fabscript.fields.updated_at + "</td> </tr>";
-        if (hash !== "#all") {
+        if (hash !== "#root") {
           is_exist = false;
           node_index = 0;
           for (i = _k = 0, _len2 = graph_nodes.length; _k < _len2; i = ++_k) {
@@ -356,13 +395,24 @@
             if (node.name === fabscript.fields.name) {
               is_exist = true;
               node_index = i;
+              if ('icon' in fabscript.fields.data) {
+                node.icon = fabscript.fields.data.icon;
+              } else {
+                node.icon = 'computer-retro';
+              }
               break;
             }
           }
           if (!is_exist) {
+            if ('icon' in fabscript.fields.data) {
+              icon = fabscript.fields.data.icon;
+            } else {
+              icon = 'computer-retro';
+            }
             node_index = graph_nodes.length;
             graph_nodes.push({
-              'name': fabscript.fields.name
+              'name': fabscript.fields.name,
+              'icon': icon
             });
           }
           _ref1 = fabscript.fields.linked_fabscripts;
@@ -382,7 +432,8 @@
             if (!is_exist) {
               linked_index = graph_nodes.length;
               graph_nodes.push({
-                'name': linked
+                'name': linked,
+                'icon': icon
               });
             }
             if (node_index !== linked_index) {
@@ -395,50 +446,16 @@
         }
       }
     }
-    $('#fabscripts-tbody').html(fabscripts_tbody);
-    fabscript_clusters_ul = '';
-    for (cluster in fabscript_cluster_map) {
-      scripts = fabscript_cluster_map[cluster];
-      active = "";
-      if (hash === ("#" + cluster)) {
-        active = "active";
-      }
-      fabscript_clusters_ul += "<li class=\"" + active + "\">\n    <a href=\"#" + cluster + "\">\n    " + cluster + " (" + scripts.length + ")\n    </a>\n</li>";
-    }
-    return $('#fabscript-clusters-ul').html(fabscript_clusters_ul);
+    return $('#fabscripts-tbody').html(fabscripts_tbody);
   };
 
   render_node = function() {
-    var data, data_html, host_html, key, node, nodes_tbody_html, value, _i, _len;
-    nodes_tbody_html = '';
-    for (_i = 0, _len = nodes.length; _i < _len; _i++) {
-      node = nodes[_i];
-      data = JSON.parse(node.fields.data);
-      console.log(data);
-      if (Object.keys(data).length === 0) {
-        data_html = "No data";
-      } else {
-        data_html = "<table class='table table-bordered'><tbody>";
-        for (key in data) {
-          value = data[key];
-          data_html += "<tr>\n    <td>" + key + "</td>\n    <td>" + value + "</td>\n</tr>";
-        }
-        data_html += '</tbody></table>';
-      }
-      host_html = "<a class=\"popover-anchor\" data-containe=\"body\" data-toggle=\"popover\"\n    data-placement=\"bottom\" data-html=\"true\" data-title=\"Data\" data-content=\"" + data_html + "\">\n    " + node.fields.host + "\n</a>";
-      nodes_tbody_html += "<tr id=\"" + node.pk + "\"> <td><input type=\"checkbox\"></td> <td>" + node.fields.path + "</td> <td>" + host_html + "</td> <td>" + node.fields.ip + "</td> <td>" + node.fields.uptime + "</td> <td>" + node.fields.ssh + "</td> </tr>";
-    }
-    $('#nodes-tbody').empty().html(nodes_tbody_html);
-    return render_node_clusters();
-  };
-
-  render_result = function() {
     var danger_length, fabscript, fabscript_node, fabscript_node_map, i, index, link, linked_fabscript, log, logs_all, logs_all_html, logs_html, name, node, result, results_tbody_html, script_name, success_length, timestamp, tmp_logs_html, tr_class, warning_length, _i, _j, _k, _l, _len, _len1, _len2, _len3, _m, _ref, _ref1, _results;
     render_node_clusters();
     fabscript_node_map = {};
     results_tbody_html = '';
-    for (i = _i = 0, _len = results.length; _i < _len; i = ++_i) {
-      result = results[i];
+    for (i = _i = 0, _len = nodes.length; _i < _len; i = ++_i) {
+      result = nodes[i];
       tmp_logs_html = '';
       _ref = JSON.parse(result.fields.logs);
       for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
@@ -483,9 +500,9 @@
       } else {
         tr_class = 'danger';
       }
-      results_tbody_html += "<tr id=\"" + result.pk + "\" class=\"" + tr_class + "\"> <td><input type=\"checkbox\"></td> <td>" + result.fields.node_path + "</td> <td>" + result.fields.status + "</td> <td>" + result.fields.msg + "</td> <td>" + logs_html + "</td> <td>" + result.fields.updated_at + "</td> </tr>";
+      results_tbody_html += "<tr id=\"" + result.pk + "\" class=\"" + tr_class + "\"> <td><input type=\"checkbox\"></td> <td>" + result.fields.path + "</td> <td>" + result.fields.status + "</td> <td>" + result.fields.msg + "</td> <td>" + logs_html + "</td> <td>" + result.fields.updated_at + "</td> </tr>";
     }
-    $('#results-tbody').html(results_tbody_html);
+    $('#nodes-tbody').html(results_tbody_html);
     index = 0;
     for (_l = 0, _len2 = fabscripts.length; _l < _len2; _l++) {
       fabscript = fabscripts[_l];
@@ -552,8 +569,6 @@
       render_user();
     } else if (mode.current === mode.FABSCRIPT) {
       render_fabscript();
-    } else if (mode.current === mode.RESULT) {
-      render_result();
     } else if (mode.current === mode.NODE) {
       render_node();
     }
@@ -588,11 +603,6 @@
       mode.current = mode.USER;
       users = JSON.parse(users.html());
     }
-    nodes = $('#nodes');
-    if (nodes.length > 0) {
-      mode.current = mode.NODE;
-      nodes = JSON.parse(nodes.html());
-    }
     node_clusters = $('#node_clusters');
     if (node_clusters.length > 0) {
       node_clusters = JSON.parse(node_clusters.html());
@@ -608,10 +618,10 @@
         fabscript.fields.linked_fabscripts = JSON.parse(fabscript.fields.linked_fabscripts);
       }
     }
-    results = $('#results');
-    if (results.length > 0) {
-      mode.current = mode.RESULT;
-      results = JSON.parse(results.html());
+    nodes = $('#nodes');
+    if (nodes.length > 0) {
+      mode.current = mode.NODE;
+      nodes = JSON.parse(nodes.html());
     }
     render_all();
   };

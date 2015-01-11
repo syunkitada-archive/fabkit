@@ -127,6 +127,12 @@ def node(option=None, host=None, edit_key=None, *edit_value):
 
         return
 
+    elif option == 'resent':
+        print 'resent'
+
+    elif option == 'error':
+        print 'errors'
+
     else:
         # optionなし、もしくは、vの場合は、hostは*ワイルドカードとなる
         if not option:

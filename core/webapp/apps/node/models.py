@@ -13,13 +13,33 @@ class NodeCluster(models.Model):
 
 
 class Node(models.Model):
+    """
+    logs = [  # 最後の実行時logのみ
+        {
+            'fabscript': '',
+            'status': '',
+            'msg': '',
+        }
+    ]
+
+    実行開始時にlogsをlogs_allに移す
+    logs_all = [  # すべてのlog(100件)
+
+    ]
+    """
+
     path = models.CharField(default=u'', max_length=255, unique=True)
     cluster = models.ForeignKey(NodeCluster, null=True)
     data = models.CharField(default=u'{}', max_length=10000)
-    host = models.CharField(default=u'', max_length=255)
-    ip = models.CharField(default=u'', max_length=255)
-    uptime = models.CharField(default=u'', max_length=255)
-    ssh = models.CharField(default=u'', max_length=255)
+
+    # ip = models.CharField(default=u'', max_length=255)
+    # uptime = models.CharField(default=u'', max_length=255)
+    # ssh = models.CharField(default=u'', max_length=255)
+
+    status = models.IntegerField(default=0)
+    msg = models.CharField(default=u'', max_length=1024)
+    logs = models.CharField(default=u'[]', max_length=1024)
+    logs_all = models.CharField(default=u'[]', max_length=1024)
     created_at = models.DateTimeField(auto_now=False, auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, auto_now_add=True)
 

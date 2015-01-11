@@ -30,11 +30,9 @@
             <div id="navbar" class="navbar-collapse collapse">
               {% if user.is_authenticated %}
                 <ul class="nav navbar-nav navbar-left">
-                    <li class="{% if namespace == 'home' %}active{% endif %}"><a class="pjax" href="{% url 'home:index' %}">Home</a></li>
-                    <li class="{% if namespace == 'user' %}active{% endif %}"><a class="pjax" href="{% url 'user:index' %}">User</a></li>
                     <li class="{% if namespace == 'node' %}active{% endif %}"><a class="pjax" href="{% url 'node:index' %}">Node</a></li>
                     <li class="{% if namespace == 'fabscript' %}active{% endif %}"><a class="pjax" href="{% url 'fabscript:index' %}">Fabscript</a></li>
-                    <li class="{% if namespace == 'result' %}active{% endif %}"><a class="pjax" href="{% url 'result:index' %}">Result Log</a></li>
+                    <li class="{% if namespace == 'user' %}active{% endif %}"><a class="pjax" href="{% url 'user:index' %}">User</a></li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     <li class="dropdown">

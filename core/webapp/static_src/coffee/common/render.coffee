@@ -3,8 +3,6 @@ render_all = ->
         render_user()
     else if mode.current == mode.FABSCRIPT
         render_fabscript()
-    else if mode.current == mode.RESULT
-        render_result()
     else if mode.current == mode.NODE
         render_node()
 
@@ -39,11 +37,6 @@ init = ->
         mode.current = mode.USER
         users = JSON.parse(users.html())
 
-    nodes = $('#nodes')
-    if nodes.length > 0
-        mode.current = mode.NODE
-        nodes = JSON.parse(nodes.html())
-
     node_clusters = $('#node_clusters')
     if node_clusters.length > 0
         node_clusters = JSON.parse(node_clusters.html())
@@ -57,10 +50,10 @@ init = ->
             fabscript.fields.link = JSON.parse(fabscript.fields.link)
             fabscript.fields.linked_fabscripts = JSON.parse(fabscript.fields.linked_fabscripts)
 
-    results = $('#results')
-    if results.length > 0
-        mode.current = mode.RESULT
-        results = JSON.parse(results.html())
+    nodes = $('#nodes')
+    if nodes.length > 0
+        mode.current = mode.NODE
+        nodes = JSON.parse(nodes.html())
 
     render_all()
 
