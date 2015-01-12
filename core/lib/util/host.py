@@ -6,7 +6,7 @@ from lib import conf
 import os
 
 
-def get_expanded_hosts(host=None):
+def get_expanded_hosts(host=None, host_fragments=[]):
     ''' 与えられたホストパターンを展開してホストリストを返します。
     '''
     if not host or type(host) is not StringType:
@@ -15,7 +15,7 @@ def get_expanded_hosts(host=None):
     hosts = []
     start = host.find('[') + 1
     if start == 0:
-        return [host]
+        return [(host, host_fragments)]
 
     end = host.index(']', start)
     target = host[start:end]
@@ -42,7 +42,8 @@ def get_expanded_hosts(host=None):
     tail_host = host[end+1:]
     for fragment in fragments:
         host = head_host + fragment + tail_host
-        hosts.extend(get_expanded_hosts(host))
+        tmp_host_fragments = host_fragments + [fragment]
+        hosts.extend(get_expanded_hosts(host, tmp_host_fragments))
 
     return hosts
 
@@ -55,6 +56,7 @@ def get_available_hosts(host_pattern=None):
     candidates = get_expanded_hosts(host_pattern)
     RE_NODE_JSON = re.compile('%s/(.*).yaml' % conf.NODE_DIR)
     for candidate in candidates:
+        candidate = candidate[0]
         splited_candidate = candidate.rsplit('/', 1)
         if len(splited_candidate) > 1:
             node_dir = os.path.join(conf.NODE_DIR, splited_candidate[0])

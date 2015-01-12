@@ -15,7 +15,6 @@ module.exports = function(grunt) {
                         'static_src/coffee/common/render_user.coffee',
                         'static_src/coffee/common/render_fabscript.coffee',
                         'static_src/coffee/common/render_node.coffee',
-                        'static_src/coffee/common/render_result.coffee',
                         'static_src/coffee/common/render.coffee',
                     ]
                 }

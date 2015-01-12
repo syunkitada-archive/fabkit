@@ -66,23 +66,21 @@ def node(option=None, host=None, edit_key=None, *edit_value):
         host = __check_to_enter_host(host)
         hosts = util.get_expanded_hosts(host)
 
-        print hosts
+        for host in hosts:
+            print host
+
         if util.confirm('Are you sure you want to create above nodes?', 'Canceled'):
             for host in hosts:
-                if not util.exists_node(host):
-                    util.dump_node(host, is_init=True)
-                    if edit_key and edit_value:
-                        node = util.load_node(host)
-                        node.update({edit_key: __convert_value(edit_key, edit_value)})
-                        util.dump_node(host, node)
-
-                else:
-                    print '{0} is already created.'.format(host)
+                util.dump_node(host[0], is_init=True)
+                if edit_key and edit_value:
+                    node = util.load_node(host[0])
+                    node.update({edit_key: __convert_value(edit_key, edit_value, host[1])})
+                    util.dump_node(host, node)
 
         util.load_node_map(host)
         util.print_node_map()
 
-        return
+        exit(0)
 
     elif option == 'remove':
         host = __check_to_enter_host(host)
@@ -98,7 +96,7 @@ def node(option=None, host=None, edit_key=None, *edit_value):
 
             print '{0} removed.'.format(host)
 
-        return
+        exit(0)
 
     elif option == 'edit':
         host = __check_to_enter_host(host)
@@ -125,28 +123,50 @@ def node(option=None, host=None, edit_key=None, *edit_value):
             util.dump_node(node['path'], node)
 
         util.print_node_map()
-        check_continue()
 
-        return
+        exit(0)
+
+    elif option == 'error':
+        if host:
+            length = int(host)
+        else:
+            length = None
+        nodes = db.get_error_nodes(length)
+        for node in nodes:
+            util.load_node(node.path)
+        util.print_node_map(option='status')
+        exit(0)
+
+    elif option == 'recent':
+        if host:
+            length = int(host)
+        else:
+            length = None
+        nodes = db.get_recent_nodes(length)
+        for node in nodes:
+            util.load_node(node.path)
+        util.print_node_map(option='status')
+        exit(0)
 
     else:
-        # optionなし、もしくは、vの場合は、hostは*ワイルドカードとなる
-        if not option:
-            host = '*'
-            print_option = None
-        elif option == 'v':
-            host = '*'
-            print_option = 'v'
-        else:
-            # node:host,option の形式となるように引数を調整
-            host = option
-            print_option = host
+        # node:host,option の形式となるように引数を調整
+        tmp_host = option
+        tmp_option = host
 
-        util.load_node_map(host)
-        util.print_node_map(option=print_option)
+        util.load_node_map(tmp_host)
+        util.print_node_map(option=tmp_option)
+
+        # option入力時は、続行せず出力するだけ
+        if tmp_option is not None:
+            exit(0)
+
         check_continue()
 
-        return
+
+@task
+@hosts('localhost')
+def dump(option=None, host=None, chefoption=''):
+    util.print_node_map(option='status')
 
 
 def check_continue():
@@ -156,12 +176,15 @@ def check_continue():
 
     is_setup = False
     is_manage = False
+    is_check = False
 
     for task_name in env.tasks:
         if not is_setup:
             is_setup = task_name.find('setup') == 0
         if not is_manage:
             is_setup = task_name.find('manage') == 0
+        if not is_check:
+            is_setup = task_name.find('check') == 0
 
     if len(env.tasks) > 1:
         if util.confirm('Are you sure you want to run task on above nodes?', 'Canceled'):
@@ -171,6 +194,15 @@ def check_continue():
                     env.password = getpass.getpass()
                 else:
                     sudo('hostname')
+
+            for node in env.node_map:
+                db.setuped(status_code.FABSCRIPT_REGISTERED, 'registered', host=node)
+
+            # Djangodbのコネクションをリセットしておく
+            # これをやらないと、タスクをまたいでdbにアクセスした時に、IO ERRORとなる
+            from django import db as djangodb
+            djangodb.close_connection()
+
         else:
             env.hosts = []
             exit()
@@ -185,11 +217,16 @@ def __check_to_enter_host(host):
     return host
 
 
-def __convert_value(key, value):
+def __convert_value(key, value, fragments):
     if key == 'fabruns':
         if type(value) is StringType:
             value = value.split(',')
 
-        value = list(value)
+        result = []
+        for v in value:
+            result.append(v.format(*fragments))
 
-    return value
+        return result
+
+    else:
+        return value

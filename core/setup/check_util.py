@@ -22,7 +22,7 @@ RE_NODE = re.compile('log/(.+)/status.json: +"(.+)"')
 
 @task
 @parallel(10)
-def check():
+def check_basic():
     ip = 'failed'
     ssh = 'failed'
     uptime = ''

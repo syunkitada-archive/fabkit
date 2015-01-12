@@ -38,7 +38,6 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'apps.home',
     'apps.user',
-    'apps.result',
     'apps.node',
     'apps.fabscript',
     'applib',

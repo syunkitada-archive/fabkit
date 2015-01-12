@@ -56,7 +56,7 @@ render_force_layout = () ->
         .attr('class', 'node-label')
         .text((d) -> d.name)
 
-    if mode.current == mode.RESULT
+    if mode.current == mode.NODE
         node.append('text')
             .attr('dx', 12)
             .attr('dy', '.35em')

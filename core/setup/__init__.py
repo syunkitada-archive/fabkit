@@ -3,10 +3,22 @@
 from fabric.api import (task,
                         env,
                         parallel)
+import inspect
 from lib import conf, util, log
-from lib.api import sudo, db, filer
-from check import check
+from lib.api import sudo, db, filer, status_code
+from check_util import check_basic
 from types import IntType, TupleType
+
+
+@task
+def _check(option=None):
+    check(option)
+
+
+@task
+@parallel(pool_size=10)
+def check(option=None):
+    run_func('check', option)
 
 
 @task
@@ -17,12 +29,18 @@ def _setup(option=None):
 @task
 @parallel(pool_size=10)
 def setup(option=None):
+    run_func('setup', option)
+
+
+def run_func(func_prefix, option=None):
     if option == 'test':
         env.is_test = True
 
+    db.setuped(status_code.FABSCRIPT_STARTED, '{0} started'.format(func_prefix))
+
     node = env.node_map.get(env.host)
 
-    if not check():
+    if not check_basic():
         db.setuped(1, 'Failed to check')
         log.warning('Failed to check')
         return
@@ -49,28 +67,35 @@ def setup(option=None):
             db.setuped(1, 'start {0}'.format(fabscript))
 
             script = '.'.join((conf.FABSCRIPT_MODULE, fabscript))
-            module = __import__(script, {}, {}, 'setup')
-            func = getattr(module, 'setup')
-            result = func()
+            module = __import__(script, {}, {}, func_prefix)
 
-            status = None
-            msg = None
-            if type(result) is IntType:
-                status = result
-            if type(result) is TupleType:
-                status, msg = result
-            if not status:
-                status = 0
-            if not msg:
-                msg = 'end setup'
+            func_names = []
+            for member in inspect.getmembers(module):
+                if inspect.isfunction(member[1]):
+                    if member[0].find(func_prefix) == 0:
+                        func_names.append(member[0])
 
-            util.update_log(fabscript, status, msg)
-            db.setuped(status, msg)
+            func_names.sort()
+            for func_name in func_names:
+                func = getattr(module, func_name)
+                result = func()
 
-            if status != 0:
-                break
+                status = None
+                msg = None
+                if type(result) is IntType:
+                    status = result
+                if type(result) is TupleType:
+                    status, msg = result
+                if not status:
+                    status = 0
+                if not msg:
+                    msg = 'end {0}'.format(func_prefix)
 
-    util.dump_node()
+                util.update_log(fabscript, status, msg)
+                db.setuped(status, msg)
+
+                if status != 0:
+                    break
 
 
 @task
@@ -85,7 +110,7 @@ def manage(*args):
         env.is_test = True
         args = args[1:]
 
-    if not check():
+    if not check_basic():
         log.warning('Failed to check(ssh)')
         return
 
