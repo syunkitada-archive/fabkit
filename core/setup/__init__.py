@@ -30,6 +30,7 @@ def _setup(option=None):
 @parallel(pool_size=10)
 def setup(option=None):
     run_func('setup', option)
+    run_func('check', option)
 
 
 def run_func(func_prefix, option=None):
@@ -56,9 +57,10 @@ def run_func(func_prefix, option=None):
         db.setuped_chef(status, msg)
 
     else:
-        filer.mkdir(conf.REMOTE_DIR)
-        filer.mkdir(conf.STORAGE_DIR)
-        filer.mkdir(conf.TMP_DIR, mode='777')
+        if func_prefix == 'setup':
+            filer.mkdir(conf.REMOTE_DIR)
+            filer.mkdir(conf.STORAGE_DIR)
+            filer.mkdir(conf.TMP_DIR, mode='777')
 
         db.setuped(1, 'start setup', is_init=True)
         for fabscript in node.get('fabruns', []):

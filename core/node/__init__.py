@@ -183,13 +183,13 @@ def check_continue():
         if not is_setup:
             is_setup = task_name.find('setup') == 0
         if not is_manage:
-            is_setup = task_name.find('manage') == 0
+            is_manage = task_name.find('manage') == 0
         if not is_check:
-            is_setup = task_name.find('check') == 0
+            is_check = task_name.find('check') == 0
 
     if len(env.tasks) > 1:
         if util.confirm('Are you sure you want to run task on above nodes?', 'Canceled'):
-            if (is_setup or is_manage) and not env.password:
+            if (is_setup or is_manage or is_check) and (not env.password or env.password == ''):
                 print 'Enter your password.\n'
                 if platform.system().find('CYGWIN') == 0:
                     env.password = getpass.getpass()
