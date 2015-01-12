@@ -1,9 +1,11 @@
 render_fabscript = ->
+    render_fabscript_clusters()
+
     hash = location.hash
     if hash == ''
-        hash = '#all'
+        hash = '#root'
 
-    if hash == '#all'
+    if hash == '#root'
         $('#show-graph').hide()
     else
         $('#show-graph').show()
@@ -11,24 +13,13 @@ render_fabscript = ->
     graph_nodes = []
     graph_links = []
 
-    fabscript_cluster_map = {'all': fabscripts}
-
     fabscripts_tbody = ''
     for fabscript in fabscripts
         linked_html = ''
         for linked in fabscript.fields.linked_fabscripts
             linked_html += "#{linked}</br>"
 
-        cluster = fabscript.fields.name.split('.')[0]
-        if cluster of fabscript_cluster_map
-            cluster_data = fabscript_cluster_map[cluster]
-            cluster_data.push(fabscript)
-        else
-            cluster_data = [fabscript]
-
-        fabscript_cluster_map[cluster] = cluster_data
-
-        if hash == '#all' or hash == "##{cluster}"
+        if hash == '#root' or "##{fabscript.fields.name}".indexOf("#{hash}.") == 0
             fabscripts_tbody += "
             <tr id=\"#{fabscript.pk}\">
                 <td><input type=\"checkbox\"></td>
@@ -37,20 +28,33 @@ render_fabscript = ->
                 <td>#{fabscript.fields.updated_at}</td>
             </tr>"
 
-            if hash != "#all"
+            if hash != "#root"
                 is_exist = false
                 node_index = 0
                 for node, i in graph_nodes
                     if node.name == fabscript.fields.name
                         is_exist = true
                         node_index = i
+
+                        if 'icon' of fabscript.fields.data
+                            node.icon = fabscript.fields.data.icon
+                        else
+                            node.icon = 'computer-retro'
+
                         break
 
                 if not is_exist
+                    if 'icon' of fabscript.fields.data
+                        icon = fabscript.fields.data.icon
+                    else
+                        icon = 'computer-retro'
+
                     node_index = graph_nodes.length
                     graph_nodes.push(
                         'name': fabscript.fields.name,
+                        'icon': icon,
                     )
+
 
                 for linked in fabscript.fields.linked_fabscripts
                     linked = linked.split(':')[0]
@@ -66,6 +70,7 @@ render_fabscript = ->
                         linked_index = graph_nodes.length
                         graph_nodes.push({
                             'name': linked,
+                            'icon': icon,
                         })
 
                     if node_index != linked_index
@@ -74,20 +79,4 @@ render_fabscript = ->
                             'target': node_index,
                         })
 
-
     $('#fabscripts-tbody').html(fabscripts_tbody)
-
-    fabscript_clusters_ul = ''
-    for cluster, scripts of fabscript_cluster_map
-        active = ""
-        if hash == "##{cluster}"
-            active = "active"
-
-        fabscript_clusters_ul += """
-            <li class="#{active}">
-                <a href="##{cluster}">
-                #{cluster} (#{scripts.length})
-                </a>
-            </li>"""
-
-    $('#fabscript-clusters-ul').html(fabscript_clusters_ul)

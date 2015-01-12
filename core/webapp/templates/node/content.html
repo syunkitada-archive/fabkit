@@ -1,7 +1,7 @@
 <title>{{title}}</title>
 
 <div class="col-sm-3 col-md-2 sidebar">
-    <ul class="nav nav-sidebar" id="node-clusters-ul"></ul>
+    <div class="node-cluster" id="node-clusters"></div>
 </div>
 <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
     <h2 class="page-header">{{title}}</h2>
@@ -17,6 +17,7 @@
             </div>
         </div>
         <div class="col-xs-6">
+            <input id="show-graph" class="btn btn-default" type="button" value="Show Graph">
             <input class="btn btn-default pull-right" type="button" value="Remove" onclick="fabkit.remove_data('{% url 'node:remove' %}')">
         </div>
     </div>
@@ -26,10 +27,10 @@
                 <tr>
                     <th><input type="checkbox" id="all-checkbox"></th>
                     <th>Path</th>
-                    <th>Hostname</th>
-                    <th>Ip</th>
-                    <th>Uptime</th>
-                    <th>Ssh</th>
+                    <th>Status</th>
+                    <th>Msg</th>
+                    <th width="400px">Logs</th>
+                    <th>Udate</th>
                 </tr>
             </thead>
             <tbody id="nodes-tbody">
@@ -41,3 +42,4 @@
 
 <script type="application/json" id="nodes">{{ nodes|safe }}</script>
 <script type="application/json" id="node_clusters">{{ node_clusters|safe }}</script>
+<script type="application/json" id="fabscripts">{{ fabscripts|safe }}</script>
