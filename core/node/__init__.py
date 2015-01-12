@@ -163,6 +163,12 @@ def node(option=None, host=None, edit_key=None, *edit_value):
         check_continue()
 
 
+@task
+@hosts('localhost')
+def dump(option=None, host=None, chefoption=''):
+    util.print_node_map(option='status')
+
+
 def check_continue():
     if len(env.hosts) == 0:
         print('Empty hosts.')
@@ -179,6 +185,8 @@ def check_continue():
 
     if len(env.tasks) > 1:
         if util.confirm('Are you sure you want to run task on above nodes?', 'Canceled'):
+            print env
+            env.tasks.append('dump')
             if (is_setup or is_manage) and not env.password:
                 print 'Enter your password.\n'
                 if platform.system().find('CYGWIN') == 0:

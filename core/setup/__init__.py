@@ -3,9 +3,10 @@
 from fabric.api import (task,
                         env,
                         parallel)
+import inspect
 from lib import conf, util, log
 from lib.api import sudo, db, filer
-from check import check
+from check_util import check_basic
 from types import IntType, TupleType
 
 
@@ -22,7 +23,7 @@ def setup(option=None):
 
     node = env.node_map.get(env.host)
 
-    if not check():
+    if not check_basic():
         db.setuped(1, 'Failed to check')
         log.warning('Failed to check')
         return
@@ -50,25 +51,34 @@ def setup(option=None):
 
             script = '.'.join((conf.FABSCRIPT_MODULE, fabscript))
             module = __import__(script, {}, {}, 'setup')
-            func = getattr(module, 'setup')
-            result = func()
+            print 'DEBUG'
+            setups = []
+            for member in inspect.getmembers(module):
+                if inspect.isfunction(member[1]):
+                    if member[0].find('setup') == 0:
+                        setups.append(member[0])
 
-            status = None
-            msg = None
-            if type(result) is IntType:
-                status = result
-            if type(result) is TupleType:
-                status, msg = result
-            if not status:
-                status = 0
-            if not msg:
-                msg = 'end setup'
+            setups.sort()
+            for setup_func in setups:
+                func = getattr(module, setup_func)
+                result = func()
 
-            util.update_log(fabscript, status, msg)
-            db.setuped(status, msg)
+                status = None
+                msg = None
+                if type(result) is IntType:
+                    status = result
+                if type(result) is TupleType:
+                    status, msg = result
+                if not status:
+                    status = 0
+                if not msg:
+                    msg = 'end setup'
 
-            if status != 0:
-                break
+                util.update_log(fabscript, status, msg)
+                db.setuped(status, msg)
+
+                if status != 0:
+                    break
 
 
 @task
@@ -83,7 +93,7 @@ def manage(*args):
         env.is_test = True
         args = args[1:]
 
-    if not check():
+    if not check_basic():
         log.warning('Failed to check(ssh)')
         return
 
