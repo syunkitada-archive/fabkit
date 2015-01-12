@@ -66,16 +66,16 @@ def node(option=None, host=None, edit_key=None, *edit_value):
         host = __check_to_enter_host(host)
         hosts = util.get_expanded_hosts(host)
 
-        for host in hosts:
-            print host
+        for tmp_host in hosts:
+            print tmp_host
 
         if util.confirm('Are you sure you want to create above nodes?', 'Canceled'):
-            for host in hosts:
-                util.dump_node(host[0], is_init=True)
+            for tmp_host in hosts:
+                util.dump_node(tmp_host[0], is_init=True)
                 if edit_key and edit_value:
-                    node = util.load_node(host[0])
-                    node.update({edit_key: __convert_value(edit_key, edit_value, host[1])})
-                    util.dump_node(host, node)
+                    node = util.load_node(tmp_host[0])
+                    node.update({edit_key: __convert_value(edit_key, edit_value, tmp_host[1])})
+                    util.dump_node(tmp_host[0], node)
 
         util.load_node_map(host)
         util.print_node_map()
@@ -89,12 +89,13 @@ def node(option=None, host=None, edit_key=None, *edit_value):
             print 'Empty hosts.'
             return
 
-        print hosts
-        if util.confirm('Are you sure you want to remove above nodes?', 'Canceled'):
-            for host in hosts:
-                util.remove_node(host)
+        for tmp_host in hosts:
+            print tmp_host
 
-            print '{0} removed.'.format(host)
+        if util.confirm('Are you sure you want to remove above nodes?', 'Canceled'):
+            for tmp_host in hosts:
+                util.remove_node(tmp_host)
+                print '{0} removed.'.format(tmp_host)
 
         exit(0)
 

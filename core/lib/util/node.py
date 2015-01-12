@@ -41,11 +41,8 @@ def dump_node(host_path=None, node=None, is_init=False):
         else:
             host = node_path
 
-        db.update_node(host)
-
     elif not node:
         node = env.node_map.get(host_path)
-        db.update_node()
         node_path = node.get('path')
         node = convert_node(node)
     else:
