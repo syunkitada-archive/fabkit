@@ -176,23 +176,33 @@ def check_continue():
 
     is_setup = False
     is_manage = False
+    is_check = False
 
     for task_name in env.tasks:
         if not is_setup:
             is_setup = task_name.find('setup') == 0
         if not is_manage:
             is_setup = task_name.find('manage') == 0
+        if not is_check:
+            is_setup = task_name.find('check') == 0
 
     if len(env.tasks) > 1:
         if util.confirm('Are you sure you want to run task on above nodes?', 'Canceled'):
-            print env
-            env.tasks.append('dump')
             if (is_setup or is_manage) and not env.password:
                 print 'Enter your password.\n'
                 if platform.system().find('CYGWIN') == 0:
                     env.password = getpass.getpass()
                 else:
                     sudo('hostname')
+
+            for node in env.node_map:
+                db.setuped(status_code.FABSCRIPT_REGISTERED, 'registered', host=node)
+
+            # Djangodbのコネクションをリセットしておく
+            # これをやらないと、タスクをまたいでdbにアクセスした時に、IO ERRORとなる
+            from django import db as djangodb
+            djangodb.close_connection()
+
         else:
             env.hosts = []
             exit()

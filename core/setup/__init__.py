@@ -5,9 +5,20 @@ from fabric.api import (task,
                         parallel)
 import inspect
 from lib import conf, util, log
-from lib.api import sudo, db, filer
+from lib.api import sudo, db, filer, status_code
 from check_util import check_basic
 from types import IntType, TupleType
+
+
+@task
+def _check(option=None):
+    check(option)
+
+
+@task
+@parallel(pool_size=10)
+def check(option=None):
+    run_func('check', option)
 
 
 @task
@@ -18,8 +29,14 @@ def _setup(option=None):
 @task
 @parallel(pool_size=10)
 def setup(option=None):
+    run_func('setup', option)
+
+
+def run_func(func_prefix, option=None):
     if option == 'test':
         env.is_test = True
+
+    db.setuped(status_code.FABSCRIPT_STARTED, '{0} started'.format(func_prefix))
 
     node = env.node_map.get(env.host)
 
@@ -50,17 +67,17 @@ def setup(option=None):
             db.setuped(1, 'start {0}'.format(fabscript))
 
             script = '.'.join((conf.FABSCRIPT_MODULE, fabscript))
-            module = __import__(script, {}, {}, 'setup')
-            print 'DEBUG'
-            setups = []
+            module = __import__(script, {}, {}, func_prefix)
+
+            func_names = []
             for member in inspect.getmembers(module):
                 if inspect.isfunction(member[1]):
-                    if member[0].find('setup') == 0:
-                        setups.append(member[0])
+                    if member[0].find(func_prefix) == 0:
+                        func_names.append(member[0])
 
-            setups.sort()
-            for setup_func in setups:
-                func = getattr(module, setup_func)
+            func_names.sort()
+            for func_name in func_names:
+                func = getattr(module, func_name)
                 result = func()
 
                 status = None
@@ -72,7 +89,7 @@ def setup(option=None):
                 if not status:
                     status = 0
                 if not msg:
-                    msg = 'end setup'
+                    msg = 'end {0}'.format(func_prefix)
 
                 util.update_log(fabscript, status, msg)
                 db.setuped(status, msg)

@@ -85,7 +85,7 @@ def load_node(host=None):
         for fabrun in node['fabruns']:
             logs.append({
                 'fabscript': fabrun,
-                'status': -1,
+                'status': status_code.FABSCRIPT_REGISTERED,
                 'msg': 'registered',
                 'timestamp': time.time(),
             })

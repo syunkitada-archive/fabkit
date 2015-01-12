@@ -29,7 +29,7 @@ conf.init(REPO_DIR, TEST_CHEFREPO_DIR)
 # register task
 from test import test  # noqa
 from node import node, chefnode, dump  # noqa
-from setup import _setup, setup, _manage, manage  # noqa
+from setup import _setup, setup, _manage, manage, _check, check  # noqa
 from databag import databag  # noqa
 
 
