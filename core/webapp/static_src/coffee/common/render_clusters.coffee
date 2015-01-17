@@ -86,7 +86,7 @@ render_node_clusters = ->
 
     expand_clusters(clusters_html, node_clusters)
 
-    $('#node-clusters').html(clusters_html)
+    $('#sidebar').html(clusters_html)
 
 
 render_fabscript_clusters = ->
@@ -173,4 +173,4 @@ render_fabscript_clusters = ->
 
     expand_clusters(clusters_html, fabscripts, null, true)
 
-    $('#fabscript-clusters').html(clusters_html)
+    $('#sidebar').html(clusters_html)

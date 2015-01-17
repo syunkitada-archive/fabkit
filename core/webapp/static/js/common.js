@@ -95,7 +95,7 @@
         $('#modal-progress').hide();
       },
       success: function(data) {
-        var fabscript, node, pk, result, results, target, target_list, targets, tmp_fabscripts, tmp_nodes, tmp_results, tmp_targets, tmp_users, user, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1, _ref2, _ref3;
+        var fabscript, node, pk, target, target_list, targets, tmp_fabscripts, tmp_nodes, tmp_targets, tmp_users, user, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2;
         console.log(data);
         $('#modal-msg').html('<div class="bg-success msg-box">Success</div>').show();
         target_list = $('#target-list');
@@ -105,7 +105,7 @@
           target = targets[_i];
           tmp_targets.push(parseInt($(target).val()));
         }
-        if ($('#nodes-tbody').length > 0) {
+        if (mode.current === mode.NODE) {
           tmp_nodes = [];
           for (_j = 0, _len1 = nodes.length; _j < _len1; _j++) {
             node = nodes[_j];
@@ -115,7 +115,8 @@
             }
           }
           nodes = tmp_nodes;
-        } else if ($('#fabscripts-tbody').length > 0) {
+          render_node();
+        } else if (mode.current === mode.FABSCRIPT) {
           tmp_fabscripts = [];
           console.log(tmp_targets);
           console.log(fabscripts);
@@ -127,30 +128,19 @@
             }
           }
           fabscripts = tmp_fabscripts;
-          console.log(fabscripts);
-        } else if ($('#results-tbody').length > 0) {
-          tmp_results = [];
-          for (_l = 0, _len3 = results.length; _l < _len3; _l++) {
-            result = results[_l];
-            pk = result.pk;
-            if (_ref2 = result.pk, __indexOf.call(tmp_targets, _ref2) < 0) {
-              tmp_results.push(result);
-            }
-          }
-          results = tmp_results;
-        } else if ($('#users-tbody').length > 0) {
+          render_fabscript();
+        } else if (mode.current === mode.USER) {
           tmp_users = [];
-          for (_m = 0, _len4 = users.length; _m < _len4; _m++) {
-            user = users[_m];
+          for (_l = 0, _len3 = users.length; _l < _len3; _l++) {
+            user = users[_l];
             pk = user.pk;
-            if (_ref3 = user.pk, __indexOf.call(tmp_targets, _ref3) < 0) {
+            if (_ref2 = user.pk, __indexOf.call(tmp_targets, _ref2) < 0) {
               tmp_users.push(user);
             }
           }
           users = tmp_users;
+          render_user();
         }
-        console.log('DEBUG');
-        render_all();
       },
       error: function(xhr, textStatus, error) {
         $('#modal-msg').html('<div class="bg-danger msg-box">Failed</div>').show();
@@ -274,7 +264,7 @@
       return _results;
     };
     expand_clusters(clusters_html, node_clusters);
-    return $('#node-clusters').html(clusters_html);
+    return $('#sidebar').html(clusters_html);
   };
 
   render_fabscript_clusters = function() {
@@ -332,7 +322,7 @@
       return _results;
     };
     expand_clusters(clusters_html, fabscripts, null, true);
-    return $('#fabscript-clusters').html(clusters_html);
+    return $('#sidebar').html(clusters_html);
   };
 
   render_user = function() {
@@ -351,20 +341,19 @@
           user = users[_i];
           users_tbody.append("<tr id=\"" + user.pk + "\"> <td><input type=\"checkbox\"></td> <td>" + user.fields.username + "</td> <td>" + user.fields.is_superuser + "</td> </tr>");
         }
-        $('#user-list').show();
+        $('#user-list-content').show();
       } else if (hash === '#change-password') {
-        $('#change-password').show();
+        $('#change-password-content').show();
       } else if (hash === '#create-user') {
-        $('#create-user').show();
+        $('#create-user-content').show();
       }
-      $("#left-nav > li").removeClass('active');
-      return $("" + hash + "-li").addClass('active');
+      $("#sidebar .show").removeClass('active');
+      return $("#sidebar a[href=\"" + hash + "\"]").addClass('active');
     }
   };
 
   render_fabscript = function() {
     var fabscript, fabscripts_tbody, hash, i, icon, is_exist, linked, linked_html, linked_index, node, node_index, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1;
-    render_fabscript_clusters();
     hash = location.hash;
     if (hash === '') {
       hash = '#root';
@@ -451,7 +440,6 @@
 
   render_node = function() {
     var danger_length, fabscript, fabscript_node, fabscript_node_map, i, index, link, linked_fabscript, log, logs_all, logs_all_html, logs_html, name, node, result, results_tbody_html, script_name, success_length, timestamp, tmp_logs_html, tr_class, warning_length, _i, _j, _k, _l, _len, _len1, _len2, _len3, _m, _ref, _ref1, _results;
-    render_node_clusters();
     fabscript_node_map = {};
     results_tbody_html = '';
     for (i = _i = 0, _len = nodes.length; _i < _len; i = ++_i) {
@@ -568,8 +556,10 @@
     if (mode.current === mode.USER) {
       render_user();
     } else if (mode.current === mode.FABSCRIPT) {
+      render_fabscript_clusters();
       render_fabscript();
     } else if (mode.current === mode.NODE) {
+      render_node_clusters();
       render_node();
     }
     return $('[data-toggle=popover]').popover();
@@ -644,7 +634,9 @@
   }
 
   $(window).on('hashchange', function() {
-    render_all();
+    if (location.hash !== '') {
+      render_all();
+    }
   });
 
 }).call(this);
