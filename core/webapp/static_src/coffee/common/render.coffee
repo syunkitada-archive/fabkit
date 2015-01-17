@@ -2,8 +2,10 @@ render_all = ->
     if mode.current == mode.USER
         render_user()
     else if mode.current == mode.FABSCRIPT
+        render_fabscript_clusters()
         render_fabscript()
     else if mode.current == mode.NODE
+        render_node_clusters()
         render_node()
 
     $('[data-toggle=popover]').popover()
@@ -75,5 +77,7 @@ if $.support.pjax
         return)
 
 $(window).on('hashchange', ->
-    render_all()
+    if location.hash != ''
+        render_all()
+
     return)

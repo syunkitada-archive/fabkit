@@ -71,7 +71,7 @@ $('#remove-form').on('submit', ->
             for target in targets
                 tmp_targets.push(parseInt($(target).val()))
 
-            if $('#nodes-tbody').length > 0
+            if mode.current == mode.NODE
                 tmp_nodes = []
                 for node in nodes
                     pk = node.pk
@@ -79,8 +79,9 @@ $('#remove-form').on('submit', ->
                         tmp_nodes.push(node)
 
                 nodes = tmp_nodes
+                render_node()
 
-            else if $('#fabscripts-tbody').length > 0
+            else if mode.current == mode.FABSCRIPT
                 tmp_fabscripts = []
                 console.log tmp_targets
                 console.log fabscripts
@@ -90,18 +91,9 @@ $('#remove-form').on('submit', ->
                         tmp_fabscripts.push(fabscript)
 
                 fabscripts = tmp_fabscripts
-                console.log fabscripts
+                render_fabscript()
 
-            else if $('#results-tbody').length > 0
-                tmp_results = []
-                for result in results
-                    pk = result.pk
-                    if result.pk not in tmp_targets
-                        tmp_results.push(result)
-
-                results = tmp_results
-
-            else if $('#users-tbody').length > 0
+            else if mode.current == mode.USER
                 tmp_users = []
                 for user in users
                     pk = user.pk
@@ -109,9 +101,8 @@ $('#remove-form').on('submit', ->
                         tmp_users.push(user)
 
                 users = tmp_users
+                render_user()
 
-            console.log 'DEBUG'
-            render_all()
             return
         error: (xhr, textStatus, error) ->
             $('#modal-msg').html('<div class="bg-danger msg-box">Failed</div>').show()

@@ -16,11 +16,11 @@ render_user = ->
                     <td>#{user.fields.username}</td>
                     <td>#{user.fields.is_superuser}</td>
                 </tr>")
-            $('#user-list').show()
+            $('#user-list-content').show()
         else if hash == '#change-password'
-            $('#change-password').show()
+            $('#change-password-content').show()
         else if hash == '#create-user'
-            $('#create-user').show()
+            $('#create-user-content').show()
 
-        $("#left-nav > li").removeClass('active')
-        $("#{hash}-li").addClass('active')
+        $("#sidebar .show").removeClass('active')
+        $("#sidebar a[href=\"#{hash}\"]").addClass('active')

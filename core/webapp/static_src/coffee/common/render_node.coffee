@@ -1,6 +1,4 @@
 render_node = ->
-    render_node_clusters()
-
     fabscript_node_map = {}
 
     results_tbody_html = ''

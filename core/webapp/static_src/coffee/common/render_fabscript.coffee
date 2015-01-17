@@ -1,6 +1,4 @@
 render_fabscript = ->
-    render_fabscript_clusters()
-
     hash = location.hash
     if hash == ''
         hash = '#root'
