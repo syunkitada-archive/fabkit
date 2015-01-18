@@ -135,7 +135,7 @@ def merge(dump_dir=None):
                     msgs.append([status_code.SYNC_UPDATED,
                                 'updated node_cluster: {0}'.format(obj.name)])
 
-            except Node.DoesNotExist:
+            except NodeCluster.DoesNotExist:
                 tmp_obj.save()
                 msgs.append([status_code.SYNC_CREATED,
                             'created node_cluster: {0}'.format(tmp_obj.name)])
@@ -144,7 +144,7 @@ def merge(dump_dir=None):
         for deserialize_obj in serializers.deserialize("json", f.read()):
             tmp_obj = deserialize_obj.object
             try:
-                obj = NodeCluster.objects.get(pk=tmp_obj.pk)
+                obj = Fabscript.objects.get(pk=tmp_obj.pk)
                 if obj.updated_at >= tmp_obj.updated_at:
                     msgs.append([status_code.SYNC_REJECTED,
                                 'rejected update fabscript: {0}'.format(obj.name)])
@@ -153,7 +153,7 @@ def merge(dump_dir=None):
                     msgs.append([status_code.SYNC_UPDATED,
                                 'updated fabscript: {0}'.format(obj.name)])
 
-            except Node.DoesNotExist:
+            except Fabscript.DoesNotExist:
                 tmp_obj.save()
                 msgs.append([status_code.SYNC_CREATED,
                             'created fabscript: {0}'.format(tmp_obj.name)])
