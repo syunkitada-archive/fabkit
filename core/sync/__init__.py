@@ -12,6 +12,7 @@ from apps.fabscript.models import Fabscript
 from django.core import serializers
 import os
 import time
+import json
 
 
 sync_state = None
@@ -158,6 +159,6 @@ def merge(dump_dir=None):
                 msgs.append([status_code.SYNC_CREATED,
                             'created fabscript: {0}'.format(tmp_obj.name)])
 
-    msgs_txt = msgs.join('\n')
+    msgs_txt = json.dumps(msgs)
     print msgs_txt
     return msgs_txt
