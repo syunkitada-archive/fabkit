@@ -10,8 +10,10 @@ from apps.sync.models import Sync
 from apps.node.models import Node, NodeCluster
 from apps.fabscript.models import Fabscript
 from django.core import serializers
-import json
 import os
+
+
+sync = None
 
 
 @task
@@ -20,6 +22,13 @@ def sync(task=None, option=None):
     dump_dir = os.path.join(conf.STORAGE_DIR, 'dump/')
     node_file = os.path.join(dump_dir, 'node.json')
     fabscript_file = os.path.join(dump_dir, 'fabscript.json')
+    timestamp = datetime.now()
+
+    try:
+        sync = Sync.objects.get(pk=1)
+    except Sync.DoesNotExist:
+        sync = Sync(pk=1)
+        sync.save()
 
     if task == 'dump':
         dump()
@@ -28,30 +37,35 @@ def sync(task=None, option=None):
     elif task == 'push':
         dump()
         scp(node_file, '/opt/fabkit/storage/dump/node.json')
+        scp(node_file, '/opt/fabkit/storage/dump/node.json')
         scp(fabscript_file, '/opt/fabkit/storage/dump/fabscript.json')
 
-        sudo('fab -f /opt/fabkit/fabfile sync:merge')
+        push_log = sudo('fab -f /opt/fabkit/fabfile sync:merge')
+        sync.push_log = push_log
+        sync.push_at = timestamp
+        sync.save()
 
     elif task == 'pull':
         sudo('fab -f /opt/fabkit/fabfile sync:dump')
         scp('/opt/fabkit/storage/dump/node.json', node_file, is_receive=True)
         scp('/opt/fabkit/storage/dump/fabscript.json', fabscript_file, is_receive=True)
-        merge()
+        pull_log = merge()
+
+        sync.pull_at = timestamp
+        sync.pull_log = pull_log
+        sync.save()
 
     return
 
 
 def dump(dump_dir=None, timestamp=None):
-    try:
-        sync = Sync.objects.get(pk=1)
-    except Sync.DoesNotExist:
-        sync = Sync(pk=1)
-        sync.save()
 
     if not timestamp:
         timestamp = sync.push_at
 
     node = serializers.serialize('json', Node.objects.filter(updated_at__gt=timestamp))
+    node_cluster = serializers.serialize('json',
+                                         NodeCluster.objects.filter(updated_at__gt=timestamp))
     fabscript = serializers.serialize('json', Fabscript.objects.filter(updated_at__gt=timestamp))
 
     if not dump_dir:
@@ -60,10 +74,14 @@ def dump(dump_dir=None, timestamp=None):
             os.makedirs(dump_dir)
 
     node_filepath = os.path.join(dump_dir, 'node.json')
+    node_cluster_filepath = os.path.join(dump_dir, 'node_cluster.json')
     fabscript_filepath = os.path.join(dump_dir, 'fabscript.json')
 
     with open(node_filepath, 'w') as f:
         f.write(node)
+
+    with open(node_cluster_filepath, 'w') as f:
+        f.write(node_cluster)
 
     with open(fabscript_filepath, 'w') as f:
         f.write(fabscript)
@@ -76,6 +94,7 @@ def merge(dump_dir=None):
             os.makedirs(dump_dir)
 
     node_filepath = os.path.join(dump_dir, 'node.json')
+    node_cluster_filepath = os.path.join(dump_dir, 'fabscript.json')
     fabscript_filepath = os.path.join(dump_dir, 'fabscript.json')
 
     with open(node_filepath, 'r') as f:
@@ -83,6 +102,16 @@ def merge(dump_dir=None):
             tmp_obj = deserialize_obj.object
             try:
                 obj = Node.objects.get(pk=tmp_obj.pk)
+                if obj.updated_at < tmp_obj.updated_at:
+                    tmp_obj.save()
+            except Node.DoesNotExist:
+                tmp_obj.save()
+
+    with open(node_cluster_filepath, 'r') as f:
+        for deserialize_obj in serializers.deserialize("json", f.read()):
+            tmp_obj = deserialize_obj.object
+            try:
+                obj = NodeCluster.objects.get(pk=tmp_obj.pk)
                 if obj.updated_at < tmp_obj.updated_at:
                     tmp_obj.save()
             except Node.DoesNotExist:
