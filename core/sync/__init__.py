@@ -4,7 +4,7 @@ from fabric.api import (task,
                         env,
                         hosts)
 from lib import conf, util, log
-from lib.api import sudo, db, filer, status_code, run, scp
+from lib.api import sudo, db, filer, status_code, run, scp, status_code
 import datetime
 from apps.sync.models import SyncState
 from apps.node.models import Node, NodeCluster
@@ -20,6 +20,8 @@ sync_state = None
 @task
 @hosts('dev01.vagrant.mydns.jp')
 def sync(task=None, option=None):
+    global sync_state
+
     dump_dir = os.path.join(conf.STORAGE_DIR, 'dump/')
     node_file = os.path.join(dump_dir, 'node.json')
     fabscript_file = os.path.join(dump_dir, 'fabscript.json')
@@ -100,49 +102,62 @@ def merge(dump_dir=None):
     node_filepath = os.path.join(dump_dir, 'node.json')
     node_cluster_filepath = os.path.join(dump_dir, 'fabscript.json')
     fabscript_filepath = os.path.join(dump_dir, 'fabscript.json')
-    msg = ''
+    msgs = []
 
     with open(node_filepath, 'r') as f:
         for deserialize_obj in serializers.deserialize("json", f.read()):
             tmp_obj = deserialize_obj.object
             try:
                 obj = Node.objects.get(pk=tmp_obj.pk)
-                if obj.updated_at < tmp_obj.updated_at:
+                if obj.updated_at >= tmp_obj.updated_at:
+                    msgs.append([status_code.SYNC_REJECTED,
+                                'rejected update node: {0}'.format(obj.path)])
+                else:
                     tmp_obj.save()
-                    tmp_msg = 'updated node: {0}'.format(obj.path)
+                    msgs.append([status_code.SYNC_UPDATED,
+                                'updated node: {0}'.format(obj.path)])
+
             except Node.DoesNotExist:
                 tmp_obj.save()
-                tmp_msg = 'created node: {0}'.format(obj.path)
-
-            msg += tmp_msg + '\n'
+                msgs.append([status_code.SYNC_CREATED,
+                            'created node: {0}'.format(tmp_obj.path)])
 
     with open(node_cluster_filepath, 'r') as f:
         for deserialize_obj in serializers.deserialize("json", f.read()):
             tmp_obj = deserialize_obj.object
             try:
                 obj = NodeCluster.objects.get(pk=tmp_obj.pk)
-                if obj.updated_at < tmp_obj.updated_at:
+                if obj.updated_at >= tmp_obj.updated_at:
+                    msgs.append([status_code.SYNC_REJECTED,
+                                'rejected update node_cluster: {0}'.format(obj.name)])
+                else:
                     tmp_obj.save()
-                    tmp_msg = 'updated node_cluster: {0}'.format(obj.name)
+                    msgs.append([status_code.SYNC_UPDATED,
+                                'updated node_cluster: {0}'.format(obj.name)])
+
             except Node.DoesNotExist:
                 tmp_obj.save()
-                tmp_msg = 'created node_cluster: {0}'.format(tmp_obj.name)
-
-            msg += tmp_msg + '\n'
+                msgs.append([status_code.SYNC_CREATED,
+                            'created node_cluster: {0}'.format(tmp_obj.name)])
 
     with open(fabscript_filepath, 'r') as f:
         for deserialize_obj in serializers.deserialize("json", f.read()):
             tmp_obj = deserialize_obj.object
             try:
-                obj = Fabscript.objects.get(pk=tmp_obj.pk)
-                if obj.updated_at < tmp_obj.updated_at:
+                obj = NodeCluster.objects.get(pk=tmp_obj.pk)
+                if obj.updated_at >= tmp_obj.updated_at:
+                    msgs.append([status_code.SYNC_REJECTED,
+                                'rejected update fabscript: {0}'.format(obj.name)])
+                else:
                     tmp_obj.save()
-                    tmp_msg = 'updated fabscript: {0}'.format(tmp_obj.name)
-            except Fabscript.DoesNotExist:
+                    msgs.append([status_code.SYNC_UPDATED,
+                                'updated fabscript: {0}'.format(obj.name)])
+
+            except Node.DoesNotExist:
                 tmp_obj.save()
-                tmp_msg = 'created fabscript: {0}'.format(tmp_obj.name)
+                msgs.append([status_code.SYNC_CREATED,
+                            'created fabscript: {0}'.format(tmp_obj.name)])
 
-            msg += tmp_msg + '\n'
-
-    print msg
-    return msg
+    msgs_txt = msgs.join('\n')
+    print msgs_txt
+    return msgs_txt
