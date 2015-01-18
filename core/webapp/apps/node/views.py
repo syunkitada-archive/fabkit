@@ -15,14 +15,15 @@ def index(request, cluster=None):
         if int(cluster) == 0:
             nodes = serializers.serialize(
                 'json',
-                Node.objects.filter(cluster=None).order_by('path').all())
+                Node.objects.filter(cluster=None, is_deleted=False).order_by('path').all())
         else:
             nodes = serializers.serialize(
                 'json',
-                Node.objects.filter(cluster=cluster).order_by('path').all())
+                Node.objects.filter(cluster=cluster, is_deleted=False).order_by('path').all())
     else:
         nodes = serializers.serialize(
-            'json', Node.objects.order_by('-status', 'updated_at').all()[:50])
+            'json',
+            Node.objects.order_by('-status', 'updated_at').filter(is_deleted=False).all()[:50])
 
     node_clusters = serializers.serialize('json', NodeCluster.objects.all().order_by('name'))
     fabscripts = serializers.serialize('json', Fabscript.objects.all())
@@ -47,13 +48,15 @@ def remove(request):
         for target in targets:
             node = Node.objects.get(pk=target)
             clusters.add(node.cluster.pk)
-            node.delete()
+            node.is_deleted = True
+            node.save()
 
         for cluster in clusters:
             node_count = Node.objects.filter(cluster=cluster).count()
             if node_count == 0:
                 node_cluster = NodeCluster.objects.get(pk=cluster)
-                node_cluster.delete()
+                node_cluster.is_deleted = True
+                node_cluster.save()
 
         result = {
             'status': True,

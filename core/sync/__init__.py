@@ -19,13 +19,14 @@ sync_state = None
 
 
 @task
-@hosts('dev01.vagrant.mydns.jp')
+@hosts(conf.REMOTE_NODE)
 def sync(task=None, option=None):
     global sync_state
 
     dump_dir = os.path.join(conf.STORAGE_DIR, 'dump/')
     node_file = os.path.join(dump_dir, 'node.json')
     fabscript_file = os.path.join(dump_dir, 'fabscript.json')
+    node_cluster_file = os.path.join(dump_dir, 'node_cluster.json')
     timestamp = datetime.datetime.now()
 
     try:
@@ -41,7 +42,7 @@ def sync(task=None, option=None):
     elif task == 'push':
         dump()
         scp(node_file, '/opt/fabkit/storage/dump/node.json')
-        scp(node_file, '/opt/fabkit/storage/dump/node.json')
+        scp(node_cluster_file, '/opt/fabkit/storage/dump/node_cluster.json')
         scp(fabscript_file, '/opt/fabkit/storage/dump/fabscript.json')
 
         push_log = sudo('fab -f /opt/fabkit/fabfile sync:merge')
@@ -53,11 +54,12 @@ def sync(task=None, option=None):
         pull_at = time.mktime(sync_state.pull_at.timetuple())
         sudo('fab -f /opt/fabkit/fabfile sync:dump,{0}'.format(pull_at))
         scp('/opt/fabkit/storage/dump/node.json', node_file, is_receive=True)
+        scp('/opt/fabkit/storage/dump/node_cluster.json', node_cluster_file, is_receive=True)
         scp('/opt/fabkit/storage/dump/fabscript.json', fabscript_file, is_receive=True)
         pull_log = merge()
 
-        sync_state.pull_at = timestamp
         sync_state.pull_log = pull_log
+        sync_state.pull_at = timestamp
         sync_state.save()
 
     return
@@ -101,7 +103,7 @@ def merge(dump_dir=None):
             os.makedirs(dump_dir)
 
     node_filepath = os.path.join(dump_dir, 'node.json')
-    node_cluster_filepath = os.path.join(dump_dir, 'fabscript.json')
+    node_cluster_filepath = os.path.join(dump_dir, 'node_cluster.json')
     fabscript_filepath = os.path.join(dump_dir, 'fabscript.json')
     msgs = []
 

@@ -50,7 +50,6 @@ def get_node(env_node):
     try:
         node = Node.objects.get(path=path)
         node.data = env_node['data']
-        node.save()
     except Node.DoesNotExist:
         node = Node(path=path)
 
@@ -60,9 +59,11 @@ def get_node(env_node):
 
             try:
                 node_cluster = NodeCluster.objects.get(name=cluster)
+                node_cluster.is_deleted = False
             except NodeCluster.DoesNotExist:
                 node_cluster = NodeCluster(name=cluster)
-                node_cluster.save()
+
+            node_cluster.save()
 
         else:
             node_cluster = None
@@ -75,7 +76,10 @@ def get_node(env_node):
 
 def create_fabscript(script_name):
     try:
-        Fabscript.objects.get(name=script_name)
+        fabscript = Fabscript.objects.get(name=script_name)
+        if fabscript.is_deleted:
+            fabscript.is_deleted = False
+            fabscript.save()
     except Fabscript.DoesNotExist:
         # 並列実行時に、同時に新規作成しようとすると刺さるためトランザクション化
         create_new_fabscript(script_name)
@@ -152,6 +156,7 @@ def setuped(status, msg, is_init=False, host=None):
         logs_all = logs_all[-conf.WEB_LOG_LENGTH:]
         node.logs_all = json.dumps(logs_all)
 
+    node.is_deleted = False
     node.logs = json.dumps(env_node['logs'])
     node.status = status
     node.msg = msg
