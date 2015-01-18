@@ -121,23 +121,54 @@ def reboot(wait=60):
     log.info(result_msg)
 
 
-def scp(from_path, to_path, is_local=True, use_env_host=True):
-    cmd = 'scp -o "StrictHostKeyChecking=no" {0} {1}@'.format(from_path, api.env.user)
-    if use_env_host:
-        cmd += '{0}:'.format(api.env.host)
-    cmd += to_path
+def scp(from_path, to_path, is_local=True, is_receive=False, use_env_host=True):
+    if is_receive:
+        target = conf.REMOTE_TMP_DIR + from_path
+        target_dir = target.rsplit('/', 1)[0]
+        sudo('mkdir -p {0} && chmod 777 {0}'.format(target_dir))
+        sudo('cp {0} {1}'.format(from_path, target))
+        sudo('chown {0}:{0} {1}'.format(api.env.user, target))
+        cmd = 'scp -o "StrictHostKeyChecking=no" {0}@{1}:{2} {3}'.format(
+            api.env.user, api.env.host, target, to_path)
 
-    if is_local:
         if conf.USER and conf.PASSWORD:
-            return expect(
+            result = expect(
                 cmd,
                 [['* password:', '{0}\\n'.format(conf.PASSWORD)]],
                 is_local=is_local)
 
-        return local(cmd)
+        else:
+            result = local(cmd)
+
+        return result
 
     else:
-        return run(cmd)
+        cmd = 'scp -o "StrictHostKeyChecking=no" {0} {1}@'.format(from_path, api.env.user)
+        if use_env_host:
+            cmd += '{0}:'.format(api.env.host)
+
+        if is_local:
+            sudo('mkdir -p {0} && chmod 777 {0}'.format(conf.REMOTE_TMP_DIR))
+            target = conf.REMOTE_TMP_DIR + to_path
+            target_dir = target.rsplit('/', 1)[0]
+            sudo('mkdir -p {0} && chmod 777 {0}'.format(target_dir))
+            cmd += target
+
+            if conf.USER and conf.PASSWORD:
+                result = expect(
+                    cmd,
+                    [['* password:', '{0}\\n'.format(conf.PASSWORD)]],
+                    is_local=is_local)
+
+            else:
+                result = local(cmd)
+
+            sudo('cp {0} {1}'.format(target, to_path))
+            return result
+
+        else:
+            cmd += to_path
+            return run(cmd)
 
 
 def test_cmd(cmd):

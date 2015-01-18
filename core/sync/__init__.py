@@ -4,7 +4,7 @@ from fabric.api import (task,
                         env,
                         hosts)
 from lib import conf, util, log
-from lib.api import sudo, db, filer, status_code, run
+from lib.api import sudo, db, filer, status_code, run, scp
 import datetime
 from apps.sync.models import Sync
 from apps.node.models import Node, NodeCluster
@@ -17,9 +17,25 @@ import os
 @task
 @hosts('dev01.vagrant.mydns.jp')
 def sync(task=None, option=None):
+    dump_dir = os.path.join(conf.STORAGE_DIR, 'dump/')
+    node_file = os.path.join(dump_dir, 'node.json')
+    fabscript_file = os.path.join(dump_dir, 'fabscript.json')
+
     if task == 'dump':
         dump()
     elif task == 'merge':
+        merge()
+    elif task == 'push':
+        dump()
+        scp(node_file, '/opt/fabkit/storage/dump/node.json')
+        scp(fabscript_file, '/opt/fabkit/storage/dump/fabscript.json')
+
+        sudo('fab -f /opt/fabkit/fabfile sync:merge')
+
+    elif task == 'pull':
+        sudo('fab -f /opt/fabkit/fabfile sync:dump')
+        scp('/opt/fabkit/storage/dump/node.json', node_file, is_receive=True)
+        scp('/opt/fabkit/storage/dump/fabscript.json', fabscript_file, is_receive=True)
         merge()
 
     return
