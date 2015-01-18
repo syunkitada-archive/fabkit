@@ -16,7 +16,7 @@ def _check(option=None):
 
 
 @task
-@parallel(pool_size=10)
+@parallel(pool_size=conf.PARALLEL_POOL_SIZE)
 def check(option=None):
     run_func('check', option)
 
@@ -27,7 +27,7 @@ def _setup(option=None):
 
 
 @task
-@parallel(pool_size=10)
+@parallel(pool_size=conf.PARALLEL_POOL_SIZE)
 def setup(option=None):
     run_func('setup', option)
     run_func('check', option)
@@ -106,7 +106,7 @@ def _manage(*args):
 
 
 @task
-@parallel(pool_size=10)
+@parallel(pool_size=conf.PARALLEL_POOL_SIZE)
 def manage(*args):
     if args[0] == 'test':
         env.is_test = True

@@ -41,8 +41,9 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
         env.node_map = {}
 
     global CONFIG
+    global PARALLEL_POOL_SIZE
     global CHEFREPO_DIR, TEST_CHEFREPO_DIR
-    global REMOTE_DIR, REMOTE_STORAGE_DIR, REMOTE_TMP_DIR
+    global REMOTE_NODE, REMOTE_DIR, REMOTE_STORAGE_DIR, REMOTE_TMP_DIR
     global STORAGE_DIR, LOG_DIR, TMP_DIR, DATABAG_DIR
     global FABSCRIPT_MODULE, FABSCRIPT_MODULE_DIR
     global COOKBOOKS_DIRS, NODE_DIR, ROLE_DIR, ENVIRONMENT_DIR
@@ -78,6 +79,8 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
     CONFIG.read(INIFILE)
 
     # read common settings
+    PARALLEL_POOL_SIZE = CONFIG.get('common', 'parallel_pool_size')
+    REMOTE_NODE = CONFIG.get('common', 'remote_node')
     REMOTE_DIR = complement_path(CONFIG.get('common', 'remote_dir'))
     REMOTE_STORAGE_DIR = os.path.join(REMOTE_DIR, 'storage')
     REMOTE_TMP_DIR = os.path.join(REMOTE_DIR, 'tmp')

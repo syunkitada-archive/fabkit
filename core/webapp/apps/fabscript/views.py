@@ -10,7 +10,10 @@ from django.contrib.auth.decorators import login_required
 
 @login_required
 def index(request):
-    fabscripts = serializers.serialize('json', Fabscript.objects.all().order_by('name'))
+    fabscripts = serializers.serialize(
+        'json',
+        Fabscript.objects.filter(is_deleted=False).all().order_by('name'))
+
     context = {
         'title': 'Fabscript List',
         'fabscripts': fabscripts,
@@ -28,7 +31,8 @@ def remove(request):
         targets = request.POST.getlist('target')
         for target in targets:
             fabscript = Fabscript.objects.get(pk=target)
-            fabscript.delete()
+            fabscript.is_deleted = True
+            fabscript.save()
 
         result = {
             'status': True,
