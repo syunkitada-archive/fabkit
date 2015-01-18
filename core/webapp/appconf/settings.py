@@ -40,6 +40,7 @@ INSTALLED_APPS = (
     'apps.user',
     'apps.node',
     'apps.fabscript',
+    'apps.sync',
     'applib',
 )
 
