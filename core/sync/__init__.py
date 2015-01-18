@@ -1,0 +1,83 @@
+# coding: utf-8
+
+from fabric.api import (task,
+                        env,
+                        hosts)
+from lib import conf, util, log
+from lib.api import sudo, db, filer, status_code, run
+import datetime
+from apps.sync.models import Sync
+from apps.node.models import Node, NodeCluster
+from apps.fabscript.models import Fabscript
+from django.core import serializers
+import json
+import os
+
+
+@task
+@hosts('dev01.vagrant.mydns.jp')
+def sync(task=None, option=None):
+    if task == 'dump':
+        dump()
+    elif task == 'merge':
+        merge()
+
+    return
+
+
+def dump(dump_dir=None, timestamp=None):
+    try:
+        sync = Sync.objects.get(pk=1)
+    except Sync.DoesNotExist:
+        sync = Sync(pk=1)
+        sync.save()
+
+    if not timestamp:
+        timestamp = sync.push_at
+
+    node = serializers.serialize('json', Node.objects.filter(updated_at__gt=timestamp))
+    fabscript = serializers.serialize('json', Fabscript.objects.filter(updated_at__gt=timestamp))
+
+    if not dump_dir:
+        dump_dir = os.path.join(conf.STORAGE_DIR, 'dump/')
+        if not os.path.exists(dump_dir):
+            os.makedirs(dump_dir)
+
+    node_filepath = os.path.join(dump_dir, 'node.json')
+    fabscript_filepath = os.path.join(dump_dir, 'fabscript.json')
+
+    with open(node_filepath, 'w') as f:
+        f.write(node)
+
+    with open(fabscript_filepath, 'w') as f:
+        f.write(fabscript)
+
+
+def merge(dump_dir=None):
+    if not dump_dir:
+        dump_dir = os.path.join(conf.STORAGE_DIR, 'dump/')
+        if not os.path.exists(dump_dir):
+            os.makedirs(dump_dir)
+
+    node_filepath = os.path.join(dump_dir, 'node.json')
+    fabscript_filepath = os.path.join(dump_dir, 'fabscript.json')
+
+    with open(node_filepath, 'r') as f:
+        for deserialize_obj in serializers.deserialize("json", f.read()):
+            tmp_obj = deserialize_obj.object
+            try:
+                obj = Node.objects.get(pk=tmp_obj.pk)
+                if obj.updated_at < tmp_obj.updated_at:
+                    tmp_obj.save()
+            except Node.DoesNotExist:
+                tmp_obj.save()
+
+    with open(fabscript_filepath, 'r') as f:
+        for deserialize_obj in serializers.deserialize("json", f.read()):
+            tmp_obj = deserialize_obj.object
+            try:
+                obj = Fabscript.objects.get(pk=tmp_obj.pk)
+                if obj.updated_at < tmp_obj.updated_at:
+                    tmp_obj.save()
+            except Fabscript.DoesNotExist:
+                tmp_obj.save()

@@ -8,6 +8,7 @@ class Fabscript(models.Model):
     data = models.CharField(default=u'{}', max_length=10000)
     link = models.CharField(default=u'{}', max_length=10000)
     linked_fabscripts = models.CharField(default=u'[]', max_length=10000)
+    is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now=False, auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, auto_now_add=True)
 
