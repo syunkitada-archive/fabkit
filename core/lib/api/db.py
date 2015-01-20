@@ -161,7 +161,6 @@ def setuped(status, msg, is_init=False, host=None):
     node.status = status
     node.msg = msg
     node.save()
-    node = None
 
 
 def is_setuped(host, script_name, status=0):
