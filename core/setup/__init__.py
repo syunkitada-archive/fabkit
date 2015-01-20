@@ -37,12 +37,12 @@ def run_func(func_prefix, option=None):
     if option == 'test':
         env.is_test = True
 
-    db.setuped(status_code.FABSCRIPT_STARTED, '{0} started'.format(func_prefix))
+    db.setuped(status_code.START, '{0} started'.format(func_prefix), is_init=True)
 
     node = env.node_map.get(env.host)
 
     if not check_basic():
-        db.setuped(1, 'Failed to check')
+        db.setuped(status_code.FAILED_CHECK, 'Failed to check')
         log.warning('Failed to check')
         return
 
@@ -62,11 +62,12 @@ def run_func(func_prefix, option=None):
             filer.mkdir(conf.STORAGE_DIR)
             filer.mkdir(conf.TMP_DIR, mode='777')
 
-        db.setuped(1, 'start setup', is_init=True)
+        status = 0
+        db.setuped(status_code.SETUP_START, 'start setup')
         for fabscript in node.get('fabruns', []):
             db.create_fabscript(fabscript)
-            util.update_log(fabscript, 1, 'start setup')
-            db.setuped(1, 'start {0}'.format(fabscript))
+            util.update_log(fabscript, status_code.FABSCRIPT_START, 'start setup')
+            db.setuped(status_code.FABSCRIPT_START, 'start {0}'.format(fabscript))
 
             script = '.'.join((conf.FABSCRIPT_MODULE, fabscript))
             module = __import__(script, {}, {}, func_prefix)
@@ -98,6 +99,16 @@ def run_func(func_prefix, option=None):
 
                 if status != 0:
                     break
+
+            if status != 0:
+                break
+            else:
+                util.update_log(fabscript, status_code.SETUP_END, 'end {0}'.format(fabscript))
+                db.setuped(status_code.FABSCRIPT_END, 'end {0}'.format(fabscript))
+
+        if status == 0:
+            util.update_log(fabscript, status_code.SETUP_END, 'end setup')
+            db.setuped(status_code.SETUP_END, 'end {0}'.format(fabscript))
 
 
 @task
