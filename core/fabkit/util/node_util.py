@@ -1,12 +1,12 @@
 # coding: utf-8
 
+import time
+import os
 import yaml
 import json
-import os
 import re
-import time
-from hostutil import get_available_hosts
-from fabkit import conf, status_code, db, env
+from fabkit import conf, env, status_code, db
+from host_util import get_available_hosts
 
 
 RE_UPTIME = re.compile('^.*up (.+),.*user.*$')

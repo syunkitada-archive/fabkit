@@ -2,4 +2,4 @@
 
 
 from base import *  # noqa
-from init import init_logger, set_stdout_pipe  # noqa
+from log_util import init_logger, set_stdout_pipe  # noqa

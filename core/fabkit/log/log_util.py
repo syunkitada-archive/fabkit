@@ -10,7 +10,6 @@ from fabkit import conf, env
 
 
 def init_logger():
-    print 'test'
     root_logger = logging.getLogger()
     root_logger.setLevel(conf.LOGGER_LEVEL)
 

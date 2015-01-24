@@ -1,9 +1,9 @@
 # coding: utf-8
 
-from types import StringType
 import re
 import os
 import commands
+from types import StringType
 from fabkit import conf
 
 

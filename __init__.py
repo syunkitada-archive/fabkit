@@ -29,10 +29,10 @@ log.init_logger()
 
 # register task
 # from test import test  # noqa
-from node import node  # , dump  # noqa
+from node import node  # noqa
 from setup import _setup, setup, _manage, manage, _check, check  # noqa
-# jfrom databag import databag  # noqa
-# jfrom sync import sync  # noqa
+# from databag import databag  # noqa
+# from sync import sync  # noqa
 
 
 log.set_stdout_pipe()  # 標準出力をパイプでログに流す
