@@ -3,9 +3,7 @@
 import time
 import os
 import inspect
-from fabric.api import env, warn_only
-from api import local, sudo, scp, run
-from lib import log, conf
+from fabkit import api, env, local, sudo, run, scp, conf, log
 from jinja2 import Template
 
 
@@ -53,7 +51,7 @@ def file(target, mode='644', owner='root:root', extension=None, src_file=None, s
         src_file = create_src_file(target, src_str)
 
     is_updated = False
-    with warn_only():
+    with api.warn_only():
         if exists(target):
             log.info('file "{0}" exists'.format(target))
         else:
@@ -112,7 +110,7 @@ def template(target, mode='644', owner='root:root', data={},
 
     scp(local_tmp_file, tmp_file)
 
-    with warn_only():
+    with api.warn_only():
         if exists(target):
             result = sudo('diff {0} {1}'.format(target, tmp_file))
             if result.return_code != 0:
@@ -153,7 +151,7 @@ def touch(target, is_local=False, owner='root:root', mode='775'):
 
 
 def exists(target):
-    with warn_only():
+    with api.warn_only():
         cmd = '[ -e {0} ]'.format(target)
         if sudo(cmd).return_code == 0:
             return True

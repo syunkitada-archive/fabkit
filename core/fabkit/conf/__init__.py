@@ -1,44 +1,38 @@
 # coding: utf-8
-#
-# This module do initial configuration.
-# And provide setting value that read the configuration file.
 
 import os
 import sys
+# from logging import StreamHandler
 import ConfigParser
-from fabric.api import env
-import uuid
 import logging
-from logging.handlers import RotatingFileHandler
-from logging import StreamHandler
+from fabkit import api
+from constant import (
+    INIFILE_NAME,
+    STDOUT_LOG_FILE_NAME,
+    ALL_LOG_FILE_NAME,
+    ERROR_LOG_FILE_NAME
+)
 
 
 # setup fabric env
-env.forward_agent = True
-env.use_ssh_config = True
-env.warn_only = False
-env.colorize_errors = True
-
-env.is_test = False
-env.is_chef = False
-
-STDOUT_LOG_FILE = 'stdout.log'
-
-# for prefix of tmpfile
-UUID = uuid.uuid4()
-
-env.cmd_history = []  # for debug
-env.last_runs = []
-env.node_map = {}
+api.env.forward_agent = True
+api.env.use_ssh_config = True
+api.env.warn_only = False
+api.env.colorize_errors = True
+api.env.is_test = False
+api.env.is_chef = False
+api.env.cmd_history = []  # for debug
+api.env.last_runs = []
+api.env.node_map = {}
 
 
 # append module dir to sys.path
 def init(chefrepo_dir=None, test_chefrepo_dir=None):
-    if env.is_test:
-        env.cmd_history = []  # for debug
-        env.last_runs = []
-        env.hosts = []
-        env.node_map = {}
+    if api.env.is_test:
+        api.env.cmd_history = []  # for debug
+        api.env.last_runs = []
+        api.env.hosts = []
+        api.env.node_map = {}
 
     global CONFIG
     global PARALLEL_POOL_SIZE
@@ -48,7 +42,9 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
     global FABSCRIPT_MODULE, FABSCRIPT_MODULE_DIR
     global COOKBOOKS_DIRS, NODE_DIR, ROLE_DIR, ENVIRONMENT_DIR
     global FABLIB_MODULE_DIR, FABLIB_MAP
-    global LOGGER_LEVEL, LOGGER_FORMATTER, NODE_LOGGER_MAX_BYTES, NODE_LOGGER_BACKUP_COUNT
+    global LOGGER_LEVEL, LOGGER_FORMATTER, LOGGER_CONSOLE_LEVEL, LOGGER_CONSOLE_FORMATTER
+    global STDOUT_LOG_FILE, ALL_LOG_FILE, ERROR_LOG_FILE
+    global LOGGER_MAX_BYTES, LOGGER_BACKUP_COUNT, NODE_LOGGER_MAX_BYTES, NODE_LOGGER_BACKUP_COUNT
     global WEB_LOG_LENGTH
     global USER, PASSWORD
 
@@ -73,19 +69,20 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
 
         return os.path.join(CHEFREPO_DIR, path)
 
-    INIFILE = os.path.join(CHEFREPO_DIR, 'fabfile.ini')
+    INIFILE = os.path.join(CHEFREPO_DIR, INIFILE_NAME)
 
     CONFIG = ConfigParser.SafeConfigParser()
     CONFIG.read(INIFILE)
 
     # read common settings
-    PARALLEL_POOL_SIZE = CONFIG.get('common', 'parallel_pool_size')
+    api.env.pool_size = CONFIG.get('common', 'parallel_pool_size')
     REMOTE_NODE = CONFIG.get('common', 'remote_node')
     REMOTE_DIR = complement_path(CONFIG.get('common', 'remote_dir'))
     REMOTE_STORAGE_DIR = os.path.join(REMOTE_DIR, 'storage')
     REMOTE_TMP_DIR = os.path.join(REMOTE_DIR, 'tmp')
     STORAGE_DIR = complement_path(CONFIG.get('common', 'storage_dir'))
     LOG_DIR = os.path.join(STORAGE_DIR, 'log')
+    STDOUT_LOG_FILE = os.path.join(LOG_DIR, STDOUT_LOG_FILE_NAME)
     TMP_DIR = os.path.join(STORAGE_DIR, 'tmp')
     DATABAG_DIR = complement_path(CONFIG.get('common', 'databag_dir'))
     node_dir = CONFIG.get('common', 'node_dir')
@@ -95,50 +92,35 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
     FABLIB_MODULE = CONFIG.get('common', 'fablib_module')
     FABLIB_MODULE_DIR = os.path.join(CHEFREPO_DIR, FABLIB_MODULE)
 
+    #
+    # USER settings
+    #
     USER = CONFIG.get('common', 'user')
     PASSWORD = CONFIG.get('common', 'password')
-    env.user = USER
-    env.password = PASSWORD
+    api.env.user = USER
+    api.env.password = PASSWORD
 
-    import maintenance
-    maintenance.create_required_dirs()
-    maintenance.git_clone_required_fablib()
-
-    # logger settings
-    ALL_LOG_FILE_NAME = 'all.log'
+    #
+    # LOGGER settings
+    #
     ALL_LOG_FILE = os.path.join(LOG_DIR, ALL_LOG_FILE_NAME)
-    ERROR_LOG_FILE_NAME = 'error.log'
     ERROR_LOG_FILE = os.path.join(LOG_DIR, ERROR_LOG_FILE_NAME)
-    LOGGER_LEVEL = CONFIG.get('logger', 'level')
-    LOGGER_LEVEL = getattr(logging, LOGGER_LEVEL.upper())
+
+    LOGGER_LEVEL = getattr(logging, CONFIG.get('logger', 'level').upper())
+
     LOGGER_FORMAT = CONFIG.get('logger', 'format', True)
     LOGGER_FORMATTER = logging.Formatter(fmt=LOGGER_FORMAT)
-    LOGGER_CONSOLE_LEVEL = CONFIG.get('logger', 'console_level')
-    LOGGER_CONSOLE_LEVEL = getattr(logging, LOGGER_CONSOLE_LEVEL.upper())
     LOGGER_CONSOLE_FORMAT = CONFIG.get('logger', 'console_format', True)
     LOGGER_CONSOLE_FORMATTER = logging.Formatter(fmt=LOGGER_CONSOLE_FORMAT)
+
+    LOGGER_CONSOLE_LEVEL = getattr(logging, CONFIG.get('logger', 'console_level').upper())
+
     LOGGER_MAX_BYTES = CONFIG.getint('logger', 'max_bytes')
     LOGGER_BACKUP_COUNT = CONFIG.getint('logger', 'backup_count')
     NODE_LOGGER_MAX_BYTES = CONFIG.getint('node_logger', 'max_bytes')
     NODE_LOGGER_BACKUP_COUNT = CONFIG.getint('node_logger', 'backup_count')
 
-    root_logger = logging.getLogger()
-    root_logger.setLevel(LOGGER_LEVEL)
-
-    stream_handler = StreamHandler()
-    stream_handler.setFormatter(LOGGER_CONSOLE_FORMATTER)
-    stream_handler.setLevel(LOGGER_CONSOLE_LEVEL)
-    root_logger.addHandler(stream_handler)
-
-    file_rotaiting_handler = RotatingFileHandler(ALL_LOG_FILE,
-                                                 'a', LOGGER_MAX_BYTES, LOGGER_BACKUP_COUNT)
-    file_rotaiting_handler.setFormatter(LOGGER_FORMATTER)
-    root_logger.addHandler(file_rotaiting_handler)
-
-    error_file_rotaiting_handler = RotatingFileHandler(ERROR_LOG_FILE,
-                                                       'a', LOGGER_MAX_BYTES, LOGGER_BACKUP_COUNT)
-    error_file_rotaiting_handler.setFormatter(LOGGER_FORMATTER)
-    error_file_rotaiting_handler.setLevel(logging.ERROR)
-    root_logger.addHandler(error_file_rotaiting_handler)
-
+    #
+    # WEB settings
+    #
     WEB_LOG_LENGTH = CONFIG.getint('web', 'log_length')

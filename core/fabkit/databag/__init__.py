@@ -2,7 +2,7 @@
 
 import os
 import yaml
-from lib import conf
+from fabkit import conf
 
 
 def set(key_path, value):

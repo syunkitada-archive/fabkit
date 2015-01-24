@@ -3,9 +3,7 @@
 import commands
 import re
 import os
-from fabric import api
-from lib import log
-from lib import conf
+from fabkit import api, log, conf
 
 
 def cmd(cmd):

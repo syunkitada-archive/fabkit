@@ -1,78 +1,47 @@
 # coding: utf-8
 
-import json
 import platform
 import getpass
-from fabric.api import (env,
-                        task,
-                        hosts,)
-from lib import util
-from lib.api import *  # noqa
+from fabkit import api, env, db, util, sudo, status_code
 from types import StringType
 
 
-@task
-@hosts('localhost')
-def chefnode(option=None, host=None, chefoption=''):
-    if option == 'bootstrap':
-        host = __check_to_enter_host(host)
-        env.hosts = util.get_expanded_hosts(host)
-        if len(env.hosts) == 0:
-            print 'Empty nodes'
-            return
+@api.task
+@api.hosts('localhost')
+def node(*options):
+    len_options = len(options)
 
-        print env.hosts
-        print 'option: {0}'.format(chefoption)
-
-        # knife bootstrap `hostname` -A -x owner --sudo -r 'recipe[cookbook-test]'
-        # knife node run_list add 192.168.33.10 recipe[cookbook-test]
-
-        if util.confirm('Are you sure you want to bootstrap above nodes?', 'Canceled'):
-            for host in env.hosts:
-                cmd_bootstrap = 'knife bootstrap {0} -x {1} -N {0} --sudo {2}'.format(host, env.user, chefoption)  # noqa
-                local(cmd_bootstrap)
-
-        return
-    else:
-        env.is_chef = True
-        if not option:
-            host = '*'
+    if len_options == 0 or options[0] in ['recent', 're', 'error', 'er']:
+        length = int(options[1]) if len_options > 1 else None
+        if len_options == 0 or options[0] in ['recent', 're']:
+            nodes = db.get_recent_nodes(length)
         else:
-            host = option
-
-        option = host
-        search_cmd = 'knife search node "name:{0}" -F json'.format(host)
-        searched_nodes = cmd(search_cmd)[1]
-        if env.is_test:
-            nodes = [{'name': host}]
-        else:
-            nodes = json.loads(searched_nodes)['rows']
+            nodes = db.get_error_nodes(length)
 
         for node in nodes:
-            node.update(util.load_node(node['name']))
-            node.update({'path': node['name']})
-            env.node_map.update({node['name']: node})
+            util.load_node(node.path)
 
-        util.print_node_map(option=option)
-        check_continue()
+        util.print_node_map(option='status')
+        exit(0)
 
-
-@task
-@hosts('localhost')
-def node(option=None, host=None, edit_key=None, *edit_value):
-    env.is_chef = False
-
-    if option == 'create':
-        host = __check_to_enter_host(host)
+    elif options[0] in ['create', 'c']:
+        host = __check_to_enter_host(options, 1)
         hosts = util.get_expanded_hosts(host)
 
+        edit_key = 'fabruns'
         for tmp_host in hosts:
-            print tmp_host
+            if len_options > 2:
+                edit_value = options[2]
+                node = util.load_node(tmp_host[0])
+                print '{0} {1}'.format(tmp_host, __convert_value(edit_key, edit_value, tmp_host[1]))
+            else:
+                print tmp_host
 
         if util.confirm('Are you sure you want to create above nodes?', 'Canceled'):
             for tmp_host in hosts:
                 util.dump_node(tmp_host[0], is_init=True)
-                if edit_key and edit_value:
+                if len_options > 2:
+                    edit_value = options[2]
                     node = util.load_node(tmp_host[0])
                     node.update({edit_key: __convert_value(edit_key, edit_value, tmp_host[1])})
                     util.dump_node(tmp_host[0], node)
@@ -82,8 +51,8 @@ def node(option=None, host=None, edit_key=None, *edit_value):
 
         exit(0)
 
-    elif option == 'remove':
-        host = __check_to_enter_host(host)
+    elif options[0] in ['remove', 'r']:
+        host = __check_to_enter_host(options, 1)
         hosts = util.get_available_hosts(host)
         if len(hosts) == 0:
             print 'Empty hosts.'
@@ -99,14 +68,16 @@ def node(option=None, host=None, edit_key=None, *edit_value):
 
         exit(0)
 
-    elif option == 'edit':
-        host = __check_to_enter_host(host)
+    elif options[0] in ['edit', 'e']:
+        host = __check_to_enter_host(options, 1)
         util.load_node_map(host)
         util.print_node_map()
 
         print '\n\nEdit above nodes.'
         node_keys = ['fabruns', 'attrs']
-        if not edit_key:
+        if len(options) > 2:
+            edit_key = options[2]
+        else:
             while True:
                 edit_key = raw_input('Enter key: ')
                 if edit_key in node_keys:
@@ -114,10 +85,12 @@ def node(option=None, host=None, edit_key=None, *edit_value):
                 else:
                     print 'This key is not available'
 
-        if not edit_value:
+        if len(options) > 3:
+            edit_value = options[3]
+        else:
             edit_value = raw_input('Enter value: ')
 
-        edit_value = __convert_value(edit_key, edit_value)
+        edit_value = __convert_value(edit_key, edit_value, [])
 
         for node in env.node_map.values():
             node.update({edit_key: edit_value})
@@ -127,45 +100,22 @@ def node(option=None, host=None, edit_key=None, *edit_value):
 
         exit(0)
 
-    elif option == 'error':
-        if host:
-            length = int(host)
-        else:
-            length = None
-        nodes = db.get_error_nodes(length)
-        for node in nodes:
-            util.load_node(node.path)
-        util.print_node_map(option='status')
-        exit(0)
-
-    elif option == 'recent':
-        if host:
-            length = int(host)
-        else:
-            length = None
-        nodes = db.get_recent_nodes(length)
-        for node in nodes:
-            util.load_node(node.path)
-        util.print_node_map(option='status')
-        exit(0)
-
     else:
-        # node:host,option の形式となるように引数を調整
-        tmp_host = option
-        tmp_option = host
+        host = options[0]
+        print_option = options[1] if len_options > 1 else None
 
-        util.load_node_map(tmp_host)
-        util.print_node_map(option=tmp_option)
+        util.load_node_map(host)
+        util.print_node_map(option=print_option)
 
-        # option入力時は、続行せず出力するだけ
-        if tmp_option is not None:
+        # オプションがないときだけ、続行する
+        if print_option is not None:
             exit(0)
 
         check_continue()
 
 
-@task
-@hosts('localhost')
+@api.task
+@api.hosts('localhost')
 def dump(option=None, host=None, chefoption=''):
     util.print_node_map(option='status')
 
@@ -202,19 +152,18 @@ def check_continue():
             # Djangodbのコネクションをリセットしておく
             # これをやらないと、タスクをまたいでdbにアクセスした時に、IO ERRORとなる
             from django import db as djangodb
-            djangodb.close_connection()
+            djangodb.close_old_connections()
 
         else:
             env.hosts = []
             exit()
 
 
-def __check_to_enter_host(host):
-    ''' hostが入力されているかチェックする
-    hostが入力されていなければ、ユーザに入力を求める
-    '''
-    while not host or host == '':
+def __check_to_enter_host(options, index):
+    if len(options) <= index or options[index] == '':
         host = raw_input('Please enter host: ')
+    else:
+        host = options[index]
     return host
 
 

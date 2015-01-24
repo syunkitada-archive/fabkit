@@ -1,12 +1,12 @@
 # coding: utf-8
-from fabric.api import env
-# import json
+
 import yaml
 import json
-from lib.api import *  # noqa
-from host import *  # noqa
+import os
 import re
 import time
+from hostutil import get_available_hosts
+from fabkit import conf, status_code, db, env
 
 
 RE_UPTIME = re.compile('^.*up (.+),.*user.*$')

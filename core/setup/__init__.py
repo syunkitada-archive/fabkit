@@ -1,33 +1,27 @@
 # coding: utf-8
 
-from fabric.api import (task,
-                        env,
-                        parallel)
+from fabkit import env, api, conf, util, log, filer, status_code, db
 import inspect
-from lib import conf, util, log
-from lib.api import sudo, db, filer, status_code
 from check_util import check_basic
 from types import IntType, TupleType
 
 
-@task
+@api.task
 def _check(option=None):
     check(option)
 
 
-@task
-@parallel(pool_size=conf.PARALLEL_POOL_SIZE)
+@api.task
 def check(option=None):
     run_func('check', option)
 
 
-@task
+@api.task
 def _setup(option=None):
     setup(option)
 
 
-@task
-@parallel(pool_size=conf.PARALLEL_POOL_SIZE)
+@api.task
 def setup(option=None):
     run_func('setup', option)
     run_func('check', option)
@@ -46,78 +40,66 @@ def run_func(func_prefix, option=None):
         log.warning('Failed to check')
         return
 
-    if env.is_chef:
-        result = sudo('chef-client')
-        status = result.return_code
-        if status == 0:
-            msg = 'setuped'
-        else:
-            msg = 'error'
+    if func_prefix == 'setup':
+        filer.mkdir(conf.REMOTE_DIR)
+        filer.mkdir(conf.STORAGE_DIR)
+        filer.mkdir(conf.TMP_DIR, mode='777')
 
-        db.setuped_chef(status, msg)
+    status = 0
+    db.setuped(status_code.SETUP_START, 'start setup')
+    for fabscript in node.get('fabruns', []):
+        db.create_fabscript(fabscript)
+        util.update_log(fabscript, status_code.FABSCRIPT_START, 'start setup')
+        db.setuped(status_code.FABSCRIPT_START, 'start {0}'.format(fabscript))
 
-    else:
-        if func_prefix == 'setup':
-            filer.mkdir(conf.REMOTE_DIR)
-            filer.mkdir(conf.STORAGE_DIR)
-            filer.mkdir(conf.TMP_DIR, mode='777')
+        script = '.'.join((conf.FABSCRIPT_MODULE, fabscript))
+        module = __import__(script, {}, {}, func_prefix)
 
-        status = 0
-        db.setuped(status_code.SETUP_START, 'start setup')
-        for fabscript in node.get('fabruns', []):
-            db.create_fabscript(fabscript)
-            util.update_log(fabscript, status_code.FABSCRIPT_START, 'start setup')
-            db.setuped(status_code.FABSCRIPT_START, 'start {0}'.format(fabscript))
+        func_names = []
+        for member in inspect.getmembers(module):
+            if inspect.isfunction(member[1]):
+                if member[0].find(func_prefix) == 0:
+                    func_names.append(member[0])
 
-            script = '.'.join((conf.FABSCRIPT_MODULE, fabscript))
-            module = __import__(script, {}, {}, func_prefix)
+        func_names.sort()
+        for func_name in func_names:
+            func = getattr(module, func_name)
+            result = func()
 
-            func_names = []
-            for member in inspect.getmembers(module):
-                if inspect.isfunction(member[1]):
-                    if member[0].find(func_prefix) == 0:
-                        func_names.append(member[0])
+            status = None
+            msg = None
+            if type(result) is IntType:
+                status = result
+            if type(result) is TupleType:
+                status, msg = result
+            if not status:
+                status = 0
+            if not msg:
+                msg = 'end {0}'.format(func_prefix)
 
-            func_names.sort()
-            for func_name in func_names:
-                func = getattr(module, func_name)
-                result = func()
-
-                status = None
-                msg = None
-                if type(result) is IntType:
-                    status = result
-                if type(result) is TupleType:
-                    status, msg = result
-                if not status:
-                    status = 0
-                if not msg:
-                    msg = 'end {0}'.format(func_prefix)
-
-                util.update_log(fabscript, status, msg)
-                db.setuped(status, msg)
-
-                if status != 0:
-                    break
+            util.update_log(fabscript, status, msg)
+            db.setuped(status, msg)
 
             if status != 0:
                 break
-            else:
-                util.update_log(fabscript, status_code.SETUP_END, 'end {0}'.format(fabscript))
-                db.setuped(status_code.FABSCRIPT_END, 'end {0}'.format(fabscript))
 
-        if status == 0:
-            util.update_log(fabscript, status_code.SETUP_END, 'end setup')
-            db.setuped(status_code.SETUP_END, 'end {0}'.format(fabscript))
+        if status != 0:
+            break
+        else:
+            util.update_log(fabscript, status_code.SETUP_END, 'end {0}'.format(fabscript))
+            db.setuped(status_code.FABSCRIPT_END, 'end {0}'.format(fabscript))
+
+    if status == 0:
+        util.update_log(fabscript, status_code.SETUP_END, 'end setup')
+        db.setuped(status_code.SETUP_END, 'end {0}'.format(fabscript))
 
 
-@task
+@api.task
 def _manage(*args):
     manage(args)
 
 
-@task
-@parallel(pool_size=conf.PARALLEL_POOL_SIZE)
+@api.task
 def manage(*args):
     if args[0] == 'test':
         env.is_test = True

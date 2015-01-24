@@ -1,14 +1,9 @@
 # coding: utf-8
 
-from fabric.api import env
 import inspect
-from lib import log, conf
 import yaml
 import json
-import status_code
-import filer
-import databag
-from api import sudo
+from fabkit import env, conf, filer, sudo, databag
 from apps.node.models import Node, NodeCluster
 from apps.fabscript.models import Fabscript
 from django.db import transaction
@@ -85,15 +80,10 @@ def create_fabscript(script_name):
         create_new_fabscript(script_name)
 
 
-@transaction.commit_manually
+@transaction.atomic
 def create_new_fabscript(script_name):
-    try:
-        fabscript = Fabscript(name=script_name)
-        fabscript.save()
-    except:
-        transaction.rollback()
-    else:
-        transaction.commit()
+    fabscript = Fabscript(name=script_name)
+    fabscript.save()
 
 
 def update_data(data, script_name=None):

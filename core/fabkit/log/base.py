@@ -1,10 +1,9 @@
 # coding: utf-8
 
-from fabric import api
 import os
-from lib import conf
 import logging
 from logging.handlers import RotatingFileHandler
+from fabkit import api, conf
 
 
 loggers = {}

@@ -1,9 +1,10 @@
 # coding: utf-8
+
 from types import StringType
 import re
-import commands
-from lib import conf
 import os
+import commands
+from fabkit import conf
 
 
 def get_expanded_hosts(host=None, host_fragments=[]):

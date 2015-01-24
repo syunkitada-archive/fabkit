@@ -1,13 +1,10 @@
 # coding:utf-8
 
-from fabric.api import task, env, warn_only, parallel
-from lib.api import run, cmd
-from lib import util
-from lib import conf
 import yaml
 import re
 import platform
 import os
+from fabkit import api, env, run, cmd, util, conf
 
 
 if platform.platform().find('CYGWIN') >= 0:
@@ -20,8 +17,6 @@ else:
 RE_NODE = re.compile('log/(.+)/status.json: +"(.+)"')
 
 
-@task
-@parallel(10)
 def check_basic():
     ip = 'failed'
     ssh = 'failed'
@@ -46,7 +41,7 @@ def check_basic():
 
         return
 
-    with warn_only():
+    with api.warn_only():
         node = env.node_map.get(env.host)
         if env.is_test:
             ip = '127.0.0.1'
