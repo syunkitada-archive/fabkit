@@ -30,7 +30,7 @@ log.init_logger()
 # register task
 # from test import test  # noqa
 from node import node  # noqa
-from setup import _setup, setup, _manage, manage, _check, check  # noqa
+from setup import _setup, setup, _manage, manage, _check, check, _help  # noqa
 # from databag import databag  # noqa
 # from sync import sync  # noqa
 

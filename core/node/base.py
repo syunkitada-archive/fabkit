@@ -2,7 +2,7 @@
 
 import platform
 import getpass
-from fabkit import api, env, db, util, sudo, status_code
+from fabkit import api, env, db, util, sudo, status
 from types import StringType
 
 
@@ -145,7 +145,7 @@ def check_continue():
                     sudo('hostname')
 
             for node in env.node_map:
-                db.setuped(status_code.FABSCRIPT_REGISTERED, 'registered', host=node)
+                db.setuped(status.REGISTERED, status.REGISTERED_MSG.format(node), host=node)
 
             # Djangodbのコネクションをリセットしておく
             # これをやらないと、タスクをまたいでdbにアクセスした時に、IO ERRORとなる

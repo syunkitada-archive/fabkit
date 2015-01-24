@@ -5,7 +5,7 @@ import os
 import yaml
 import json
 import re
-from fabkit import conf, env, status_code, db
+from fabkit import conf, env, status, db
 from host_util import get_available_hosts
 
 
@@ -82,7 +82,7 @@ def load_node(host=None):
         for fabrun in node['fabruns']:
             logs.append({
                 'fabscript': fabrun,
-                'status': status_code.FABSCRIPT_REGISTERED,
+                'status': status.FABSCRIPT_REGISTERED,
                 'msg': 'registered',
                 'timestamp': time.time(),
             })

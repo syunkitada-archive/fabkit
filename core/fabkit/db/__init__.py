@@ -132,9 +132,14 @@ def get_link(script_name, key):
     return data[key]
 
 
-def setuped(status, msg, is_init=False, host=None):
+def setuped(status, msg, is_init=False, host=None, fabscript=None):
     if not host:
         host = env.host
+
+    if fabscript:
+        from fabkit import util
+        util.update_log(fabscript, status, msg)
+        msg = '{0}: {1}'.format(fabscript, msg)
 
     env_node = env.node_map.get(host)
     node = get_node(env_node)
