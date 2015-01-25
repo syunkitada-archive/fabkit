@@ -29,8 +29,6 @@ def get(key_path):
 
 def get_databag(key_path):
     key, data_file = __get_key_file(key_path)
-    print key
-    print data_file
 
     if os.path.exists(data_file):
         with open(data_file, 'r') as f:
