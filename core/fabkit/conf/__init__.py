@@ -2,7 +2,6 @@
 
 import os
 import sys
-# from logging import StreamHandler
 import ConfigParser
 import logging
 from fabkit import api
@@ -20,14 +19,13 @@ api.env.use_ssh_config = True
 api.env.warn_only = False
 api.env.colorize_errors = True
 api.env.is_test = False
-api.env.is_chef = False
 api.env.cmd_history = []  # for debug
 api.env.last_runs = []
 api.env.node_map = {}
 
 
 # append module dir to sys.path
-def init(chefrepo_dir=None, test_chefrepo_dir=None):
+def init(repo_dir=None, test_repo_dir=None):
     if api.env.is_test:
         api.env.cmd_history = []  # for debug
         api.env.last_runs = []
@@ -36,11 +34,11 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
 
     global CONFIG
     global PARALLEL_POOL_SIZE
-    global CHEFREPO_DIR, TEST_CHEFREPO_DIR
+    global REPO_DIR, TEST_REPO_DIR
     global REMOTE_NODE, REMOTE_DIR, REMOTE_STORAGE_DIR, REMOTE_TMP_DIR
     global STORAGE_DIR, LOG_DIR, TMP_DIR, DATABAG_DIR
     global FABSCRIPT_MODULE, FABSCRIPT_MODULE_DIR
-    global COOKBOOKS_DIRS, NODE_DIR, ROLE_DIR, ENVIRONMENT_DIR
+    global NODE_DIR, ROLE_DIR
     global FABLIB_MODULE_DIR, FABLIB_MAP
     global LOGGER_LEVEL, LOGGER_FORMATTER, LOGGER_CONSOLE_LEVEL, LOGGER_CONSOLE_FORMATTER
     global STDOUT_LOG_FILE, ALL_LOG_FILE, ERROR_LOG_FILE
@@ -48,17 +46,17 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
     global WEB_LOG_LENGTH
     global USER, PASSWORD
 
-    if test_chefrepo_dir:
-        TEST_CHEFREPO_DIR = test_chefrepo_dir
-    if chefrepo_dir:
-        CHEFREPO_DIR = chefrepo_dir
-    elif TEST_CHEFREPO_DIR:
-        if TEST_CHEFREPO_DIR not in sys.path:
-            sys.path.remove(CHEFREPO_DIR)
-            sys.path.append(TEST_CHEFREPO_DIR)
-        CHEFREPO_DIR = TEST_CHEFREPO_DIR
+    if test_repo_dir:
+        TEST_REPO_DIR = test_repo_dir
+    if repo_dir:
+        REPO_DIR = repo_dir
+    elif TEST_REPO_DIR:
+        if TEST_REPO_DIR not in sys.path:
+            sys.path.remove(REPO_DIR)
+            sys.path.append(TEST_REPO_DIR)
+        REPO_DIR = TEST_REPO_DIR
 
-    # complement to absolute path from path relative to the chef-repo
+    # complement to absolute path from path relative to the fabrepo
     def complement_path(path, is_check_dir=False):
         if path == '':
             return None
@@ -67,9 +65,9 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
         elif path.find('~') == 0:
             return os.path.expanduser(path)
 
-        return os.path.join(CHEFREPO_DIR, path)
+        return os.path.join(REPO_DIR, path)
 
-    INIFILE = os.path.join(CHEFREPO_DIR, INIFILE_NAME)
+    INIFILE = os.path.join(REPO_DIR, INIFILE_NAME)
 
     CONFIG = ConfigParser.SafeConfigParser()
     CONFIG.read(INIFILE)
@@ -88,9 +86,9 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
     DATABAG_DIR = complement_path(CONFIG.get('common', 'databag_dir'))
     NODE_DIR = complement_path(CONFIG.get('common', 'node_dir'))
     FABSCRIPT_MODULE = CONFIG.get('common', 'fabscript_module')
-    FABSCRIPT_MODULE_DIR = os.path.join(CHEFREPO_DIR, FABSCRIPT_MODULE)
+    FABSCRIPT_MODULE_DIR = os.path.join(REPO_DIR, FABSCRIPT_MODULE)
     FABLIB_MODULE = CONFIG.get('common', 'fablib_module')
-    FABLIB_MODULE_DIR = os.path.join(CHEFREPO_DIR, FABLIB_MODULE)
+    FABLIB_MODULE_DIR = os.path.join(REPO_DIR, FABLIB_MODULE)
 
     #
     # REMOTE settings

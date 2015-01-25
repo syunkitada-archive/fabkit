@@ -149,7 +149,4 @@ def touch(target, is_local=False, owner='root:root', mode='775'):
 def exists(target):
     with api.warn_only():
         cmd = '[ -e {0} ]'.format(target)
-        if sudo(cmd).return_code == 0:
-            return True
-        else:
-            return False
+        return True if sudo(cmd).return_code == 0 else False
