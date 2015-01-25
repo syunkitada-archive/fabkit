@@ -2,6 +2,7 @@
 
 from databag import databag
 from sync import sync
+from node import node
 from fabkit import api, conf
 from jinja2 import Template
 import os
@@ -10,9 +11,12 @@ import os
 @api.task
 def doc(option):
     if option == 'dump':
+        dump_doc(node)
         dump_doc(databag)
         dump_doc(sync)
 
+    elif option == 'node':
+        print_doc(node)
     elif option == 'databag':
         print_doc(databag)
     elif option == 'sync':

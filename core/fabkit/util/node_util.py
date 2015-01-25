@@ -99,11 +99,11 @@ def load_node(host=None):
     return {}
 
 
-def load_node_map(host=None):
+def load_node_map(host=None, find_depth=1):
     if not host:
         return env.host_map
 
-    hosts = get_available_hosts(host)
+    hosts = get_available_hosts(host, find_depth)
     for host in hosts:
         load_node(host)
 

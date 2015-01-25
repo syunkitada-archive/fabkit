@@ -95,9 +95,16 @@ def node(*options):
 
     else:
         host = options[0]
-        print_option = options[1] if len_options > 1 else None
+        print_option = None
+        find_depth = 1
+        if len_options > 1:
+            option = options[1]
+            if option.isdigit():
+                find_depth = int(option)
+            else:
+                print_option = option
 
-        util.load_node_map(host)
+        util.load_node_map(host, find_depth=find_depth)
         util.print_node_map(option=print_option)
 
         # オプションがないときだけ、続行する

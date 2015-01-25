@@ -49,13 +49,13 @@ def get_expanded_hosts(host=None, host_fragments=[]):
     return hosts
 
 
-def get_available_hosts(host_pattern=None):
+def get_available_hosts(host_pattern=None, find_depth=1):
     if not host_pattern or type(host_pattern) is not StringType:
         return []
 
     hosts = set()
     candidates = get_expanded_hosts(host_pattern)
-    RE_NODE_JSON = re.compile('%s/(.*).yaml' % conf.NODE_DIR)
+    RE_NODE_JSON = re.compile('{0}/(.*).yaml'.format(conf.NODE_DIR))
     for candidate in candidates:
         candidate = candidate[0]
         splited_candidate = candidate.rsplit('/', 1)
@@ -65,7 +65,8 @@ def get_available_hosts(host_pattern=None):
         else:
             node_dir = conf.NODE_DIR
 
-        cmd = 'find %s -maxdepth 1 -name "%s.yaml"' % (node_dir, candidate)
+        cmd = 'find {0} -maxdepth {1} -name "{2}.yaml"'.format(node_dir, find_depth, candidate)
+        print cmd
         host_jsons = commands.getoutput(cmd)
         hosts.update(set(RE_NODE_JSON.findall(host_jsons)))
 
