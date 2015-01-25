@@ -139,13 +139,11 @@ def mkdir(target, is_local=False, owner='root:root', mode='775'):
 
 
 def touch(target, is_local=False, owner='root:root', mode='775'):
-    cmd_touch = 'touch {0}'.format(target)
+    cmd_touch = 't={0} && touch $t'.format(target)
     if is_local:
         local(cmd_touch)
     else:
-        sudo(cmd_touch)
-        sudo('chmod {0} {1}'.format(mode, target))
-        sudo('chown {0} {1}'.format(owner, target))
+        sudo('{0} && chmod {1} $t && chown {2} $t'.format(cmd_touch, mode, owner))
 
 
 def exists(target):
