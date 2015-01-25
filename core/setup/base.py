@@ -14,6 +14,7 @@ def _manage(*args):
 
 
 @api.task
+@api.parallel
 def manage(*args):
     if args[0] == 'test':
         option = 'test'
@@ -30,6 +31,7 @@ def _check(option=None):
 
 
 @api.task
+@api.parallel
 def check(option=None):
     run_func(['^check.*'], option)
 
@@ -40,12 +42,15 @@ def _setup(option=None):
 
 
 @api.task
+@api.parallel
 def setup(option=None):
     run_func(['^setup.*', '^check.*'], option)
 
 
+# TODO オプションでmanageのような関数名を入れるとそれにマッチした関数のhelpを表示する
 @api.task
-def _help(option=None):
+def _help(*func_names):
+    func_patterns = [re.compile(name) for name in func_names]
     node = env.node_map.get(env.host)
     for fabscript in node.get('fabruns', []):
         db.create_fabscript(fabscript)
@@ -55,7 +60,16 @@ def _help(option=None):
         module_funcs = []
         for member in inspect.getmembers(module):
             if inspect.isfunction(member[1]):
-                module_funcs.append(member[0])
+                if not hasattr(member[1], 'is_task') or not member[1].is_task:
+                    continue
+
+                if len(func_patterns) == 0:
+                    module_funcs.append(member[0])
+                else:
+                    for func_pattern in func_patterns:
+                        if func_pattern.match(member[0]):
+                            module_funcs.append(member[0])
+                            help(member[1])
 
         print module_funcs
 
@@ -90,17 +104,18 @@ def run_func(func_names=[], option=None):
             if inspect.isfunction(member[1]):
                 module_funcs.append(member[0])
 
-        print 'DEBUG'
-        print module_funcs
         for func_pattern in func_patterns:
             result_status = None
             for candidate in module_funcs:
                 if func_pattern.match(candidate):
+                    func = getattr(module, candidate)
+                    if not hasattr(func, 'is_task') or not func.is_task:
+                        continue
+
                     db.setuped(status.FABSCRIPT_START,
                                status.FABSCRIPT_START_MSG.format(candidate),
                                fabscript=fabscript)
 
-                    func = getattr(module, candidate)
                     result = func()
 
                     result_status = None

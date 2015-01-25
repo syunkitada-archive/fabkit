@@ -76,21 +76,29 @@ def init(chefrepo_dir=None, test_chefrepo_dir=None):
 
     # read common settings
     api.env.pool_size = CONFIG.get('common', 'parallel_pool_size')
-    REMOTE_NODE = CONFIG.get('common', 'remote_node')
-    REMOTE_DIR = complement_path(CONFIG.get('common', 'remote_dir'))
-    REMOTE_STORAGE_DIR = os.path.join(REMOTE_DIR, 'storage')
-    REMOTE_TMP_DIR = os.path.join(REMOTE_DIR, 'tmp')
+
+    #
+    # LOCAL settings
+    #
     STORAGE_DIR = complement_path(CONFIG.get('common', 'storage_dir'))
+    TMP_DIR = os.path.join(STORAGE_DIR, 'tmp')
     LOG_DIR = os.path.join(STORAGE_DIR, 'log')
     STDOUT_LOG_FILE = os.path.join(LOG_DIR, STDOUT_LOG_FILE_NAME)
-    TMP_DIR = os.path.join(STORAGE_DIR, 'tmp')
+
     DATABAG_DIR = complement_path(CONFIG.get('common', 'databag_dir'))
-    node_dir = CONFIG.get('common', 'node_dir')
-    NODE_DIR = complement_path(node_dir)
+    NODE_DIR = complement_path(CONFIG.get('common', 'node_dir'))
     FABSCRIPT_MODULE = CONFIG.get('common', 'fabscript_module')
     FABSCRIPT_MODULE_DIR = os.path.join(CHEFREPO_DIR, FABSCRIPT_MODULE)
     FABLIB_MODULE = CONFIG.get('common', 'fablib_module')
     FABLIB_MODULE_DIR = os.path.join(CHEFREPO_DIR, FABLIB_MODULE)
+
+    #
+    # REMOTE settings
+    #
+    REMOTE_NODE = CONFIG.get('common', 'remote_node')
+    REMOTE_DIR = complement_path(CONFIG.get('common', 'remote_dir'))
+    REMOTE_STORAGE_DIR = os.path.join(REMOTE_DIR, 'storage')
+    REMOTE_TMP_DIR = os.path.join(REMOTE_STORAGE_DIR, 'tmp')
 
     #
     # USER settings
