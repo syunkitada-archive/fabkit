@@ -34,7 +34,7 @@ from node import node  # noqa
 from setup import _setup, setup, _manage, manage, _check, check, _help  # noqa
 from databag import databag  # noqa
 from doc import doc  # noqa
-# from sync import sync  # noqa
+from sync import sync  # noqa
 
 
 log.set_stdout_pipe()  # 標準出力をパイプ経由でログに流す

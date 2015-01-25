@@ -11,7 +11,9 @@ def databag(option=None, key=None, value=None):
         print 'set key:{0}, value:{1}'.format(key, value)
 
     elif option == 'get':
-        print bag.get(key)
+        result = bag.get(key)
+        print result
+        return result
 
     elif option == 'list':
         print 'list'

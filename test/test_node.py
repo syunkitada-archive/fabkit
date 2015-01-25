@@ -1,3 +1,5 @@
+# coding: utf-8
+
 import unittest
 from node import node
 from fabkit import conf, util, env

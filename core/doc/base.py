@@ -1,6 +1,7 @@
 # coding: utf-8
 
 from databag import databag
+from sync import sync
 from fabkit import api, conf
 from jinja2 import Template
 import os
@@ -10,9 +11,12 @@ import os
 def doc(option):
     if option == 'dump':
         dump_doc(databag)
+        dump_doc(sync)
 
     elif option == 'databag':
         print_doc(databag)
+    elif option == 'sync':
+        print_doc(sync)
 
 
 def dump_doc(func):
