@@ -1,3 +1,2 @@
-fablib
-nodes/*.yaml
-storage
+/nodes/
+/storage/
