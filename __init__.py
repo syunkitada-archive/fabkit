@@ -14,6 +14,7 @@ sys.path.extend([
     WEBAPP_DIR,
     CORE_DIR,
     REPO_DIR,
+    TEST_REPO_DIR,
 ])
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "webapp.appconf.settings")
