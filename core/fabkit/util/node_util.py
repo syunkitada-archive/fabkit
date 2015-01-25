@@ -49,16 +49,15 @@ def dump_node(host_path=None, node=None, is_init=False):
         node_path = node.get('path')
         node = convert_node(node)
 
-    if not env.is_chef:
-        node_file = get_node_file(node_path)
+    node_file = get_node_file(node_path)
 
-        # create dir
-        splited_node_file = node_file.rsplit('/', 1)
-        if len(splited_node_file) > 1 and not os.path.exists(splited_node_file[0]):
-            os.makedirs(splited_node_file[0])
+    # create dir
+    splited_node_file = node_file.rsplit('/', 1)
+    if len(splited_node_file) > 1 and not os.path.exists(splited_node_file[0]):
+        os.makedirs(splited_node_file[0])
 
-        with open(node_file, 'w') as f:
-            f.write(yaml.dump(node))
+    with open(node_file, 'w') as f:
+        f.write(yaml.dump(node))
 
 
 def load_node(host=None):
@@ -143,13 +142,10 @@ def print_node_map(node_map=None, option=None):
     else:
         max_len_host = max([len(node['path']) for node in node_map.values()])
 
-    if env.is_chef:
-        format_str = '{host:<' + str(max_len_host) + '} {run_list}'
+    if option:
+        format_str = '{host:<' + str(max_len_host) + '} {status:<6} {logs}'
     else:
-        if option:
-            format_str = '{host:<' + str(max_len_host) + '} {status:<6} {logs}'
-        else:
-            format_str = '{host:<' + str(max_len_host) + '} {fabruns}'
+        format_str = '{host:<' + str(max_len_host) + '} {fabruns}'
 
     horizontal_line = '-' * (max_len_host + 30)
     print horizontal_line

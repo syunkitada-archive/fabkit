@@ -22,7 +22,7 @@ django.setup()
 
 # initialize config
 from fabkit import conf, util, log
-conf.init(REPO_DIR, TEST_REPO_DIR)
+conf.init(FABFILE_DIR, REPO_DIR, TEST_REPO_DIR)
 util.create_required_dirs()
 util.git_clone_required_fablib()
 log.init_logger()
@@ -32,7 +32,8 @@ log.init_logger()
 from test import test  # noqa
 from node import node  # noqa
 from setup import _setup, setup, _manage, manage, _check, check, _help  # noqa
-# from databag import databag  # noqa
+from databag import databag  # noqa
+from doc import doc  # noqa
 # from sync import sync  # noqa
 
 

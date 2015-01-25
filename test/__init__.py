@@ -3,7 +3,7 @@
 import os
 import unittest
 import commands
-from fabkit import conf, api, env
+from fabkit import conf, api, env, util
 
 
 @api.task
@@ -12,13 +12,14 @@ def test(pattern=None):
     # initialize config for test
     env.is_test = True
     conf.init()
+    util.create_required_dirs()
+    commands.getoutput('rm -rf {0}/*'.format(conf.NODE_DIR))
+    commands.getoutput('rm -rf {0}/*'.format(conf.TMP_DIR))
+    commands.getoutput('rm -rf {0}/*'.format(conf.LOG_DIR))
 
     DIR = os.path.dirname(__file__)
-    print conf.TEST_REPO_DIR
 
-    return
     # first, remove all node, and create test nodes in test_node
-    commands.getoutput('rm -r {0}/*'.format(conf.NODE_DIR))
     if pattern:
         suites = unittest.TestLoader().discover(DIR, pattern='test_{0}*'.format(pattern))
     else:

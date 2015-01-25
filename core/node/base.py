@@ -22,7 +22,6 @@ def node(*options):
             util.load_node(node.path)
 
         util.print_node_map(option='status')
-        exit(0)
 
     elif options[0] in ['create', 'c']:
         host = __check_to_enter_host(options, 1)
@@ -49,8 +48,6 @@ def node(*options):
         util.load_node_map(host)
         util.print_node_map()
 
-        exit(0)
-
     elif options[0] in ['remove', 'r']:
         host = __check_to_enter_host(options, 1)
         hosts = util.get_available_hosts(host)
@@ -65,8 +62,6 @@ def node(*options):
             for tmp_host in hosts:
                 util.remove_node(tmp_host)
                 print '{0} removed.'.format(tmp_host)
-
-        exit(0)
 
     elif options[0] in ['edit', 'e']:
         host = __check_to_enter_host(options, 1)
@@ -98,8 +93,6 @@ def node(*options):
 
         util.print_node_map()
 
-        exit(0)
-
     else:
         host = options[0]
         print_option = options[1] if len_options > 1 else None
@@ -108,10 +101,8 @@ def node(*options):
         util.print_node_map(option=print_option)
 
         # オプションがないときだけ、続行する
-        if print_option is not None:
-            exit(0)
-
-        check_continue()
+        if print_option is None:
+            check_continue()
 
 
 def dump(option=None, host=None, chefoption=''):

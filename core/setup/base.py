@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from fabkit import env, api, conf, util, log, filer, status, db
+from fabkit import env, api, conf, log, filer, status, db
 import re
 import importlib
 import inspect
@@ -10,7 +10,7 @@ from types import IntType, TupleType, StringType
 
 @api.task
 def _manage(*args):
-    manage(args)
+    manage(*args)
 
 
 @api.task
@@ -47,7 +47,6 @@ def setup(option=None):
     run_func(['^setup.*', '^check.*'], option)
 
 
-# TODO オプションでmanageのような関数名を入れるとそれにマッチした関数のhelpを表示する
 @api.task
 def _help(*func_names):
     func_patterns = [re.compile(name) for name in func_names]

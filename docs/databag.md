@@ -1,8 +1,6 @@
-# coding: utf-8
+# databag
 
-from base import databag  # noqa
 
-databag.__doc__ = """
 access databag
 
 ## Args
@@ -13,4 +11,3 @@ access databag
 ```
 $ fab databag:set,test/database.password,dbpass
 ```
-"""

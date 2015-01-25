@@ -9,7 +9,8 @@ from constant import (
     INIFILE_NAME,
     STDOUT_LOG_FILE_NAME,
     ALL_LOG_FILE_NAME,
-    ERROR_LOG_FILE_NAME
+    ERROR_LOG_FILE_NAME,
+    DOC_DIR_NAME,
 )
 
 
@@ -25,7 +26,7 @@ api.env.node_map = {}
 
 
 # append module dir to sys.path
-def init(repo_dir=None, test_repo_dir=None):
+def init(fabfile_dir=None, repo_dir=None, test_repo_dir=None):
     if api.env.is_test:
         api.env.cmd_history = []  # for debug
         api.env.last_runs = []
@@ -35,10 +36,10 @@ def init(repo_dir=None, test_repo_dir=None):
     global CONFIG
     global PARALLEL_POOL_SIZE
     global REPO_DIR, TEST_REPO_DIR
+    global FABFILE_DIR, DOC_DIR
     global REMOTE_NODE, REMOTE_DIR, REMOTE_STORAGE_DIR, REMOTE_TMP_DIR
     global STORAGE_DIR, LOG_DIR, TMP_DIR, DATABAG_DIR
-    global FABSCRIPT_MODULE, FABSCRIPT_MODULE_DIR
-    global NODE_DIR, ROLE_DIR
+    global FABSCRIPT_MODULE, FABSCRIPT_MODULE_DIR, NODE_DIR, ROLE_DIR
     global FABLIB_MODULE_DIR, FABLIB_MAP
     global LOGGER_LEVEL, LOGGER_FORMATTER, LOGGER_CONSOLE_LEVEL, LOGGER_CONSOLE_FORMATTER
     global STDOUT_LOG_FILE, ALL_LOG_FILE, ERROR_LOG_FILE
@@ -46,6 +47,9 @@ def init(repo_dir=None, test_repo_dir=None):
     global WEB_LOG_LENGTH
     global USER, PASSWORD
 
+    if fabfile_dir:
+        FABFILE_DIR = fabfile_dir
+        DOC_DIR = os.path.join(fabfile_dir, DOC_DIR_NAME)
     if test_repo_dir:
         TEST_REPO_DIR = test_repo_dir
     if repo_dir:
