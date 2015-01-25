@@ -158,36 +158,6 @@ def setuped(status, msg, is_init=False, host=None, fabscript=None):
     node.save()
 
 
-def is_setuped(host, script_name, status=0):
-    return True
-    # TODO is_setuped
-    # try:
-    #     node = Node.objects.get(host=host)
-    #     fabscript = Fabscript.objects.get(name=script_name)
-    #     result = Result.objects.get(node=node, fabscript=fabscript)
-    #     if result.status == status:
-    #         return 0
-
-    # except Node.DoesNotExist:
-    #     msg = '{0} does not exist'.format(host)
-    #     log.warning(msg)
-    #     return status_code.NODE_DOES_NOT_EXIST, msg
-
-    # except Fabscript.DoesNotExist:
-    #     msg = '{0} does not exist'.format(script_name)
-    #     log.warning(msg)
-    #     return status_code.FABSCRIPT_DOES_NOT_EXIST, msg
-
-    # except Result.DoesNotExist:
-    #     msg = '{0} does not exist'.format(host, script_name)
-    #     log.warning(msg)
-    #     return status_code.RESULT_DOES_NOT_EXIST, msg
-
-    # msg = '{0}:{1} is not setuped'. format(host, script_name)
-    # log.warning(msg)
-    # return status_code.IS_NOT_SETUPED, msg
-
-
 def __get_script_name(is_reqursive=False):
     scripts = []
     stack = inspect.stack()[1:]
