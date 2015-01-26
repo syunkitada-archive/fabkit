@@ -20,6 +20,14 @@ init = ->
         render_force_layout()
         return)
 
+    $('#show-overview').on('click', ->
+        $('#overview-modal').modal()
+        return)
+
+    $('#overview-modal').on('shown.bs.modal', ->
+        render_overview_layout()
+        return)
+
     $('#search-input').on('change', filter)
                       .on('keyup', filter)
 

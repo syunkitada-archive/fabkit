@@ -103,8 +103,8 @@ def run_func(func_names=[], option=None):
             if inspect.isfunction(member[1]):
                 module_funcs.append(member[0])
 
+        result_status = None
         for func_pattern in func_patterns:
-            result_status = None
             for candidate in module_funcs:
                 if func_pattern.match(candidate):
                     func = getattr(module, candidate)
@@ -124,7 +124,7 @@ def run_func(func_names=[], option=None):
                     if type(result) is StringType:
                         result_msg = result
                     elif type(result) is TupleType and len(result) == 2 \
-                            and type(result[1]) == IntType and type(result[2]) == StringType:
+                            and type(result[0]) == IntType and type(result[1]) == StringType:
                         result_status, result_msg = result
 
                     if not result_status:
@@ -139,9 +139,9 @@ def run_func(func_names=[], option=None):
                                                                                       candidate))
                         return result_status
 
-            if not result_status:
-                db.setuped(status.FABSCRIPT_END,
-                           status.FABSCRIPT_END_EMPTY_MSG,
-                           fabscript=fabscript)
+        if not result_status:
+            db.setuped(status.FABSCRIPT_END,
+                       status.FABSCRIPT_END_EMPTY_MSG,
+                       fabscript=fabscript)
 
     db.setuped(status.END, status.END_MSG.format(func_names))

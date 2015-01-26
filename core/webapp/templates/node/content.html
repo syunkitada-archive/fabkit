@@ -15,9 +15,23 @@
     </div>
     <div class="col-xs-6">
         <input id="show-graph" class="btn btn-default" type="button" value="Show Graph">
+        <input id="show-overview" class="btn btn-default" type="button" value="Show Overview">
         <input class="btn btn-default pull-right" type="button" value="Remove" onclick="fabkit.remove_data('{% url 'node:remove' %}')">
     </div>
 </div>
+
+<p>
+    <ul class="nav nav-pills" role="tablist">
+        <li role="presentation"><a href="#" class="bg-info">All
+            <span class="badge" id="all-node-badge"></span></a></li>
+        <li role="presentation"><a href="#" class="bg-success">Success
+            <span class="badge" id="success-node-badge"></span></a></li>
+        <li role="presentation"><a href="#" class="bg-warning">Warning
+            <span class="badge" id="warning-node-badge"></span></a></li>
+        <li role="presentation"><a href="#" class="bg-danger">Danger
+            <span class="badge" id="danger-node-badge"></span></a></li>
+    </ul>
+</p>
 <div class="table-responsive">
     <table class="table table-striped table-bordered">
         <thead>

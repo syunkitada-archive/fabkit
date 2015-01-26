@@ -1,4 +1,5 @@
 render_force_layout = () ->
+    console.log 'render force layout'
     id = '#graph-svg'
     nodes = graph_nodes
     links = graph_links

@@ -1,5 +1,5 @@
 (function() {
-  var WARNING_STATUS_THRESHOLD, fabscripts, filter, graph_links, graph_nodes, init, mode, node_clusters, nodes, render_all, render_fabscript, render_fabscript_clusters, render_force_layout, render_node, render_node_clusters, render_user, users,
+  var WARNING_STATUS_THRESHOLD, fabscripts, filter, graph_links, graph_nodes, init, mode, node_clusters, nodes, render_all, render_fabscript, render_fabscript_clusters, render_force_layout, render_node, render_node_clusters, render_overview_layout, render_user, users,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   window.fabkit = {};
@@ -151,6 +151,7 @@
 
   render_force_layout = function() {
     var $svg, force, h, id, link, links, node, svg, w;
+    console.log('render force layout');
     id = '#graph-svg';
     nodes = graph_nodes;
     links = graph_links;
@@ -201,6 +202,110 @@
       });
     });
     return force.start();
+  };
+
+  render_overview_layout = function() {
+    var $svg, click, g, h, id, kx, ky, links, partition, root, svg, transform, vis, w, x, y;
+    id = '#overview-svg';
+    nodes = graph_nodes;
+    links = graph_links;
+    svg = d3.select(id);
+    $svg = $(id).empty();
+    w = $svg.width();
+    h = $svg.height();
+    x = d3.scale.linear().range([0, w]);
+    y = d3.scale.linear().range([0, h]);
+    root = {
+      type: 'root',
+      name: 'fabscript',
+      children: graph_nodes
+    };
+    vis = d3.select(id).attr("width", w).attr("height", h);
+    partition = d3.layout.partition().value(function(d) {
+      return d.size;
+    });
+    click = function(d) {
+      var kx, ky, t, _ref;
+      if (!d.children) {
+        return;
+      }
+      kx = (d.y ? w - 40 : w) / (1 - d.y);
+      ky = h / d.dx;
+      x.domain([d.y, 1]).range([(d.y ? 40 : 0), w]);
+      y.domain([d.x, d.x + d.dx]);
+      t = g.transition().duration((_ref = d3.event.altKey) != null ? _ref : {
+        7500: 750
+      }).attr("transform", function(d) {
+        return "translate(" + x(d.y) + "," + y(d.x) + ")";
+      });
+      t.select("rect").attr("width", d.dy * kx).attr("height", function(d) {
+        return d.dx * ky;
+      });
+      t.select("text").attr("transform", transform).style("opacity", function(d) {
+        if (d.dx * ky > 12) {
+          return 1;
+        } else {
+          return 0;
+        }
+      });
+      d3.event.stopPropagation();
+    };
+    g = vis.selectAll("g").data(partition.nodes(root)).enter().append("svg:g").attr("transform", function(d) {
+      return "translate(" + x(d.y) + "," + y(d.x) + ")";
+    }).on("click", click);
+    kx = w / root.dx;
+    ky = h / 1;
+    g.append("rect").attr("width", root.dy * kx).attr("height", function(d) {
+      return d.dx * ky;
+    }).attr("class", function(d) {
+      if (d.children) {
+        return "" + d["class"] + " parent";
+      } else {
+        return d["class"];
+      }
+    });
+    transform = function(d) {
+      return "translate(8," + d.dx * ky / 2 + ")";
+    };
+    g.append("text").attr("transform", transform).attr("dy", ".35em").style("opacity", function(d) {
+      if (d.dx * ky > 12) {
+        return 1;
+      } else {
+        return 0;
+      }
+    }).text(function(d) {
+      return "" + d.name;
+    });
+    g.append("text").attr("transform", transform).attr("dy", ".35em").attr("y", 15).style("opacity", function(d) {
+      if (d.dx * ky > 12) {
+        return 1;
+      } else {
+        return 0;
+      }
+    }).text(function(d) {
+      var danger_length, fabscript, success_length, warning_length, _i, _len, _ref;
+      if (d.type === 'root') {
+        success_length = 0;
+        warning_length = 0;
+        danger_length = 0;
+        _ref = d.children;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          fabscript = _ref[_i];
+          success_length += fabscript.success_length;
+          warning_length += fabscript.warning_length;
+          danger_length += fabscript.danger_length;
+        }
+        return "✔ " + success_length + ", ▲ " + warning_length + ", ✘ " + danger_length;
+      }
+      if (d.type === 'fabscript') {
+        return "✔ " + d.success_length + ", ▲ " + d.warning_length + ", ✘ " + d.danger_length;
+      } else if (d.type === 'status') {
+        return "( " + d.length + " )";
+      }
+    });
+    return d3.select(window).on("click", function() {
+      return click(root);
+    });
   };
 
   render_node_clusters = function() {
@@ -439,18 +544,31 @@
   };
 
   render_node = function() {
-    var danger_length, fabscript, fabscript_node, fabscript_node_map, i, index, link, linked_fabscript, log, logs_all, logs_all_html, logs_html, name, node, result, results_tbody_html, script_name, success_length, timestamp, tmp_logs_html, tr_class, warning_length, _i, _j, _k, _l, _len, _len1, _len2, _len3, _m, _ref, _ref1, _results;
+    var all_node_length, danger_length, danger_node_length, danger_nodes, fabscript, fabscript_node, fabscript_node_map, i, index, link, linked_fabscript, log, logs_all, logs_all_html, logs_html, name, node, result, results_tbody_html, script_name, success_length, success_node_length, success_nodes, timestamp, tmp_logs_html, tr_class, warning_length, warning_node_length, warning_nodes, _i, _j, _k, _l, _len, _len1, _len2, _len3, _m, _ref, _ref1, _results;
     fabscript_node_map = {};
     results_tbody_html = '';
+    all_node_length = nodes.length;
+    success_node_length = 0;
+    warning_node_length = 0;
+    danger_node_length = 0;
     for (i = _i = 0, _len = nodes.length; _i < _len; i = ++_i) {
       result = nodes[i];
+      if (result.fields.status === 0) {
+        success_node_length++;
+      } else if (result.fields.status < WARNING_STATUS_THRESHOLD) {
+        warning_node_length++;
+      } else {
+        danger_node_length++;
+      }
       tmp_logs_html = '';
       _ref = JSON.parse(result.fields.logs);
       for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
         log = _ref[_j];
         node = {
+          type: 'node',
           'index': i,
-          'name': result.fields.node_path
+          'name': result.fields.path,
+          'size': 1
         };
         if (!(log.fabscript in fabscript_node_map)) {
           fabscript_node_map[log.fabscript] = {
@@ -461,10 +579,13 @@
           };
         }
         if (log.status === 0) {
+          node['class'] = 'success';
           fabscript_node_map[log.fabscript]['success_nodes'].push(node);
         } else if (log.status < WARNING_STATUS_THRESHOLD) {
+          node['class'] = 'warning';
           fabscript_node_map[log.fabscript]['warning_nodes'].push(node);
         } else {
+          node['class'] = 'danger';
           fabscript_node_map[log.fabscript]['danger_nodes'].push(node);
         }
         tmp_logs_html += "" + log.fabscript + ": " + log.msg + "[" + log.status + "]<br>";
@@ -491,6 +612,10 @@
       results_tbody_html += "<tr id=\"" + result.pk + "\" class=\"" + tr_class + "\"> <td><input type=\"checkbox\"></td> <td>" + result.fields.path + "</td> <td>" + result.fields.status + "</td> <td>" + result.fields.msg + "</td> <td>" + logs_html + "</td> <td>" + result.fields.updated_at + "</td> </tr>";
     }
     $('#nodes-tbody').html(results_tbody_html);
+    $('#all-node-badge').html(all_node_length);
+    $('#success-node-badge').html(success_node_length);
+    $('#warning-node-badge').html(warning_node_length);
+    $('#danger-node-badge').html(danger_node_length);
     index = 0;
     for (_l = 0, _len2 = fabscripts.length; _l < _len2; _l++) {
       fabscript = fabscripts[_l];
@@ -525,15 +650,40 @@
     _results = [];
     for (fabscript in fabscript_node_map) {
       fabscript_node = fabscript_node_map[fabscript];
-      success_length = fabscript_node.success_nodes.length;
-      warning_length = fabscript_node.warning_nodes.length;
-      danger_length = fabscript_node.danger_nodes.length;
+      success_nodes = fabscript_node.success_nodes;
+      warning_nodes = fabscript_node.warning_nodes;
+      danger_nodes = fabscript_node.danger_nodes;
+      success_length = success_nodes.length;
+      warning_length = warning_nodes.length;
+      danger_length = danger_nodes.length;
       graph_nodes[fabscript_node.index] = {
+        type: 'fabscript',
         name: fabscript,
         icon: fabscript_node.icon,
         success_length: success_length,
         warning_length: warning_length,
-        danger_length: danger_length
+        danger_length: danger_length,
+        children: [
+          {
+            type: 'status',
+            name: 'success',
+            "class": 'success',
+            length: success_length,
+            children: success_nodes
+          }, {
+            type: 'status',
+            name: 'warning',
+            "class": 'warning',
+            length: warning_length,
+            children: warning_nodes
+          }, {
+            type: 'status',
+            name: 'danger',
+            "class": 'danger',
+            length: danger_length,
+            children: danger_nodes
+          }
+        ]
       };
       _results.push((function() {
         var _len4, _n, _ref2, _results1;
@@ -572,6 +722,12 @@
     });
     $('#graph-modal').on('shown.bs.modal', function() {
       render_force_layout();
+    });
+    $('#show-overview').on('click', function() {
+      $('#overview-modal').modal();
+    });
+    $('#overview-modal').on('shown.bs.modal', function() {
+      render_overview_layout();
     });
     $('#search-input').on('change', filter).on('keyup', filter);
     $('#all-checkbox').on('change', function() {

@@ -197,6 +197,33 @@ footer {
 }
 
 
+
+/*
+ * popover
+ */
+.popover-anchor {
+    cursor: pointer;
+}
+
+.popover {
+    max-width: 600px;
+}
+
+
+.form-signin {
+  max-width: 330px;
+  margin: 0 auto;
+}
+
+.form-user {
+  max-width: 500px;
+}
+
+.msg-box {
+    padding: 5px;
+}
+
+
 /*
  * svg
  */
@@ -245,27 +272,18 @@ footer {
     fill: #d9534f;
 }
 
-/*
- * popover
- */
-.popover-anchor {
+rect {
+    stroke: #ccc;
+    fill: #f8f8f8;
+    fill-opacity: .8;
+}
+
+rect.success { fill: #dff0d8; }
+
+rect.parent {
     cursor: pointer;
 }
 
-.popover {
-    max-width: 600px;
-}
-
-
-.form-signin {
-  max-width: 330px;
-  margin: 0 auto;
-}
-
-.form-user {
-  max-width: 500px;
-}
-
-.msg-box {
-    padding: 5px;
+text {
+    pointer-events: none;
 }
