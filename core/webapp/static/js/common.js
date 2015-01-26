@@ -159,7 +159,7 @@
     $svg = $(id).empty();
     w = $svg.width();
     h = $svg.height();
-    force = d3.layout.force().nodes(nodes).links(links).linkDistance(150).linkStrength(0.1).friction(0.8).charge(-300).gravity(.04).size([w, h]);
+    force = d3.layout.force().nodes(nodes).links(links).linkDistance(150).linkStrength(0.1).friction(0.8).charge(-300).gravity(.05).size([w, h]);
     link = svg.selectAll('.link').data(links).enter().append('line').attr('class', 'link').attr('marker-end', 'url(#markerArrow)');
     node = svg.selectAll(".node").data(nodes).enter().append('g').attr('class', 'node').call(force.drag);
     node.append('glyph').attr('class', 'glyphicon glyphicon-star').attr('unicode');
@@ -274,7 +274,11 @@
         return 0;
       }
     }).text(function(d) {
-      return "" + d.name;
+      if (d.type === 'status') {
+        return "" + d.name + " (" + d.length + ")";
+      } else {
+        return "" + d.name;
+      }
     });
     g.append("text").attr("transform", transform).attr("dy", ".35em").attr("y", 15).style("opacity", function(d) {
       if (d.dx * ky > 12) {
@@ -299,8 +303,6 @@
       }
       if (d.type === 'fabscript') {
         return "✔ " + d.success_length + ", ▲ " + d.warning_length + ", ✘ " + d.danger_length;
-      } else if (d.type === 'status') {
-        return "( " + d.length + " )";
       }
     });
     return d3.select(window).on("click", function() {

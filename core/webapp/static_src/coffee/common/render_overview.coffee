@@ -69,7 +69,12 @@ render_overview_layout = () ->
         .attr("dy", ".35em")
         .style("opacity", (d) ->
             if d.dx * ky > 12 then 1 else 0)
-        .text((d) -> return "#{d.name}")
+        .text((d) ->
+            if d.type == 'status'
+                return "#{d.name} (#{d.length})"
+            else
+                return "#{d.name}"
+            )
 
     g.append("text")
         .attr("transform", transform)
@@ -90,8 +95,6 @@ render_overview_layout = () ->
                 return "✔ #{success_length}, ▲ #{warning_length}, ✘ #{danger_length}"
             if d.type == 'fabscript'
                 return "✔ #{d.success_length}, ▲ #{d.warning_length}, ✘ #{d.danger_length}"
-            else if d.type == 'status'
-                return "( #{d.length} )"
             )
 
     d3.select(window).on("click", -> click(root))

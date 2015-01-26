@@ -127,9 +127,9 @@ def run_func(func_names=[], option=None):
                             and type(result[0]) == IntType and type(result[1]) == StringType:
                         result_status, result_msg = result
 
-                    if not result_status:
+                    if result_status is None:
                         result_status = status.FABSCRIPT_END
-                    if not result_msg:
+                    if result_msg is None:
                         result_msg = status.FABSCRIPT_END_MSG.format(candidate)
 
                     db.setuped(result_status, result_msg, fabscript=fabscript)
@@ -139,7 +139,7 @@ def run_func(func_names=[], option=None):
                                                                                       candidate))
                         return result_status
 
-        if not result_status:
+        if result_status is None:
             db.setuped(status.FABSCRIPT_END,
                        status.FABSCRIPT_END_EMPTY_MSG,
                        fabscript=fabscript)

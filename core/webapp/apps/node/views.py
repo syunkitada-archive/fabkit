@@ -15,15 +15,15 @@ def index(request, cluster=None):
         if int(cluster) == 0:
             nodes = serializers.serialize(
                 'json',
-                Node.objects.filter(cluster=None, is_deleted=False).order_by('-status', 'updated_at').all())
+                Node.objects.filter(cluster=None, is_deleted=False).order_by('-status', '-updated_at').all())
         else:
             nodes = serializers.serialize(
                 'json',
-                Node.objects.filter(cluster=cluster, is_deleted=False).order_by('-status', 'updated_at').all())
+                Node.objects.filter(cluster=cluster, is_deleted=False).order_by('-status', '-updated_at').all())
     else:
         nodes = serializers.serialize(
             'json',
-            Node.objects.order_by('-status', 'updated_at').filter(is_deleted=False).all()[:50])
+            Node.objects.order_by('-status', '-updated_at').filter(is_deleted=False).all()[:50])
 
     node_clusters = serializers.serialize(
         'json', NodeCluster.objects.filter(is_deleted=False).order_by('name'))
