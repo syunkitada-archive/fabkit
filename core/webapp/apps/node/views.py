@@ -53,7 +53,7 @@ def remove(request):
             node.save()
 
         for cluster in clusters:
-            node_count = Node.objects.filter(cluster=cluster).count()
+            node_count = Node.objects.filter(cluster=cluster, is_deleted=False).count()
             if node_count == 0:
                 node_cluster = NodeCluster.objects.get(pk=cluster)
                 node_cluster.is_deleted = True

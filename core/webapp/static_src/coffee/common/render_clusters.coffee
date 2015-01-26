@@ -22,7 +22,6 @@ render_node_clusters = ->
             </div>""")
 
     expand_clusters = (html, clusters) ->
-        console.log html
         parent_id = html.prop('id')
         console.log parent_id
         console.log clusters

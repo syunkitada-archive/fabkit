@@ -324,7 +324,6 @@
     clusters_html = $("<div class=\"panel-group\" id=\"accordion\">\n    <div class=\"panel\">\n        <div class=\"panel-heading\">\n            <span>\n                <span class=\"panel-title\">root</span>\n                <a class=\"pjax pull-right show " + active + "\"\n                        href=\"/" + page + "/0/\">show</a>\n            </span>\n        </div>\n    </div>\n</div>");
     expand_clusters = function(html, clusters) {
       var collapse_body, collapse_body_id, collapse_head_id, collapse_id, collapse_panel_id, full_name, name, node_cluster, parent_id, show, splited_cluster, tmp_cluster, tmp_clusters, tmp_name, _i, _len, _results;
-      console.log(html);
       parent_id = html.prop('id');
       console.log(parent_id);
       console.log(clusters);

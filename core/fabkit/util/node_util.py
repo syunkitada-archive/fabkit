@@ -7,6 +7,7 @@ import json
 import re
 from fabkit import conf, env, status, db
 from host_util import get_available_hosts
+from cluster_util import get_cluster
 
 
 RE_UPTIME = re.compile('^.*up (.+),.*user.*$')
@@ -67,8 +68,10 @@ def load_node(host=None):
     splited_host = host.rsplit('/', 1)
     if len(splited_host) > 1:
         node_path = host
+        cluster = splited_host[0]
         host = splited_host[1]
     else:
+        cluster = None
         node_path = host
 
     node_file = get_node_file(node_path)
@@ -87,12 +90,16 @@ def load_node(host=None):
             })
 
         node.update({
+            'cluster': cluster,
             'path': node_path,
             'logs': logs,
         })
 
         env.node_map.update({host: node})
         env.hosts.append(host)
+
+        if cluster not in env.cluster_map:
+            env.cluster_map[cluster] = get_cluster(cluster)
 
         return node
 

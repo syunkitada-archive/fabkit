@@ -23,6 +23,7 @@ api.env.is_test = False
 api.env.cmd_history = []  # for debug
 api.env.last_runs = []
 api.env.node_map = {}
+api.env.cluster_map = {}
 
 
 # append module dir to sys.path

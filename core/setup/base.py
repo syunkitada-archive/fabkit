@@ -81,6 +81,7 @@ def run_func(func_names=[], option=None):
 
     node = env.node_map.get(env.host)
     env.node = node
+    env.cluster = env.cluster_map[node['cluster']]
 
     if not check_basic():
         db.setuped(status.FAILED_CHECK, 'Failed to check')
@@ -92,8 +93,6 @@ def run_func(func_names=[], option=None):
     filer.mkdir(conf.REMOTE_TMP_DIR, mode='777')
 
     func_patterns = [re.compile(name) for name in func_names]
-    util.load_cluster(node)
-    print env.cluster
 
     for fabscript in node.get('fabruns', []):
         db.create_fabscript(fabscript)

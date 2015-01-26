@@ -4,6 +4,7 @@ import platform
 import getpass
 from fabkit import api, env, db, util, sudo, status
 from types import StringType
+from django import db as djangodb
 
 
 @api.task
@@ -31,7 +32,7 @@ def node(*options):
         for tmp_host in hosts:
             if len_options > 2:
                 edit_value = options[2]
-                node = util.load_node(tmp_host[0])
+                # node = util.load_node(tmp_host[0])
                 print '{0} {1}'.format(tmp_host, __convert_value(edit_key, edit_value, tmp_host[1]))
             else:
                 print tmp_host
@@ -91,6 +92,10 @@ def node(*options):
             node.update({edit_key: edit_value})
             util.dump_node(node['path'], node)
 
+            # Djangodbのコネクションをリセットしておく
+            # これをやらないと、タスクをまたいでdbにアクセスした時に、IO ERRORとなる
+            djangodb.close_old_connections()
+
         util.print_node_map()
 
     else:
@@ -147,7 +152,6 @@ def check_continue():
 
             # Djangodbのコネクションをリセットしておく
             # これをやらないと、タスクをまたいでdbにアクセスした時に、IO ERRORとなる
-            from django import db as djangodb
             djangodb.close_old_connections()
 
         else:
