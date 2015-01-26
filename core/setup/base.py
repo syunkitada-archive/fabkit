@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from fabkit import env, api, conf, log, filer, status, db
+from fabkit import env, api, conf, log, filer, status, db, util
 import re
 import importlib
 import inspect
@@ -92,6 +92,8 @@ def run_func(func_names=[], option=None):
     filer.mkdir(conf.REMOTE_TMP_DIR, mode='777')
 
     func_patterns = [re.compile(name) for name in func_names]
+    util.load_cluster(node)
+    print env.cluster
 
     for fabscript in node.get('fabruns', []):
         db.create_fabscript(fabscript)
