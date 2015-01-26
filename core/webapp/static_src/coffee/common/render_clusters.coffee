@@ -22,7 +22,6 @@ render_node_clusters = ->
             </div>""")
 
     expand_clusters = (html, clusters) ->
-        console.log html
         parent_id = html.prop('id')
         console.log parent_id
         console.log clusters
@@ -52,6 +51,9 @@ render_node_clusters = ->
                 if splited_cluster.length == 1
                     if cluster_pk == node_cluster.pk
                         active = 'active'
+                        # TODO jsonオブジェクトをいいかんじに表示する
+                        # data = JSON.parse(node_cluster.fields.data)
+                        $('#cluster-data').html(node_cluster.fields.data)
 
                     show = """<a class="pjax pull-right show #{active}" href="/#{page}/#{node_cluster.pk}/">show</a>"""
 

@@ -1,18 +1,27 @@
 # coding: utf-8
 
-from fabric.api import task, hosts
-from lib import api
+from base import databag  # noqa
 
+databag.__doc__ = """
+access databag
 
-@task
-@hosts('localhost')
-def databag(option=None, key=None, value=None):
-    if option == 'set':
-        api.databag.set(key, value)
-        print 'set key:{0}, value:{1}'.format(key, value)
+## Args
+* option (str): action option
+  * set: set databag
+  * get: get databag
+  * list: show databag list
 
-    elif option == 'get':
-        print api.databag.get(key)
+## Examples
+``` bash
+$ fab databag:set,test/database.password,dbpass
+[localhost] Executing task 'databag'
+set key:test/database.password, value:dbpass
 
-    elif option == 'list':
-        print 'list'
+$ fab databag:get,test/database.password
+[localhost] Executing task 'databag'
+dbpass
+
+$ fab databag:list
+...
+```
+"""

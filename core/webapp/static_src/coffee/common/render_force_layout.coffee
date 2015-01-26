@@ -1,4 +1,5 @@
 render_force_layout = () ->
+    console.log 'render force layout'
     id = '#graph-svg'
     nodes = graph_nodes
     links = graph_links
@@ -17,7 +18,7 @@ render_force_layout = () ->
             .friction(0.8)  # (0.9 [0-1]) 摩擦力（加速度の減衰力）値を小さくすると収束するまでの加速が小さくなる
             .charge(-300)  # (-30) 推進力（反発力) 負の値だとノード同士が反発し、正の値だと引き合う
             # .chargeDistance(500)
-            .gravity(.04)  # (0.1) 重力 画面の中心に動く力
+            .gravity(.05)  # (0.1) 重力 画面の中心に動く力
             # .distance(200)
             # theta(0.8)
             .size([w, h])

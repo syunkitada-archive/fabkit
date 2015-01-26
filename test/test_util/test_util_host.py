@@ -1,7 +1,7 @@
 # coding: utf-8
 
 import unittest
-from lib import util
+from fabkit import util
 from node import node
 
 

@@ -1,8 +1,6 @@
 import unittest
-from fabric.api import env
+from fabkit import env, util, conf
 from node import node
-from lib import util
-from lib import conf
 import os
 
 

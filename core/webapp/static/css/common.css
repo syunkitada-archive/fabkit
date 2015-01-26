@@ -134,10 +134,8 @@ footer {
 
 
 
-
-
 .panel-heading {
-    padding: 5px;
+    padding: 1px 5px;
 }
 .panel-body {
     padding: 0px 0px 0px 10px;
@@ -173,10 +171,6 @@ footer {
 
 
 
-
-
-
-
 /*
  * Placeholder dashboard ideas
  */
@@ -197,53 +191,6 @@ footer {
 }
 
 
-/*
- * svg
- */
-.svg-defs {
-    width: 0px;
-    height: 0px;
-}
-
-.graph-svg-wrapper {
-    position: static;
-    background-color: #f8f8f8;
-    width: 100%;
-    height: 450px;
-}
-
-.graph-svg-wrapper > svg {
-    width: 100%;
-    height: 100%;
-}
-
-.link {
-    stroke: rgba(0, 0, 0, 0.3);
-}
-
-.node {
-    cursor: pointer;
-}
-
-.node-circle {
-    fill: #222;
-}
-
-.node-label {
-    fill: #337ab7;
-}
-
-.node-label-success {
-    fill: #5cb85c;
-}
-
-.node-label-warning {
-    fill: #f0ad4e;
-}
-
-.node-label-danger {
-    fill: #d9534f;
-}
 
 /*
  * popover
@@ -269,3 +216,44 @@ footer {
 .msg-box {
     padding: 5px;
 }
+
+
+/*
+ * svg
+ */
+.svg-defs {
+    width: 0px;
+    height: 0px;
+}
+
+.graph-svg-wrapper {
+    position: static;
+    background-color: #f8f8f8;
+    width: 100%;
+    height: 450px;
+}
+
+.graph-svg-wrapper > svg {
+    width: 100%;
+    height: 100%;
+}
+
+.link { stroke: rgba(0, 0, 0, 0.3); }
+.node { cursor: pointer; }
+.node-circle { fill: #222; }
+.node-label { fill: #337ab7; }
+.node-label-success { fill: #5cb85c; }
+.node-label-warning { fill: #f0ad4e; }
+.node-label-danger { fill: #d9534f; }
+
+rect {
+    stroke: #ccc;
+    fill: #f8f8f8;
+    fill-opacity: .8;
+}
+
+rect.success { fill: #dff0d8; }
+rect.warning { fill: #fcf8e3; }
+rect.danger { fill: #f2dede; }
+rect.parent { cursor: pointer; }
+text { pointer-events: none; }
