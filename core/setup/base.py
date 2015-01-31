@@ -80,7 +80,7 @@ def run_func(func_names=[], option=None):
 
     node = env.node_map.get(env.host)
     env.node = node
-    env.cluster = env.cluster_map[node['cluster']]
+    env.cluster = env.cluster_map[node['cluster']] if node['cluster'] else {}
 
     if not check_basic():
         db.update_node(status.FAILED_CHECK, 'Failed to check')

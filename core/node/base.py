@@ -2,7 +2,7 @@
 
 import platform
 import getpass
-from fabkit import api, env, db, util, sudo, status
+from fabkit import api, env, db, util, sudo
 from types import StringType
 from django import db as djangodb
 
@@ -92,10 +92,6 @@ def node(*options):
             node.update({edit_key: edit_value})
             util.dump_node(node['path'], node)
 
-            # Djangodbのコネクションをリセットしておく
-            # これをやらないと、タスクをまたいでdbにアクセスした時に、IO ERRORとなる
-            djangodb.close_old_connections()
-
         util.print_node_map()
 
     else:
@@ -148,11 +144,9 @@ def check_continue():
                     sudo('hostname')
 
             db.init_update_all()
-            # for node in env.node_map:
-            #     db.setuped(status.REGISTERED, status.REGISTERED_MSG.format(node), host=node)
 
-            # Djangodbのコネクションをリセットしておく
-            # これをやらないと、タスクをまたいでdbにアクセスした時に、IO ERRORとなる
+            # DBのコネクションを閉じる
+            # ここでコネクションを閉じておかないと、次のタスクでIO ERRORが発生してしまう
             djangodb.close_old_connections()
 
         else:
