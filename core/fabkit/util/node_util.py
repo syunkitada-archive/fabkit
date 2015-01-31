@@ -7,7 +7,8 @@ import json
 import re
 from fabkit import conf, env, status, db
 from host_util import get_available_hosts
-from cluster_util import get_cluster
+from cluster_util import load_cluster
+from fabscript_util import load_fabscript
 
 
 RE_UPTIME = re.compile('^.*up (.+),.*user.*$')
@@ -77,13 +78,13 @@ def load_node(host=None):
     node_file = get_node_file(node_path)
     if os.path.exists(node_file):
         with open(node_file, 'r') as f:
-            # return json.load(f)
             node = yaml.load(f)
 
         logs = []
-        for fabrun in node['fabruns']:
+        for fabscript in node['fabruns']:
+            load_fabscript(fabscript)
             logs.append({
-                'fabscript': fabrun,
+                'fabscript': fabscript,
                 'status': status.FABSCRIPT_REGISTERED,
                 'msg': 'registered',
                 'timestamp': time.time(),
@@ -98,8 +99,7 @@ def load_node(host=None):
         env.node_map.update({host: node})
         env.hosts.append(host)
 
-        if cluster not in env.cluster_map:
-            env.cluster_map[cluster] = get_cluster(cluster)
+        load_cluster(cluster)
 
         return node
 

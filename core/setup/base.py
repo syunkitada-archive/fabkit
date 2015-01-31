@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from fabkit import env, api, conf, log, filer, status, db, util
+from fabkit import env, api, conf, log, filer, status, db
 import re
 import importlib
 import inspect
@@ -52,7 +52,6 @@ def _help(*func_names):
     func_patterns = [re.compile(name) for name in func_names]
     node = env.node_map.get(env.host)
     for fabscript in node.get('fabruns', []):
-        db.create_fabscript(fabscript)
         script = '.'.join((conf.FABSCRIPT_MODULE, fabscript))
         module = importlib.import_module(script)
 
@@ -77,14 +76,14 @@ def run_func(func_names=[], option=None):
     if option == 'test':
         env.is_test = True
 
-    db.setuped(status.START, status.START_MSG.format(func_names), is_init=True)
+    db.update_node(status.START, status.START_MSG.format(func_names), is_init=True)
 
     node = env.node_map.get(env.host)
     env.node = node
     env.cluster = env.cluster_map[node['cluster']]
 
     if not check_basic():
-        db.setuped(status.FAILED_CHECK, 'Failed to check')
+        db.update_node(status.FAILED_CHECK, 'Failed to check')
         log.warning('Failed to check')
         return
 
@@ -95,7 +94,6 @@ def run_func(func_names=[], option=None):
     func_patterns = [re.compile(name) for name in func_names]
 
     for fabscript in node.get('fabruns', []):
-        db.create_fabscript(fabscript)
         script = '.'.join((conf.FABSCRIPT_MODULE, fabscript))
         module = importlib.import_module(script)
 
@@ -112,9 +110,9 @@ def run_func(func_names=[], option=None):
                     if not hasattr(func, 'is_task') or not func.is_task:
                         continue
 
-                    db.setuped(status.FABSCRIPT_START,
-                               status.FABSCRIPT_START_MSG.format(candidate),
-                               fabscript=fabscript)
+                    db.update_node(status.FABSCRIPT_START,
+                                   status.FABSCRIPT_START_MSG.format(candidate),
+                                   fabscript=fabscript)
 
                     result = func()
 
@@ -133,7 +131,7 @@ def run_func(func_names=[], option=None):
                     if result_msg is None:
                         result_msg = status.FABSCRIPT_END_MSG.format(candidate)
 
-                    db.setuped(result_status, result_msg, fabscript=fabscript)
+                    db.update_node(result_status, result_msg, fabscript=fabscript)
 
                     if result_status != 0:
                         log.error('fabscript {0}.{1}: result status is not 0.'.format(fabscript,
@@ -141,8 +139,8 @@ def run_func(func_names=[], option=None):
                         return result_status
 
         if result_status is None:
-            db.setuped(status.FABSCRIPT_END,
-                       status.FABSCRIPT_END_EMPTY_MSG,
-                       fabscript=fabscript)
+            db.update_node(status.FABSCRIPT_END,
+                           status.FABSCRIPT_END_EMPTY_MSG,
+                           fabscript=fabscript)
 
-    db.setuped(status.END, status.END_MSG.format(func_names))
+    db.update_node(status.END, status.END_MSG.format(func_names))

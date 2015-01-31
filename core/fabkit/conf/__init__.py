@@ -4,7 +4,7 @@ import os
 import sys
 import ConfigParser
 import logging
-from fabkit import api
+from fabkit import api, env
 from constant import (
     INIFILE_NAME,
     STDOUT_LOG_FILE_NAME,
@@ -15,15 +15,20 @@ from constant import (
 
 
 # setup fabric env
-api.env.forward_agent = True
-api.env.use_ssh_config = True
-api.env.warn_only = False
-api.env.colorize_errors = True
-api.env.is_test = False
-api.env.cmd_history = []  # for debug
-api.env.last_runs = []
-api.env.node_map = {}
-api.env.cluster_map = {}
+env.forward_agent = True
+env.use_ssh_config = True
+env.warn_only = False
+env.colorize_errors = True
+env.is_test = False
+env.cmd_history = []  # for debug
+env.last_runs = []
+
+env.node = {}
+env.node_map = {}
+env.fabscript = {}
+env.fabscript_map = {}
+env.cluster = {}
+env.cluster_map = {}
 
 
 # append module dir to sys.path

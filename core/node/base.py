@@ -147,8 +147,9 @@ def check_continue():
                 else:
                     sudo('hostname')
 
-            for node in env.node_map:
-                db.setuped(status.REGISTERED, status.REGISTERED_MSG.format(node), host=node)
+            db.init_update_all()
+            # for node in env.node_map:
+            #     db.setuped(status.REGISTERED, status.REGISTERED_MSG.format(node), host=node)
 
             # Djangodbのコネクションをリセットしておく
             # これをやらないと、タスクをまたいでdbにアクセスした時に、IO ERRORとなる
