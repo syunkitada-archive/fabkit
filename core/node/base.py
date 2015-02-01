@@ -41,7 +41,7 @@ def node(*options):
             for tmp_host in hosts:
                 util.dump_node(tmp_host[0], is_init=True)
                 if len_options > 2:
-                    edit_value = options[2]
+                    edit_value = options[2:]
                     node = util.load_node(tmp_host[0])
                     node.update({edit_key: __convert_value(edit_key, edit_value, tmp_host[1])})
                     util.dump_node(tmp_host[0], node)
@@ -60,9 +60,8 @@ def node(*options):
             print tmp_host
 
         if util.confirm('Are you sure you want to remove above nodes?', 'Canceled'):
-            for tmp_host in hosts:
-                util.remove_node(tmp_host)
-                print '{0} removed.'.format(tmp_host)
+            db.remove_nodes(paths=hosts)
+            print 'Delete nodes has been completed.'
 
     elif options[0] in ['edit', 'e']:
         host = __check_to_enter_host(options, 1)

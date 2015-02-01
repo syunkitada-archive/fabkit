@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from fabkit import sudo
+from fabkit import sudo, api
 
 
 class Service():
@@ -22,6 +22,11 @@ class Service():
     def reload(self, **kwargs):
         sudo('/etc/init.d/{0} reload'.format(self.name), **kwargs)
         return self
+
+    def status(self, **kwargs):
+        with api.warn_only():
+            result = sudo('/etc/init.d/{0} status'.format(self.name), **kwargs)
+            return result
 
     def enable(self, **kwargs):
         sudo('chkconfig {0} on'.format(self.name), **kwargs)

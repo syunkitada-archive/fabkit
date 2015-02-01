@@ -7,21 +7,33 @@ access databag
 
 ## Args
 * option (str): action option
-  * set: set databag
-  * get: get databag
-  * list: show databag list
+  * set(s),[databag.key],[value]
+    * set databag
+  * get(g),[databag.key]
+    * get databag
+  * list(l),[databag]
+    * show databag list
+    * if not databag, show all databag list
 
 ## Examples
 ``` bash
-$ fab databag:set,test/database.password,dbpass
+$ fab databag:s,test/database.password,dbpass
 [localhost] Executing task 'databag'
 set key:test/database.password, value:dbpass
 
-$ fab databag:get,test/database.password
+$ fab databag:g,test/database.password
 [localhost] Executing task 'databag'
 dbpass
 
-$ fab databag:list
+$ fab databag:l,test
+[localhost] Executing task 'databag'
+test/database
+
+% fab databag:l
+[localhost] Executing task 'databag'
+test/database
+test2/database
+test3/database
 ...
 ```
 """
