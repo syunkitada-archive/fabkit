@@ -17,7 +17,7 @@ def init_update_all():
     cluster_map = {}
     for cluster, data in env.cluster_map.items():
         cluster_map[cluster] = update_cluster(cluster, data)
-        env.cluster_map[cluster] = yaml.load(databag.decode_str(yaml.dump(data)))
+        env.cluster_map[cluster] = databag.decode_data(data)
 
     for host, data in env.node_map.items():
         cluster = cluster_map[data['path'].split('/', 1)[0]]
@@ -26,7 +26,7 @@ def init_update_all():
 
     for fabscript, data in env.fabscript_map.items():
         update_fabscript(fabscript, data)
-        env.fabscript_map[cluster] = yaml.load(databag.decode_str(yaml.dump(data)))
+        env.fabscript_map[cluster] = databag.decode_data(data)
 
 
 def update_fabscript(name, data):
