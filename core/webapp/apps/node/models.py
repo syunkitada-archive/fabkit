@@ -48,3 +48,36 @@ class Node(models.Model):
 
     def __unicode__(self):
         return self.path
+
+
+def remove_nodes(pks=None, paths=None):
+    if pks is None and paths is None:
+        return
+
+    clusters = set()
+    if pks:
+        for pk in pks:
+            node = Node.objects.get(pk=pk)
+            clusters.add(node.cluster.pk)
+            node.is_deleted = True
+            node.save()
+
+    elif paths:
+        for path in paths:
+            try:
+                node = Node.objects.get(path=path)
+            except Node.DoesNotExist:
+                continue
+            clusters.add(node.cluster.pk)
+            node.is_deleted = True
+            node.save()
+
+    for cluster in clusters:
+        node_count = Node.objects.filter(cluster=cluster, is_deleted=False).count()
+        if node_count == 0:
+            try:
+                node_cluster = NodeCluster.objects.get(pk=cluster)
+            except NodeCluster.DoesNotExist:
+                continue
+            node_cluster.is_deleted = True
+            node_cluster.save()

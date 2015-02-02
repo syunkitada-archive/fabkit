@@ -2,7 +2,7 @@
 
 import platform
 import getpass
-from fabkit import api, env, db, util, sudo, status
+from fabkit import api, env, db, util, sudo
 from types import StringType
 from django import db as djangodb
 
@@ -41,7 +41,7 @@ def node(*options):
             for tmp_host in hosts:
                 util.dump_node(tmp_host[0], is_init=True)
                 if len_options > 2:
-                    edit_value = options[2]
+                    edit_value = options[2:]
                     node = util.load_node(tmp_host[0])
                     node.update({edit_key: __convert_value(edit_key, edit_value, tmp_host[1])})
                     util.dump_node(tmp_host[0], node)
@@ -60,9 +60,8 @@ def node(*options):
             print tmp_host
 
         if util.confirm('Are you sure you want to remove above nodes?', 'Canceled'):
-            for tmp_host in hosts:
-                util.remove_node(tmp_host)
-                print '{0} removed.'.format(tmp_host)
+            db.remove_nodes(paths=hosts)
+            print 'Delete nodes has been completed.'
 
     elif options[0] in ['edit', 'e']:
         host = __check_to_enter_host(options, 1)
@@ -91,10 +90,6 @@ def node(*options):
         for node in env.node_map.values():
             node.update({edit_key: edit_value})
             util.dump_node(node['path'], node)
-
-            # Djangodbのコネクションをリセットしておく
-            # これをやらないと、タスクをまたいでdbにアクセスした時に、IO ERRORとなる
-            djangodb.close_old_connections()
 
         util.print_node_map()
 
@@ -147,11 +142,10 @@ def check_continue():
                 else:
                     sudo('hostname')
 
-            for node in env.node_map:
-                db.setuped(status.REGISTERED, status.REGISTERED_MSG.format(node), host=node)
+            db.init_update_all()
 
-            # Djangodbのコネクションをリセットしておく
-            # これをやらないと、タスクをまたいでdbにアクセスした時に、IO ERRORとなる
+            # DBのコネクションを閉じる
+            # ここでコネクションを閉じておかないと、次のタスクでIO ERRORが発生してしまう
             djangodb.close_old_connections()
 
         else:
