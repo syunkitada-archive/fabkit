@@ -104,12 +104,15 @@ def node(*options):
             else:
                 print_option = option
 
-        util.load_node_map(host, find_depth=find_depth)
+        splited_host = host.split(':')
+        if len(splited_host) == 1:
+            util.load_node_map(splited_host[0], find_depth=find_depth)
+        else:
+            util.load_node_map(splited_host[0], find_depth=find_depth, filters=splited_host[1:])
+
         util.print_node_map(option=print_option)
 
-        # オプションがないときだけ、続行する
-        if print_option is None:
-            check_continue()
+        check_continue()
 
 
 def dump(option=None, host=None, chefoption=''):

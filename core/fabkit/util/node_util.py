@@ -3,10 +3,11 @@
 import time
 import os
 import yaml
+import commands
 import json
 import re
 from fabkit import conf, env, status, db
-from host_util import get_available_hosts
+from host_util import get_available_hosts, host_filter
 from terminal import print_node_map
 from cluster_util import load_cluster
 from fabscript_util import load_fabscript
@@ -63,7 +64,7 @@ def dump_node(host_path=None, node=None, is_init=False):
         f.write(yaml.dump(node))
 
 
-def load_node(host=None):
+def load_node(host=None, filters=[]):
     if not host:
         return env.node_map.get(env.host)
 
@@ -97,8 +98,26 @@ def load_node(host=None):
             'logs': logs,
         })
 
-        env.node_map.update({host: node})
-        env.hosts.append(host)
+        if 'hosts' in node:
+            for tmp_host in node['hosts']:
+                if tmp_host.find('!') == 0:
+                    cmd_hosts = commands.getoutput(tmp_host[1:]).strip().split(os.linesep)
+                    for cmd_host in cmd_hosts:
+                        if host_filter(cmd_host, filters):
+                            tmp_node = node.copy()
+                            tmp_node['path'] = '{0}/{1}'.format(cluster, cmd_host)
+                            env.node_map.update({cmd_host: tmp_node})
+                            env.hosts.append(cmd_host)
+                else:
+                    if host_filter(tmp_host, filters):
+                        tmp_node = node.copy()
+                        tmp_node['path'] = '{0}/{1}'.format(cluster, tmp_host)
+                        env.node_map.update({tmp_host: tmp_node})
+                        env.hosts.append(tmp_host)
+        else:
+            if host_filter(host, filters):
+                env.node_map.update({host: node})
+                env.hosts.append(host)
 
         load_cluster(cluster)
 
@@ -107,13 +126,13 @@ def load_node(host=None):
     return {}
 
 
-def load_node_map(host=None, find_depth=1):
+def load_node_map(host=None, find_depth=1, filters=[]):
     if not host:
         return env.host_map
 
     hosts = get_available_hosts(host, find_depth)
     for host in hosts:
-        load_node(host)
+        load_node(host, filters=filters)
 
     return env.node_map
 

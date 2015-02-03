@@ -75,3 +75,19 @@ def get_available_hosts(host_pattern=None, find_depth=1):
             available_hosts.append(host)
 
     return available_hosts
+
+
+def host_filter(host, filters):
+    if len(filters) == 0:
+        return True
+
+    else:
+        is_match = False
+        for f in filters:
+            if re.search(f, host):
+                is_match = True
+            else:
+                is_match = False
+                break
+
+        return is_match
