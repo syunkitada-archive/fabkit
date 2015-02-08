@@ -72,3 +72,27 @@ def print_node_map(node_map=None, option=None):
                                 logs=logs,
                                 fabruns=fabruns,
                                 )
+
+
+def print_runs():
+    runs = env.runs
+    max_len_name = 20
+    format_str = '{cluster:<10} {fabscript:<' + str(max_len_name) + '} {state:<5} {expected_state:<14} {host}'
+
+    horizontal_line = '-' * (max_len_name + 50)
+    print horizontal_line
+    print format_str.format(cluster='cluster',
+                            fabscript='fabscript',
+                            state='state',
+                            expected_state='expected_state',
+                            host='host')
+    print horizontal_line
+
+    for run in runs:
+        for cluster_run in run['runs']:
+            for host in cluster_run['hosts']:
+                print format_str.format(cluster=run['cluster'],
+                                        fabscript=cluster_run['name'],
+                                        state=cluster_run['state'],
+                                        expected_state=cluster_run['expected_state'],
+                                        host=host)

@@ -3,11 +3,9 @@
 import time
 import os
 import yaml
-import commands
-import json
 import re
 from fabkit import conf, env, status, db
-from host_util import get_available_hosts, host_filter
+from host_util import get_available_hosts, host_filter, get_expanded_hosts
 from terminal import print_node_map
 from cluster_util import load_cluster
 from fabscript_util import load_fabscript
@@ -64,77 +62,145 @@ def dump_node(host_path=None, node=None, is_init=False):
         f.write(yaml.dump(node))
 
 
-def load_node(host=None, filters=[]):
-    if not host:
-        return env.node_map.get(env.host)
+def load_runs(query, find_depth=1):
+    splited_query = query.rsplit('/', 1)
+    cluster_name = splited_query[0]
 
-    splited_host = host.rsplit('/', 1)
-    if len(splited_host) > 1:
-        node_path = host
-        cluster = splited_host[0]
-        host = splited_host[1]
+    if len(splited_query) > 1 and splited_query[1]:
+        host_pattern = splited_query[1]
+        candidates = [re.compile(c.replace('*', '.*')) for c in get_expanded_hosts(host_pattern)]
     else:
-        cluster = None
-        node_path = host
+        candidates = None
 
-    node_file = get_node_file(node_path)
-    if os.path.exists(node_file):
-        with open(node_file, 'r') as f:
-            node = yaml.load(f)
+    cluster_dir = os.path.join(conf.NODE_DIR, cluster_name)
 
-        logs = []
-        for fabscript in node['fabruns']:
-            load_fabscript(fabscript)
-            logs.append({
-                'fabscript': fabscript,
-                'status': status.FABSCRIPT_REGISTERED,
-                'msg': 'registered',
-                'timestamp': time.time(),
-            })
+    runs = []
+    depth = 1
+    for root, dirs, files in os.walk(conf.NODE_DIR):
+        if root.find(cluster_dir) == -1:
+            continue
 
-        node.update({
-            'cluster': cluster,
-            'path': node_path,
-            'logs': logs,
+        cluster_name = root.split(conf.NODE_DIR)[1]
+        cluster = {}
+        for file in files:
+            with open(os.path.join(root, file), 'r') as f:
+                data = yaml.load(f)
+                cluster.update(data)
+
+        cluster_node_map = cluster.get('node_map', {})
+        cluster_state_map = cluster.get('state', {})   # TODO __state__.yaml  # noqa
+        cluster_node_state_map = cluster_state_map.get('node_map', {})  # noqa
+        cluster_fabscript_map = cluster_state_map.get('fabscript_map', {})  # noqa
+        tmp_fabscript_map = {}
+
+        for role, cluster_node in cluster_node_map.items():
+            node_hosts = cluster_node['hosts']
+
+            tmp_hosts = []
+            for node_host in node_hosts:
+                tmp_hosts.extend(get_expanded_hosts(node_host))
+
+            cluster_node['hosts'] = tmp_hosts
+
+            for fabrun in cluster_node['fabruns']:
+                if fabrun not in tmp_fabscript_map:
+                    state = cluster_fabscript_map.get(fabrun, {}).get('state', 0)
+                    task_state = cluster_fabscript_map.get(fabrun, {}).get('task_state', 0)
+                    data = {
+                        'name': fabrun,
+                        'hosts': [],
+                        'state': state,
+                        'task_state': task_state,
+                        'state_flow': [1],
+                        'require': {},
+                        'required': [],
+                    }
+
+                    root_mod, mod = fabrun.rsplit('.', 1)
+                    root_mod_file = os.path.join(conf.FABSCRIPT_MODULE_DIR,
+                                                 root_mod.replace('.', '/'), '__fabscript__.yaml')
+                    if os.path.exists(root_mod_file):
+                        with open(root_mod_file, 'r') as f:
+                            tmp_data = yaml.load(f)
+                            data.update(tmp_data.get(mod, {}))
+
+                    tmp_fabscript_map[fabrun] = data
+
+                tmp_fabscript_map[fabrun]['hosts'].extend(tmp_hosts)
+
+        # runs
+        cluster_runs = []
+
+        def resolve_require(fabscript, data):
+            for script, state in data['require'].items():
+                require = tmp_fabscript_map.get(script)
+                if require:
+                    require['required'].append(fabscript)
+                    if (require['require']) > 0:
+                        resolve_require(fabscript, require)
+                else:
+                    require = cluster_fabscript_map.get(script)
+                    if require:
+                        if require['state'] == state and require['task_state'] == 0:
+                            return
+
+                    print 'Require Error\nCluster: {0}\nFabscript: {1} require {2}:{3}'.format(
+                        cluster_name, fabscript, script, state)
+                    exit()
+
+        for fabscript, data in tmp_fabscript_map.items():
+            resolve_require(fabscript, data)
+
+        for fabscript, data in tmp_fabscript_map.items():
+            index = len(cluster_runs)
+
+            for required in data['required']:
+                for i, run in enumerate(cluster_runs):
+                    if run['name'] == required:
+                        if i < index:
+                            index = i
+
+            tmp_hosts = {}
+            for host in data['hosts']:
+                if candidates:
+                    for candidate in candidates:
+                        if candidate.search(host):
+                            break
+                    else:
+                        continue
+
+                node = cluster_node_state_map.get(host, {})
+                if fabscript not in node:
+                    node[fabscript] = {
+                        'state': 0,
+                        'task_state': 0,
+                    }
+
+                    cluster_node_state_map[host] = node
+                tmp_hosts[host] = node
+
+            data['node_map'] = tmp_hosts
+
+            for flow in data['state_flow']:
+                if data['state'] < flow or flow == data['state_flow'][-1]:
+                    tmp_data = data.copy()
+                    tmp_data['expected_state'] = flow
+                    cluster_runs.insert(index, tmp_data)
+                    index += 1
+
+        runs.append({
+            'cluster': cluster_name,
+            'runs': cluster_runs,
         })
 
-        if 'hosts' in node:
-            for tmp_host in node['hosts']:
-                if tmp_host.find('!') == 0:
-                    cmd_hosts = commands.getoutput(tmp_host[1:]).strip().split(os.linesep)
-                    for cmd_host in cmd_hosts:
-                        if host_filter(cmd_host, filters):
-                            tmp_node = node.copy()
-                            tmp_node['path'] = '{0}/{1}'.format(cluster, cmd_host)
-                            env.node_map.update({cmd_host: tmp_node})
-                            env.hosts.append(cmd_host)
-                else:
-                    if host_filter(tmp_host, filters):
-                        tmp_node = node.copy()
-                        tmp_node['path'] = '{0}/{1}'.format(cluster, tmp_host)
-                        env.node_map.update({tmp_host: tmp_node})
-                        env.hosts.append(tmp_host)
-        else:
-            if host_filter(host, filters):
-                env.node_map.update({host: node})
-                env.hosts.append(host)
+        cluster['fabscript_map'] = tmp_fabscript_map
+        env.cluster_map[cluster_name] = cluster
 
-        load_cluster(cluster)
+        depth += 1
+        if depth > find_depth:
+            break
 
-        return node
-
-    return {}
-
-
-def load_node_map(host=None, find_depth=1, filters=[]):
-    if not host:
-        return env.host_map
-
-    hosts = get_available_hosts(host, find_depth)
-    for host in hosts:
-        load_node(host, filters=filters)
-
-    return env.node_map
+    env.runs = runs
 
 
 def remove_node(host=None):

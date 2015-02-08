@@ -14,7 +14,6 @@ def _manage(*args):
 
 
 @api.task
-@api.parallel
 def manage(*args):
     if args[0] == 'test':
         option = 'test'
@@ -31,7 +30,6 @@ def _check(option=None):
 
 
 @api.task
-@api.parallel
 def check(option=None):
     run_func(['^check.*'], option)
 
@@ -42,7 +40,7 @@ def _setup(option=None):
 
 
 @api.task
-@api.parallel
+@api.runs_once
 def setup(option=None):
     run_func(['^setup.*', '^check.*'], option)
 
@@ -76,20 +74,53 @@ def run_func(func_names=[], option=None):
     if option == 'test':
         env.is_test = True
 
-    db.update_node(status.START, status.START_MSG.format(func_names), is_init=True)
+    func_patterns = [re.compile(name) for name in func_names]
 
+    for run in env.runs:
+        for cluster_run in run['runs']:
+            script_name = cluster_run['name']
+            env.cluster = env.cluster_map[run['cluster']]
+            env.fabscript = env.cluster['fabscript_map'][script_name]
+            env.node_map = env.fabscript['node_map']
+            env.hosts = cluster_run['hosts']
+
+            api.execute(bootstrap)
+
+            # print env.cluster
+            # print env.fabscript
+            # print env.node_map
+            # print env.hosts
+
+            script = '.'.join([conf.FABSCRIPT_MODULE, script_name])
+            module = importlib.import_module(script)
+
+            module_funcs = []
+            for member in inspect.getmembers(module):
+                if inspect.isfunction(member[1]):
+                    module_funcs.append(member[0])
+
+            for func_pattern in func_patterns:
+                for candidate in module_funcs:
+                    if func_pattern.match(candidate):
+                        func = getattr(module, candidate)
+                        if not hasattr(func, 'is_task') or not func.is_task:
+                            continue
+
+                        results = func()
+                        for host, result in results.items():
+                            print host, result
+                            # TODO save database
+                            # check continue
+
+        # results = execute(globals().get(fabscript['task']))
+        # for host, result in results.items():
+        #     if result:
+        #         env.fabscript_map[fabscript['task']].update(result)
+
+    return
     node = env.node_map.get(env.host)
     env.node = node
     env.cluster = env.cluster_map[node['cluster']] if node['cluster'] else {}
-
-    if not check_basic():
-        db.update_node(status.FAILED_CHECK, 'Failed to check')
-        log.warning('Failed to check')
-        return
-
-    filer.mkdir(conf.REMOTE_DIR)
-    filer.mkdir(conf.REMOTE_STORAGE_DIR)
-    filer.mkdir(conf.REMOTE_TMP_DIR, mode='777')
 
     func_patterns = [re.compile(name) for name in func_names]
 
@@ -144,3 +175,15 @@ def run_func(func_names=[], option=None):
                            fabscript=fabscript)
 
     db.update_node(status.END, status.END_MSG.format(func_names))
+
+
+@api.parallel
+def bootstrap():
+    if not check_basic():
+        db.update_node(status.FAILED_CHECK, 'Failed to check')
+        log.warning('Failed to check')
+        return
+
+    filer.mkdir(conf.REMOTE_DIR)
+    filer.mkdir(conf.REMOTE_STORAGE_DIR)
+    filer.mkdir(conf.REMOTE_TMP_DIR, mode='777')
