@@ -1,7 +1,7 @@
 # noqa
 from apps.node.models import Node, NodeCluster
 import json
-from fabkit import env, conf
+from fabkit import status, conf
 
 
 def update_cluster(name, data={}):
@@ -17,37 +17,23 @@ def update_cluster(name, data={}):
     return cluster
 
 
-def update_node(status, msg, is_init=False, host=None, cluster=None, fabscript=None):
-    if not host:
-        host = env.host
-
-    if fabscript:
-        from fabkit import util
-        util.update_log(fabscript, status, msg)
-        msg = '{0}: {1}'.format(fabscript, msg)
-
-    env_node = env.node_map.get(host)
-    path = env_node['path']
-
+def update_node(status_code, msg, path, cluster, data, is_init=False):
     try:
         node = Node.objects.get(path=path)
-        node.data = env_node['data']
     except Node.DoesNotExist:
         node = Node(path=path)
+        node.cluster = cluster
 
-    if is_init:
+    if status_code == status.REGISTERED:
         logs = json.loads(node.logs)
         logs_all = json.loads(node.logs_all)
-        logs_all.extend(logs)
+        logs_all.append(logs)
         logs_all = logs_all[-conf.WEB_LOG_LENGTH:]
         node.logs_all = json.dumps(logs_all)
 
-    if cluster:
-        node.cluster = cluster
-
     node.is_deleted = False
-    node.logs = json.dumps(env_node['logs'])
-    node.status = status
+    node.logs = json.dumps(data['fabscript_map'])
+    node.status = status_code
     node.msg = msg
     node.save()
 

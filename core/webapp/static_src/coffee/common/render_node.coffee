@@ -1,6 +1,7 @@
 render_node = ->
     fabscript_node_map = {}
 
+    console.log nodes
     results_tbody_html = ''
     all_node_length = nodes.length
     success_node_length = 0
@@ -15,16 +16,18 @@ render_node = ->
             danger_node_length++
 
         tmp_logs_html = ''
-        for log in JSON.parse(result.fields.logs)
+        i = 0
+        for fabscript, log of JSON.parse(result.fields.logs)
             node = {
                 type: 'node',
                 'index': i,
                 'name': result.fields.path,
                 'size': 1,
             }
+            i++
 
-            if log.fabscript not of fabscript_node_map
-                fabscript_node_map[log.fabscript] = {
+            if fabscript not of fabscript_node_map
+                fabscript_node_map[fabscript] = {
                     'links': [],
                     'success_nodes': [],
                     'warning_nodes': [],
@@ -33,15 +36,15 @@ render_node = ->
 
             if log.status == 0
                 node['class'] = 'success'
-                fabscript_node_map[log.fabscript]['success_nodes'].push(node)
+                fabscript_node_map[fabscript]['success_nodes'].push(node)
             else if log.status < WARNING_STATUS_THRESHOLD
                 node['class'] = 'warning'
-                fabscript_node_map[log.fabscript]['warning_nodes'].push(node)
+                fabscript_node_map[fabscript]['warning_nodes'].push(node)
             else
                 node['class'] = 'danger'
-                fabscript_node_map[log.fabscript]['danger_nodes'].push(node)
+                fabscript_node_map[fabscript]['danger_nodes'].push(node)
 
-            tmp_logs_html += "#{log.fabscript}: #{log.msg}[#{log.status}]<br>"
+            tmp_logs_html += "#{fabscript}: #{log.msg}[#{log.status}]<br>"
 
         logs_all_html = ''
         logs_all = JSON.parse(result.fields.logs_all)

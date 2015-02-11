@@ -2,8 +2,7 @@
 
 import platform
 import getpass
-from fabkit import api, env, db, util, sudo
-from types import StringType
+from fabkit import api, env, db, util, sudo, status
 from django import db as djangodb
 
 
@@ -56,11 +55,11 @@ def node(*options):
                         else:
                             sudo('hostname')
 
-                    # db.init_update_all()
+                    db.update_all(status.REGISTERED, status.REGISTERED_MSG)
 
                     # DBのコネクションを閉じる
                     # ここでコネクションを閉じておかないと、次のタスクでIO ERRORが発生してしまう
-                    # djangodb.close_old_connections()
+                    djangodb.close_old_connections()
 
                 else:
                     exit(0)

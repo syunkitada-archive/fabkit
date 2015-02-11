@@ -1,16 +1,12 @@
 # coding: utf-8
 
-from fabkit import env, api, conf, log, filer, status, db
+from fabkit import env, api, conf, log, filer, status, db, util
 import re
+from types import DictType
 import importlib
 import inspect
 from check_util import check_basic
 from types import IntType, TupleType, StringType
-
-
-@api.task
-def _manage(*args):
-    manage(*args)
 
 
 @api.task
@@ -25,18 +21,8 @@ def manage(*args):
 
 
 @api.task
-def _check(option=None):
-    check(option)
-
-
-@api.task
 def check(option=None):
     run_func(['^check.*'], option)
-
-
-@api.task
-def _setup(option=None):
-    setup(option)
 
 
 @api.task
@@ -46,7 +32,7 @@ def setup(option=None):
 
 
 @api.task
-def _help(*func_names):
+def h(*func_names):
     func_patterns = [re.compile(name) for name in func_names]
     node = env.node_map.get(env.host)
     for fabscript in node.get('fabruns', []):
@@ -78,18 +64,18 @@ def run_func(func_names=[], option=None):
 
     for run in env.runs:
         for cluster_run in run['runs']:
+            if len(cluster_run['hosts']) == 0:
+                continue
+
             script_name = cluster_run['name']
             env.cluster = env.cluster_map[run['cluster']]
-            env.fabscript = env.cluster['fabscript_map'][script_name]
-            env.node_map = env.fabscript['node_map']
+            cluster_status = env.cluster['__status']
+            fabscript_status_map = cluster_status['fabscript_map']
+            node_status_map = cluster_status['node_map']
+            env.fabscript_map = env.cluster['fabscript_map']
+            env.fabscript = env.fabscript_map[script_name]
             env.hosts = cluster_run['hosts']
-
-            api.execute(bootstrap)
-
-            # print env.cluster
-            # print env.fabscript
-            # print env.node_map
-            # print env.hosts
+            # TODO check cluster_run[require]
 
             script = '.'.join([conf.FABSCRIPT_MODULE, script_name])
             module = importlib.import_module(script)
@@ -106,84 +92,46 @@ def run_func(func_names=[], option=None):
                         if not hasattr(func, 'is_task') or not func.is_task:
                             continue
 
-                        results = func()
+                        results = api.execute(func)
+                        default_result = {
+                            'status': 1,
+                            'msg': 'Success',
+                            'task_status': status.SUCCESS,
+                        }
+                        for host, tmp_result in results.items():
+                            if not tmp_result or type(tmp_result) != DictType:
+                                result = default_result
+                                results[host] = result
+                            else:
+                                result = default_result.copy()
+                                result.update(tmp_result)
+                                results[host] = result
+
+                            node_status_map[host]['fabscript_map'][script_name] = result
+
+                        is_expected = True
                         for host, result in results.items():
-                            print host, result
+                            env
+                            if result['task_status'] == status.SUCCESS:
+                                result_status = result['status']
+                                expected = cluster_run['expected_status']
+                                if expected != result_status:
+                                    is_expected = False
+                                    print '{0}: expected status is {1}, bad status is {2}'.format(
+                                        host, expected, result_status)
+
                             # TODO save database
                             # check continue
 
-        # results = execute(globals().get(fabscript['task']))
-        # for host, result in results.items():
-        #     if result:
-        #         env.fabscript_map[fabscript['task']].update(result)
+                        if is_expected:
+                            result = {
+                                'status': cluster_run['expected_status'],
+                                'task_status': status.SUCCESS,
+                            }
+                            env.cluster['__status']['fabscript_map'][script_name] = result
 
-    return
-    node = env.node_map.get(env.host)
-    env.node = node
-    env.cluster = env.cluster_map[node['cluster']] if node['cluster'] else {}
-
-    func_patterns = [re.compile(name) for name in func_names]
-
-    for fabscript in node.get('fabruns', []):
-        script = '.'.join((conf.FABSCRIPT_MODULE, fabscript))
-        module = importlib.import_module(script)
-
-        module_funcs = []
-        for member in inspect.getmembers(module):
-            if inspect.isfunction(member[1]):
-                module_funcs.append(member[0])
-
-        result_status = None
-        for func_pattern in func_patterns:
-            for candidate in module_funcs:
-                if func_pattern.match(candidate):
-                    func = getattr(module, candidate)
-                    if not hasattr(func, 'is_task') or not func.is_task:
-                        continue
-
-                    db.update_node(status.FABSCRIPT_START,
-                                   status.FABSCRIPT_START_MSG.format(candidate),
-                                   fabscript=fabscript)
-
-                    result = func()
-
-                    result_status = None
-                    result_msg = None
-                    if type(result) is IntType:
-                        result_status = result
-                    if type(result) is StringType:
-                        result_msg = result
-                    elif type(result) is TupleType and len(result) == 2 \
-                            and type(result[0]) == IntType and type(result[1]) == StringType:
-                        result_status, result_msg = result
-
-                    if result_status is None:
-                        result_status = status.FABSCRIPT_END
-                    if result_msg is None:
-                        result_msg = status.FABSCRIPT_END_MSG.format(candidate)
-
-                    db.update_node(result_status, result_msg, fabscript=fabscript)
-
-                    if result_status != 0:
-                        log.error('fabscript {0}.{1}: result status is not 0.'.format(fabscript,
-                                                                                      candidate))
-                        return result_status
-
-        if result_status is None:
-            db.update_node(status.FABSCRIPT_END,
-                           status.FABSCRIPT_END_EMPTY_MSG,
-                           fabscript=fabscript)
-
-    db.update_node(status.END, status.END_MSG.format(func_names))
-
-
-@api.parallel
-def bootstrap():
-    if not check_basic():
-        db.update_node(status.FAILED_CHECK, 'Failed to check')
-        log.warning('Failed to check')
-        return
-
-    filer.mkdir(conf.REMOTE_DIR)
-    filer.mkdir(conf.REMOTE_STORAGE_DIR)
-    filer.mkdir(conf.REMOTE_TMP_DIR, mode='777')
+                            db.update_all(status.SUCCESS,
+                                          status.FABSCRIPT_SUCCESS_MSG.format(script_name))
+                        else:
+                            print 'For unexpected status is returned, will be exit setup.'
+                            exit()

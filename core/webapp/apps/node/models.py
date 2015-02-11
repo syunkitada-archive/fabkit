@@ -40,7 +40,7 @@ class Node(models.Model):
 
     status = models.IntegerField(default=0)
     msg = models.CharField(default=u'', max_length=1024)
-    logs = models.CharField(default=u'[]', max_length=1024)
+    logs = models.CharField(default=u'{}', max_length=1024)
     logs_all = models.CharField(default=u'[]', max_length=1024)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now=False, auto_now_add=True)
