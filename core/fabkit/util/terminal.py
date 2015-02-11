@@ -72,3 +72,31 @@ def print_node_map(node_map=None, option=None):
                                 logs=logs,
                                 fabruns=fabruns,
                                 )
+
+
+def print_runs():
+    runs = env.runs
+    max_len_name = 20
+    format_str = '{cluster:<10} {fabscript:<' + str(max_len_name) + '} {status:<6} {host}'  # noqa
+
+    horizontal_line = '-' * (max_len_name + 50)
+    print horizontal_line
+    print format_str.format(cluster='cluster',
+                            fabscript='fabscript',
+                            status='status',
+                            expected_status='expected',
+                            host='host')
+    print horizontal_line
+
+    for run in runs:
+        cluster_status_map = env.cluster_map[run['cluster']]['__status']
+        fabscript_status_map = cluster_status_map['fabscript_map']
+        for cluster_run in run['runs']:
+            fabscript_status = fabscript_status_map[cluster_run['name']]['status']
+            for host in cluster_run['hosts']:
+                print format_str.format(cluster=run['cluster'],
+                                        fabscript=cluster_run['name'],
+                                        status='{0} > {1}'.format(
+                                            fabscript_status,
+                                            cluster_run['expected_status']),
+                                        host=host)

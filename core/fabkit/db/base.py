@@ -1,96 +1,72 @@
 # coding: utf-8
 
-import inspect
+import os
 import yaml
-import json
-from fabkit import env, databag, status
-from apps.fabscript.models import Fabscript
+from fabkit import env, databag, conf
 from node_model import update_cluster, update_node
+from types import StringType, DictType, ListType
 
 
-def init_update_all():
+def update_all(status_code, msg):
     """
-    Save env.node_map, env.cluster_map, env.fabscript_map to dababase.
-    This is called before setup tasks.
+    Save status of node, fabscript to dababase and files.
     """
 
-    cluster_map = {}
-    for cluster, data in env.cluster_map.items():
-        cluster_map[cluster] = update_cluster(cluster, data)
-        env.cluster_map[cluster] = databag.decode_data(data)
+    for cluster_name, data in env.cluster_map.items():
+        node_status_map = data['__status'].pop('node_map')
+        cluster = update_cluster(cluster_name, data)
+        env.cluster_map[cluster_name] = decode_data(data)
+        data['__status']['node_map'] = node_status_map
 
-    for host, data in env.node_map.items():
-        cluster = cluster_map[data['path'].split('/', 1)[0]]
-        update_node(status.REGISTERED, status.REGISTERED_MSG.format(data['path']),
-                    host=host, cluster=cluster)
+        for host, status_data in node_status_map.items():
+            path = '{0}/{1}'.format(cluster_name, host)
+            update_node(status_code, msg,
+                        path=path, cluster=cluster, data=status_data)
 
-    for fabscript, data in env.fabscript_map.items():
-        update_fabscript(fabscript, data)
-        env.fabscript_map[cluster] = databag.decode_data(data)
-
-
-def update_fabscript(name, data):
-    try:
-        fabscript = Fabscript.objects.get(name=name)
-    except Fabscript.DoesNotExist:
-        fabscript = Fabscript(name=name)
-
-    fabscript.data = json.dumps(data)
-    fabscript.save()
-
-    return fabscript
+        print data['__status']['node_map']
+        status_yaml = os.path.join(conf.NODE_DIR, cluster_name, '__status.yaml')
+        with open(status_yaml, 'w') as f:
+            f.write(yaml.dump({'__status': data['__status']}))
 
 
-# TODO 以下の関数は整理する必要がある
+def decode_data(data, origin_data=None):
+    if not origin_data:
+        origin_data = data
 
-def update_link(data, script_name=None):
-    if not script_name:
-        script_name = __get_script_name()
+    if type(data) is DictType:
+        for key, value in data.items():
+            data[key] = decode_data(value, origin_data)
 
-    try:
-        fabscript = Fabscript.objects.get(name=script_name)
-    except Fabscript.DoesNotExist:
-        fabscript = Fabscript(name=script_name)
+    if type(data) is ListType:
+        data = [decode_data(value, origin_data) for value in data]
 
-    data_str = json.dumps(data)
-    fabscript.link = data_str
-    fabscript.save()
+    if type(data) is StringType:
+        splited_value = data.split('${')
+        if len(splited_value) > 1:
+            result = ''
+            for value in splited_value:
+                splited_key = value.split('}', 1)
+                if len(splited_key) > 1:
+                    key = splited_key[0]
+                    if key.find('#') == 0:
+                        tmp_keys = key[1:].split('.')
+                        tmp_data = origin_data
+                        for tmp_key in tmp_keys:
+                            if tmp_key.isdigit():
+                                tmp_key = int(tmp_key)
+                            tmp_data = tmp_data[tmp_key]
 
+                        tmp_data = decode_data(tmp_data, origin_data)
+                        if type(tmp_data) is StringType:
+                            result += tmp_data + splited_key[1]
+                        else:
+                            return tmp_data
 
-def get_link(script_name, key):
-    # 参照先のscript
-    fabscript = Fabscript.objects.get(name=script_name)
+                    else:
+                        result += databag.get(key) + splited_key[1]
+                else:
+                    result += value
 
-    # 参照元のscript
-    tmp_fabscript = __get_script_name()
-    if tmp_fabscript:
-        linked_fabscript = '{0}:{1}'.format(tmp_fabscript, key)
-        linked_fabscripts = set(yaml.load(fabscript.linked_fabscripts))
-        linked_fabscripts.add(linked_fabscript)
-        fabscript.linked_fabscripts = json.dumps(list(linked_fabscripts))
-        fabscript.save()
+            return result
 
-    link_str = databag.decode_str(fabscript.link)
-    data = json.loads(link_str)
-    return data[key]
-
-
-def __get_script_name(is_reqursive=False):
-    scripts = []
-    stack = inspect.stack()[1:]
-    for frame in stack:
-        file = frame[1]
-        if file.find('/fabscript/') > -1:
-            script = file.split('fabscript/', 1)[1].replace('.py', '').replace('/', '.')
-            if not is_reqursive:
-                return script
-
-            if 'setup' not in frame[0].f_code.co_names:
-                continue
-
-            scripts.insert(0, script)
-
-    if len(scripts) == 0:
-        return None
-
-    return '>'.join(scripts)
+    return data

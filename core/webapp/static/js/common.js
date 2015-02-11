@@ -546,8 +546,9 @@
   };
 
   render_node = function() {
-    var all_node_length, danger_length, danger_node_length, danger_nodes, fabscript, fabscript_node, fabscript_node_map, i, index, link, linked_fabscript, log, logs_all, logs_all_html, logs_html, name, node, result, results_tbody_html, script_name, success_length, success_node_length, success_nodes, timestamp, tmp_logs_html, tr_class, warning_length, warning_node_length, warning_nodes, _i, _j, _k, _l, _len, _len1, _len2, _len3, _m, _ref, _ref1, _results;
+    var all_node_length, danger_length, danger_node_length, danger_nodes, fabscript, fabscript_node, fabscript_node_map, i, index, link, linked_fabscript, log, logs_all, logs_all_html, logs_html, name, node, result, results_tbody_html, script_name, success_length, success_node_length, success_nodes, timestamp, tmp_logs_html, tr_class, warning_length, warning_node_length, warning_nodes, _i, _j, _k, _l, _len, _len1, _len2, _ref, _ref1, _results;
     fabscript_node_map = {};
+    console.log(nodes);
     results_tbody_html = '';
     all_node_length = nodes.length;
     success_node_length = 0;
@@ -563,17 +564,19 @@
         danger_node_length++;
       }
       tmp_logs_html = '';
+      i = 0;
       _ref = JSON.parse(result.fields.logs);
-      for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
-        log = _ref[_j];
+      for (fabscript in _ref) {
+        log = _ref[fabscript];
         node = {
           type: 'node',
           'index': i,
           'name': result.fields.path,
           'size': 1
         };
-        if (!(log.fabscript in fabscript_node_map)) {
-          fabscript_node_map[log.fabscript] = {
+        i++;
+        if (!(fabscript in fabscript_node_map)) {
+          fabscript_node_map[fabscript] = {
             'links': [],
             'success_nodes': [],
             'warning_nodes': [],
@@ -582,25 +585,25 @@
         }
         if (log.status === 0) {
           node['class'] = 'success';
-          fabscript_node_map[log.fabscript]['success_nodes'].push(node);
+          fabscript_node_map[fabscript]['success_nodes'].push(node);
         } else if (log.status < WARNING_STATUS_THRESHOLD) {
           node['class'] = 'warning';
-          fabscript_node_map[log.fabscript]['warning_nodes'].push(node);
+          fabscript_node_map[fabscript]['warning_nodes'].push(node);
         } else {
           node['class'] = 'danger';
-          fabscript_node_map[log.fabscript]['danger_nodes'].push(node);
+          fabscript_node_map[fabscript]['danger_nodes'].push(node);
         }
-        tmp_logs_html += "" + log.fabscript + ": " + log.msg + "[" + log.status + "]<br>";
+        tmp_logs_html += "" + fabscript + " [" + log.status + "]: " + log.msg + "[" + log.task_status + "]<br>";
       }
       logs_all_html = '';
       logs_all = JSON.parse(result.fields.logs_all);
       if (logs_all.length === 0) {
         logs_all_html = 'No data';
       } else {
-        for (_k = logs_all.length - 1; _k >= 0; _k += -1) {
-          log = logs_all[_k];
+        for (_j = logs_all.length - 1; _j >= 0; _j += -1) {
+          log = logs_all[_j];
           timestamp = new Date(log.timestamp * 1000);
-          logs_all_html += "" + log.fabscript + ": " + log.msg + "[" + log.status + "] " + timestamp + "<br>";
+          logs_all_html += "" + log.fabscript + "[" + log.status + "]: " + log.msg + "[" + log.task_status + "] " + timestamp + "<br>";
         }
       }
       logs_html = "<a class=\"popover-anchor\" data-containe=\"body\" data-toggle=\"popover\"\n    data-placement=\"bottom\" data-html=\"true\" data-title=\"Logs all\" data-content=\"" + logs_all_html + "\">\n    " + tmp_logs_html + "\n</a>";
@@ -619,8 +622,8 @@
     $('#warning-node-badge').html(warning_node_length);
     $('#danger-node-badge').html(danger_node_length);
     index = 0;
-    for (_l = 0, _len2 = fabscripts.length; _l < _len2; _l++) {
-      fabscript = fabscripts[_l];
+    for (_k = 0, _len1 = fabscripts.length; _k < _len1; _k++) {
+      fabscript = fabscripts[_k];
       name = fabscript.fields.name;
       if (!(name in fabscript_node_map)) {
         continue;
@@ -632,8 +635,8 @@
         fabscript_node_map[name].icon = 'computer-retro';
       }
       _ref1 = fabscript.fields.linked_fabscripts;
-      for (_m = 0, _len3 = _ref1.length; _m < _len3; _m++) {
-        linked_fabscript = _ref1[_m];
+      for (_l = 0, _len2 = _ref1.length; _l < _len2; _l++) {
+        linked_fabscript = _ref1[_l];
         script_name = linked_fabscript.split(':')[0];
         if (!(script_name in fabscript_node_map)) {
           fabscript_node_map[script_name] = {
@@ -688,11 +691,11 @@
         ]
       };
       _results.push((function() {
-        var _len4, _n, _ref2, _results1;
+        var _len3, _m, _ref2, _results1;
         _ref2 = fabscript_node.links;
         _results1 = [];
-        for (_n = 0, _len4 = _ref2.length; _n < _len4; _n++) {
-          link = _ref2[_n];
+        for (_m = 0, _len3 = _ref2.length; _m < _len3; _m++) {
+          link = _ref2[_m];
           _results1.push(graph_links.push({
             'source': fabscript_node.index,
             'target': link

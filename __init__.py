@@ -31,7 +31,7 @@ log.init_logger()
 # register fabric tasks
 from test import test  # noqa
 from node import node  # noqa
-from setup import _setup, setup, _manage, manage, _check, check, _help  # noqa
+from setup import setup, manage, check, h  # noqa
 from databag import databag  # noqa
 from doc import doc  # noqa
 from sync import sync  # noqa

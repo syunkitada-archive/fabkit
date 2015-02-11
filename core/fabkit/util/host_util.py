@@ -7,7 +7,7 @@ from types import StringType
 from fabkit import conf
 
 
-def get_expanded_hosts(host=None, host_fragments=[]):
+def get_expanded_hosts(host=None):
     ''' 与えられたホストパターンを展開してホストリストを返します。
     '''
     if not host or type(host) is not StringType:
@@ -16,7 +16,7 @@ def get_expanded_hosts(host=None, host_fragments=[]):
     hosts = []
     start = host.find('[') + 1
     if start == 0:
-        return [(host, host_fragments)]
+        return [host]
 
     end = host.index(']', start)
     target = host[start:end]
@@ -43,8 +43,7 @@ def get_expanded_hosts(host=None, host_fragments=[]):
     tail_host = host[end+1:]
     for fragment in fragments:
         host = head_host + fragment + tail_host
-        tmp_host_fragments = host_fragments + [fragment]
-        hosts.extend(get_expanded_hosts(host, tmp_host_fragments))
+        hosts.extend(get_expanded_hosts(host))
 
     return hosts
 
