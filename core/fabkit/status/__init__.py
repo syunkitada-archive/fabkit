@@ -44,9 +44,7 @@ RESULT_DOES_NOT_EXIST = 403
 
 
 def register_fabscript(fabscript_map, fabscript):
-    if fabscript in fabscript_map:
-        fabscript_map[fabscript]['task_status'] = REGISTERED
-    else:
+    if fabscript not in fabscript_map:
         fabscript_map[fabscript] = {
             'status': 0,
             'task_status': REGISTERED,

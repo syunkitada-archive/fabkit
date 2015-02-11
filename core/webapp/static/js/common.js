@@ -593,7 +593,7 @@
           node['class'] = 'danger';
           fabscript_node_map[fabscript]['danger_nodes'].push(node);
         }
-        tmp_logs_html += "" + fabscript + ": " + log.msg + "[" + log.status + "]<br>";
+        tmp_logs_html += "" + fabscript + " [" + log.status + "]: " + log.msg + "[" + log.task_status + "]<br>";
       }
       logs_all_html = '';
       logs_all = JSON.parse(result.fields.logs_all);
@@ -603,7 +603,7 @@
         for (_j = logs_all.length - 1; _j >= 0; _j += -1) {
           log = logs_all[_j];
           timestamp = new Date(log.timestamp * 1000);
-          logs_all_html += "" + log.fabscript + ": " + log.msg + "[" + log.status + "] " + timestamp + "<br>";
+          logs_all_html += "" + log.fabscript + "[" + log.status + "]: " + log.msg + "[" + log.task_status + "] " + timestamp + "<br>";
         }
       }
       logs_html = "<a class=\"popover-anchor\" data-containe=\"body\" data-toggle=\"popover\"\n    data-placement=\"bottom\" data-html=\"true\" data-title=\"Logs all\" data-content=\"" + logs_all_html + "\">\n    " + tmp_logs_html + "\n</a>";

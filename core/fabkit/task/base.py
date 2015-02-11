@@ -1,16 +1,15 @@
 # coding: utf-8
 
-from fabkit import api, env, filer, conf, status
+from functools import wraps
+from fabkit import env, filer, conf, status
 from check_util import check_basic
 
 
-@api.task
-@api.runs_once
-def task(is_bootstrap=True):
-
-    def sub_task(func):
-        def wrapper(*args, **kwargs):
-            env.node = {}
+def task(function=None, is_bootstrap=True):
+    def wrapper(func):
+        @wraps(func)
+        def sub_wrapper(*args, **kwargs):
+            env.node.update(env.node_status_map[env.host]['fabscript_map'][env.script_name])
             if is_bootstrap:
                 result = check_basic()
                 if result['task_status'] != status.SUCCESS:
@@ -22,10 +21,13 @@ def task(is_bootstrap=True):
 
             return func(*args, **kwargs)
 
-        wrapper.__doc__ = func.__doc__
-        wrapper.__name__ = func.__name__
-        wrapper.__module__ = func.__module__
-        wrapper.is_task = True
-        return wrapper
+        # wrapper.__doc__ = func.__doc__
+        # wrapper.__name__ = func.__name__
+        # wrapper.__module__ = func.__module__
+        sub_wrapper.is_task = True
+        return sub_wrapper
 
-    return sub_task
+    if function:
+        return wrapper(function)
+    else:
+        return wrapper

@@ -23,6 +23,7 @@ def update_all(status_code, msg):
             update_node(status_code, msg,
                         path=path, cluster=cluster, data=status_data)
 
+        print data['__status']['node_map']
         status_yaml = os.path.join(conf.NODE_DIR, cluster_name, '__status.yaml')
         with open(status_yaml, 'w') as f:
             f.write(yaml.dump({'__status': data['__status']}))
@@ -40,11 +41,11 @@ def decode_data(data, origin_data=None):
         data = [decode_data(value, origin_data) for value in data]
 
     if type(data) is StringType:
-        splited_value = data.split('$(')
+        splited_value = data.split('${')
         if len(splited_value) > 1:
             result = ''
             for value in splited_value:
-                splited_key = value.split(')', 1)
+                splited_key = value.split('}', 1)
                 if len(splited_key) > 1:
                     key = splited_key[0]
                     if key.find('#') == 0:

@@ -23,11 +23,15 @@ def check_basic():
     }
 
     with api.warn_only():
-        node = env.node_map.get(env.host)
+        node = env.node
         if env.is_test:
             ip = '127.0.0.1'
             uptime = '12:00:00 up 5 days, 12:00,  1 user,  load average: 0.00, 0.00, 0.00'
             ssh = 'success'
+            result = {
+                'msg': status.SUCCESS_CHECK_MSG,
+                'task_status': status.SUCCESS,
+            }
         else:
             result = cmd(cmd_ping.format(env.host))
             if result[0] == 0:
@@ -35,9 +39,9 @@ def check_basic():
                 uptime = run('uptime')
                 ssh = 'success'
 
-                log.info(status.SUCCESS_MSG)
+                log.info(status.SUCCESS_CHECK_MSG)
                 result = {
-                    'msg': status.SUCCESS_MSG,
+                    'msg': status.SUCCESS_CHECK_MSG,
                     'task_status': status.SUCCESS,
                 }
             else:

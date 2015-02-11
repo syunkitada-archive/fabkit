@@ -44,7 +44,7 @@ render_node = ->
                 node['class'] = 'danger'
                 fabscript_node_map[fabscript]['danger_nodes'].push(node)
 
-            tmp_logs_html += "#{fabscript}: #{log.msg}[#{log.status}]<br>"
+            tmp_logs_html += "#{fabscript} [#{log.status}]: #{log.msg}[#{log.task_status}]<br>"
 
         logs_all_html = ''
         logs_all = JSON.parse(result.fields.logs_all)
@@ -53,7 +53,7 @@ render_node = ->
         else
             for log in logs_all by -1
                 timestamp = new Date(log.timestamp * 1000)
-                logs_all_html += "#{log.fabscript}: #{log.msg}[#{log.status}] #{timestamp}<br>"
+                logs_all_html += "#{log.fabscript}[#{log.status}]: #{log.msg}[#{log.task_status}] #{timestamp}<br>"
 
         logs_html = """
             <a class="popover-anchor" data-containe="body" data-toggle="popover"

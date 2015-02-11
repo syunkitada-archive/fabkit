@@ -1,12 +1,10 @@
 # coding: utf-8
 
-from fabkit import env, api, conf, log, filer, status, db, util
+from fabkit import env, api, conf, status, db
 import re
 from types import DictType
 import importlib
 import inspect
-from check_util import check_basic
-from types import IntType, TupleType, StringType
 
 
 @api.task
@@ -68,14 +66,29 @@ def run_func(func_names=[], option=None):
                 continue
 
             script_name = cluster_run['name']
-            env.cluster = env.cluster_map[run['cluster']]
-            cluster_status = env.cluster['__status']
-            fabscript_status_map = cluster_status['fabscript_map']
-            node_status_map = cluster_status['node_map']
-            env.fabscript_map = env.cluster['fabscript_map']
-            env.fabscript = env.fabscript_map[script_name]
             env.hosts = cluster_run['hosts']
-            # TODO check cluster_run[require]
+            env.cluster = env.cluster_map[run['cluster']]
+            env.cluster_status = env.cluster['__status']
+            env.node_status_map = env.cluster_status['node_map']
+            env.fabscript_status_map = env.cluster_status['fabscript_map']
+            env.fabscript = env.fabscript_status_map[script_name]
+            env.script_name = script_name
+
+            # check require
+            require = env.cluster['fabscript_map'][script_name]['require']
+            is_require = True
+            for script, status_code in require.items():
+                if env.fabscript_status_map[script]['status'] != status_code:
+                    print 'Require Error\n{0} is require {1}:{2}.'.format(
+                        script_name, script, status_code)
+                    print '{0} status is {1}.'.format(
+                        script, env.fabscript_status_map[script]['status'])
+                    is_require = False
+                    break
+            if not is_require:
+                break
+
+            # print cluster_run[require]
 
             script = '.'.join([conf.FABSCRIPT_MODULE, script_name])
             module = importlib.import_module(script)
@@ -94,8 +107,7 @@ def run_func(func_names=[], option=None):
 
                         results = api.execute(func)
                         default_result = {
-                            'status': 1,
-                            'msg': 'Success',
+                            'msg': status.FABSCRIPT_SUCCESS_MSG.format(script_name),
                             'task_status': status.SUCCESS,
                         }
                         for host, tmp_result in results.items():
@@ -107,21 +119,17 @@ def run_func(func_names=[], option=None):
                                 result.update(tmp_result)
                                 results[host] = result
 
-                            node_status_map[host]['fabscript_map'][script_name] = result
+                            env.node_status_map[host]['fabscript_map'][script_name] = result
+                        env.cluster['__status']['node_map'] = env.node_status_map
 
                         is_expected = True
                         for host, result in results.items():
-                            env
-                            if result['task_status'] == status.SUCCESS:
-                                result_status = result['status']
+                            result_status = result.get('status')
+                            if result_status:
                                 expected = cluster_run['expected_status']
                                 if expected != result_status:
                                     is_expected = False
-                                    print '{0}: expected status is {1}, bad status is {2}'.format(
-                                        host, expected, result_status)
-
-                            # TODO save database
-                            # check continue
+                                    print '{0}: expected status is {1}, bad status is {2}'.format(host, expected, result_status)  # noqa
 
                         if is_expected:
                             result = {

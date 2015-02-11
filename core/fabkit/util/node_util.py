@@ -67,7 +67,7 @@ def load_runs(query, find_depth=1):
         # status of nodes
         status_node_map = cluster_status['node_map']
         # status of fabscripts
-        status_fabscript_map = cluster_status['fabscript_map']
+        fabscript_status_map = cluster_status['fabscript_map']
 
         # expand hosts of node_map, and load fabscript of node
         tmp_fabscript_map = {}
@@ -82,7 +82,7 @@ def load_runs(query, find_depth=1):
 
             for fabrun in cluster_node['fabruns']:
                 if fabrun not in tmp_fabscript_map:
-                    status.register_fabscript(status_fabscript_map, fabrun)
+                    status.register_fabscript(fabscript_status_map, fabrun)
 
                     fabscript_data = status.get_default_fabscript_data(fabrun)
                     root_mod, mod = fabrun.rsplit('.', 1)
@@ -97,8 +97,6 @@ def load_runs(query, find_depth=1):
 
                 tmp_fabscript_map[fabrun]['hosts'].extend(tmp_hosts)
 
-        cluster_status['fabscript_map'] = status_fabscript_map
-
         # tmp_fabscript_map を解析して、スクリプトの実行順序を組み立てる
         # 実行順序はcluster_runsに配列として格納する
         cluster_runs = []
@@ -112,7 +110,7 @@ def load_runs(query, find_depth=1):
                     if (require['require']) > 0:
                         resolve_require(fabscript, require)
                 else:
-                    require = status_fabscript_map.get(require_script)
+                    require = fabscript_status_map.get(require_script)
                     if require:
                         if require['status'] == require_status and require['task_status'] == 0:
                             return
@@ -147,9 +145,12 @@ def load_runs(query, find_depth=1):
                 status.register_node(status_node_map, host, fabscript)
                 tmp_hosts.append(host)
 
+            if len(tmp_hosts) > 0:
+                fabscript_status_map[fabscript]['task_status'] = status.REGISTERED
+
             data['hosts'] = tmp_hosts
             cluster_status['node_map'] = status_node_map
-            fabscript_status = status_fabscript_map[fabscript]
+            fabscript_status = fabscript_status_map[fabscript]['status']
 
             for flow in data['status_flow']:
                 if fabscript_status < flow or flow == data['status_flow'][-1]:
@@ -162,6 +163,8 @@ def load_runs(query, find_depth=1):
             'cluster': cluster_name,
             'runs': cluster_runs,
         })
+
+        cluster_status['fabscript_map'] = fabscript_status_map
 
         cluster['fabscript_map'] = tmp_fabscript_map
         env.cluster_map[cluster_name] = cluster
