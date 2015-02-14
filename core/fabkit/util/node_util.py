@@ -157,12 +157,19 @@ def load_runs(query, find_depth=1):
                         continue
 
                 tmp_hosts.append(host)
-                status.register_node(node_status_map, host, fabscript)
-                node = node_status_map.get(host, {'fabscript_map': {}, 'status': 0})
+                node = node_status_map.get(host, {'fabscript_map': {}})
+                if fabscript not in node['fabscript_map']:
+                    node['fabscript_map'][fabscript] = {
+                        'status': 0,
+                        'check_status': -1,
+                    }
+
                 node['fabscript_map'][fabscript].update({
                     'msg': status.REGISTERED_MSG,
                     'task_status': status.REGISTERED,
                 })
+
+                node_status_map[host] = node
 
             if len(tmp_hosts) > 0:
                 fabscript_status_map[fabscript]['task_status'] = status.REGISTERED
