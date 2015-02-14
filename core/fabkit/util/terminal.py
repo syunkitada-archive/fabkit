@@ -92,10 +92,10 @@ def print_runs():
         cluster_status_map = env.cluster_map[run['cluster']]['__status']
         fabscript_status_map = cluster_status_map['fabscript_map']
         for cluster_run in run['runs']:
-            fabscript_status = fabscript_status_map[cluster_run['name']]['status']
+            fabscript_status = fabscript_status_map[cluster_run['fabscript']]['status']
             for host in cluster_run['hosts']:
                 print format_str.format(cluster=run['cluster'],
-                                        fabscript=cluster_run['name'],
+                                        fabscript=cluster_run['fabscript'],
                                         status='{0} > {1}'.format(
                                             fabscript_status,
                                             cluster_run['expected_status']),

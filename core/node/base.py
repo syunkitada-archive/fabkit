@@ -40,26 +40,22 @@ def node(*options):
                     is_setup = True
                     break
 
-        if not is_setup:
-            print 'host'
-        else:
-            util.load_runs(query, find_depth=find_depth)
-            util.print_runs()
+        util.load_runs(query, find_depth=find_depth)
+        util.print_runs()
 
-            if len(env.tasks) > 1:
-                if util.confirm('Are you sure you want to run task on above nodes?', 'Canceled'):
-                    if is_setup and (not env.password or env.password == ''):
-                        print 'Enter your password.\n'
-                        if platform.system().find('CYGWIN') == 0:
-                            env.password = getpass.getpass()
-                        else:
-                            sudo('hostname')
+        if len(env.tasks) > 1:
+            if util.confirm('Are you sure you want to run task on above nodes?', 'Canceled'):
+                if is_setup and (not env.password or env.password == ''):
+                    print 'Enter your password.\n'
+                    if platform.system().find('CYGWIN') == 0:
+                        env.password = getpass.getpass()
+                    else:
+                        sudo('hostname')
 
-                    db.update_all(status.REGISTERED, status.REGISTERED_MSG)
+                db.update_all(status.REGISTERED, status.REGISTERED_MSG)
 
-                    # DBのコネクションを閉じる
-                    # ここでコネクションを閉じておかないと、次のタスクでIO ERRORが発生してしまう
-                    djangodb.close_old_connections()
-
-                else:
-                    exit(0)
+                # DBのコネクションを閉じる
+                # ここでコネクションを閉じておかないと、次のタスクでIO ERRORが発生してしまう
+                djangodb.close_old_connections()
+            else:
+                exit()

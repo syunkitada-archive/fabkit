@@ -73,7 +73,7 @@ def get_default_fabscript_data(fabscript):
     return {
         'name': fabscript,
         'hosts': [],
-        'status_flow': [1],
+        'status_flow': [],
         'require': {},
         'required': [],
     }

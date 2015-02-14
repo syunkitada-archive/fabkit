@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from fabkit import env, api, conf, status, db
+from fabkit import env, api, conf, status, db, log
 import re
 from types import DictType
 import importlib
@@ -26,7 +26,7 @@ def check(option=None):
 @api.task
 @api.runs_once
 def setup(option=None):
-    run_func(['^setup.*', '^check.*'], option)
+    run_func(['^setup.*'], option)
 
 
 @api.task
@@ -65,24 +65,30 @@ def run_func(func_names=[], option=None):
             if len(cluster_run['hosts']) == 0:
                 continue
 
-            script_name = cluster_run['name']
+            script_name = cluster_run['fabscript']
+            env.script_name = script_name
             env.hosts = cluster_run['hosts']
             env.cluster = env.cluster_map[run['cluster']]
             env.cluster_status = env.cluster['__status']
             env.node_status_map = env.cluster_status['node_map']
             env.fabscript_status_map = env.cluster_status['fabscript_map']
             env.fabscript = env.fabscript_status_map[script_name]
-            env.script_name = script_name
+
+            log.info('run: {0}'.format(script_name))
+            log.info('status: {0}'.format(env.fabscript))
+            log.info('hosts: {0}'.format(env.hosts))
+            log.debug('node_status_map: {0}'.format(env.node_status_map))
+            print env.node_status_map
 
             # check require
             require = env.cluster['fabscript_map'][script_name]['require']
             is_require = True
             for script, status_code in require.items():
-                if env.fabscript_status_map[script]['status'] != status_code:
-                    print 'Require Error\n{0} is require {1}:{2}.'.format(
-                        script_name, script, status_code)
-                    print '{0} status is {1}.'.format(
-                        script, env.fabscript_status_map[script]['status'])
+                required_status = env.fabscript_status_map[script]['status']
+                if required_status != status_code:
+                    log.error('Require Error\n'
+                              + '{0} is require {1}:{2}.\nbut {1} status is {3}.'.format(
+                                  script_name, script, status_code, required_status))
                     is_require = False
                     break
             if not is_require:
@@ -98,48 +104,70 @@ def run_func(func_names=[], option=None):
                 if inspect.isfunction(member[1]):
                     module_funcs.append(member[0])
 
+            # func_patterns にマッチしたタスク関数をすべて実行する
+            is_expected = False
+            is_contain_unexpected = False
             for func_pattern in func_patterns:
                 for candidate in module_funcs:
                     if func_pattern.match(candidate):
+                        # taskデコレータの付いているものだけ実行する
                         func = getattr(module, candidate)
                         if not hasattr(func, 'is_task') or not func.is_task:
                             continue
-
                         results = api.execute(func)
-                        default_result = {
-                            'msg': status.FABSCRIPT_SUCCESS_MSG.format(script_name),
-                            'task_status': status.SUCCESS,
-                        }
-                        for host, tmp_result in results.items():
-                            if not tmp_result or type(tmp_result) != DictType:
-                                result = default_result
-                                results[host] = result
-                            else:
-                                result = default_result.copy()
-                                result.update(tmp_result)
-                                results[host] = result
 
-                            env.node_status_map[host]['fabscript_map'][script_name] = result
-                        env.cluster['__status']['node_map'] = env.node_status_map
-
-                        is_expected = True
+                        # check results
+                        tmp_status = None
+                        is_contain_failed = False
                         for host, result in results.items():
+                            if not result:
+                                result = {}
+
+                            node_result = env.node_status_map[host]['fabscript_map'][script_name]
                             result_status = result.get('status')
-                            if result_status:
+                            task_status = result.get('task_status', status.SUCCESS)
+                            msg = result.get('msg',
+                                             status.FABSCRIPT_SUCCESS_MSG.format(candidate))
+                            node_result.update({
+                                'task_status': task_status,
+                                'msg': msg,
+                            })
+                            if result_status is not None:
+                                tmp_status = result_status
+                                node_result['status'] = result_status
                                 expected = cluster_run['expected_status']
-                                if expected != result_status:
-                                    is_expected = False
-                                    print '{0}: expected status is {1}, bad status is {2}'.format(host, expected, result_status)  # noqa
+                                if expected == result_status:
+                                    is_expected = True
+                                    log.info('{0}: {1} is expected status.'.format(
+                                        host, msg, result_status))
+                                else:
+                                    is_contain_unexpected = True
+                                    log.error('{0}: expected status is {1}, bad status is {2}.'.format(  # noqa
+                                        host, expected, result_status))
 
-                        if is_expected:
-                            result = {
-                                'status': cluster_run['expected_status'],
-                                'task_status': status.SUCCESS,
-                            }
-                            env.cluster['__status']['fabscript_map'][script_name] = result
+                            if task_status != status.SUCCESS:
+                                log.error('{0}: Failed task {1}.{2} [{3}]. {4}'.format(
+                                    host, script_name, candidate, task_status, msg))
+                                is_contain_failed = True
 
+                        if is_contain_failed:
+                            log.error('Failed task {0}.{1}. Exit setup.'.format(
+                                script_name, candidate))
                             db.update_all(status.SUCCESS,
                                           status.FABSCRIPT_SUCCESS_MSG.format(script_name))
-                        else:
-                            print 'For unexpected status is returned, will be exit setup.'
                             exit()
+
+                        if tmp_status is not None:
+                            env.fabscript['tmp_status'] = tmp_status
+
+            if is_expected and not is_contain_unexpected or cluster_run['expected_status'] == 0:
+                env.cluster['__status']['fabscript_map'][script_name] = {
+                    'status': cluster_run['expected_status'],
+                    'task_status': status.SUCCESS,
+                }
+
+                db.update_all(status.SUCCESS,
+                              status.FABSCRIPT_SUCCESS_MSG.format(script_name))
+            else:
+                log.error('bad status.')
+                exit()
