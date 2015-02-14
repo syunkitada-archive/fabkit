@@ -5,12 +5,15 @@ import sys
 import ConfigParser
 import logging
 from fabkit import api, env
-from constant import (
+from constant import (  # noqa
     INIFILE_NAME,
     STDOUT_LOG_FILE_NAME,
     ALL_LOG_FILE_NAME,
     ERROR_LOG_FILE_NAME,
     DOC_DIR_NAME,
+    YAML_EXTENSION,
+    CLUSTER_YAML,
+    FABSCRIPT_YAML,
 )
 
 

@@ -1,33 +1,27 @@
 # coding: utf-8
 
-import time
 import os
 import yaml
 import re
-from fabkit import conf, env, status
+from fabkit import conf, env, status, log
 from host_util import get_expanded_hosts
-from cluster_util import load_cluster
-from fabscript_util import load_fabscript
 
 
 RE_UPTIME = re.compile('^.*up (.+),.*user.*$')
 
 
-def get_node_file(host=None):
-    return os.path.join(conf.NODE_DIR, '{0}.yaml'.format(host))
-
-
-def exists_node(host=None):
-    if not host:
-        host = env.host
-
-    return os.path.exists(get_node_file(host))
-
-
 def load_runs(query, find_depth=1):
+    """ queryに基づいて、nodeを読み込む
+
+    env.runs にクラスタごとの実行タスクリスト
+    env.cluster_mapにクラスタごとのデータ情報を格納
+
+    """
+
+    # query rule
+    # <cluster_name>/<node_search_pattern>
     splited_query = query.rsplit('/', 1)
     cluster_name = splited_query[0]
-
     if len(splited_query) > 1 and splited_query[1]:
         host_pattern = splited_query[1]
         candidates = [re.compile(c.replace('*', '.*')) for c in get_expanded_hosts(host_pattern)]
@@ -36,13 +30,14 @@ def load_runs(query, find_depth=1):
 
     cluster_dir = os.path.join(conf.NODE_DIR, cluster_name)
 
+    # load cluster data from node dir
     runs = []
     depth = 1
     for root, dirs, files in os.walk(conf.NODE_DIR):
         if root.find(cluster_dir) == -1:
             continue
 
-        # load_cluster
+        # load cluster
         cluster_name = root.split(conf.NODE_DIR)[1]
         if cluster_name.find('/') == 0:
             cluster_name = cluster_name[1:]
@@ -54,22 +49,24 @@ def load_runs(query, find_depth=1):
                 'fabscript_map': {},
             },
         }
-        # load cluster data files
+        # load cluster data from yaml files
         for file in files:
-            with open(os.path.join(root, file), 'r') as f:
-                data = yaml.load(f)
-                cluster.update(data)
+            if file.find(conf.YAML_EXTENSION) > -1:
+                with open(os.path.join(root, file), 'r') as f:
+                    data = yaml.load(f)
+                    cluster.update(data)
 
         # node_map is definition of nodes in cluster
         cluster_node_map = cluster.get('node_map', {})
         # status is setup status of cluster
         cluster_status = cluster['__status']
         # status of nodes
-        status_node_map = cluster_status['node_map']
+        node_status_map = cluster_status['node_map']
         # status of fabscripts
         fabscript_status_map = cluster_status['fabscript_map']
 
         # expand hosts of node_map, and load fabscript of node
+        # tmp_fabscript_mapに実行候補のfabscriptをすべて格納する
         tmp_fabscript_map = {}
         for role, cluster_node in cluster_node_map.items():
             node_hosts = cluster_node['hosts']
@@ -80,22 +77,39 @@ def load_runs(query, find_depth=1):
 
             cluster_node['hosts'] = tmp_hosts
 
-            for fabrun in cluster_node['fabruns']:
-                if fabrun not in tmp_fabscript_map:
-                    status.register_fabscript(fabscript_status_map, fabrun)
+            for fabscript in cluster_node['fabruns']:
+                # fabruns = [<cluster>/<python_mod_path>, <cluster>/<python_mod_path>]
+                # fabscriptは、クラスタ単位で管理する
+                fabscript_cluster = fabscript.rsplit('/', 1)[0]
+                fabscript_mod = fabscript.rsplit('/', 1)[1]
+                fabscript = fabscript.replace('/', '.')  # モジュールとして読み込めるよう.ドット区切りに直す
 
-                    fabscript_data = status.get_default_fabscript_data(fabrun)
-                    root_mod, mod = fabrun.rsplit('.', 1)
-                    root_mod_file = os.path.join(conf.FABSCRIPT_MODULE_DIR,
-                                                 root_mod.replace('.', '/'), '__fabscript__.yaml')
-                    if os.path.exists(root_mod_file):
-                        with open(root_mod_file, 'r') as f:
+                if fabscript not in tmp_fabscript_map:
+                    if fabscript not in fabscript_status_map:
+                        # このクラスタにおいて実行履歴のないfabscriptはデフォルト値を登録する
+                        fabscript_status_map[fabscript] = {
+                            'status': 0,
+                            'task_status': status.REGISTERED,
+                        }
+
+                    # デフォルト値
+                    fabscript_data = {
+                        'fabscript': fabscript,
+                        'hosts': [],
+                        'status_flow': [0],
+                        'require': {},
+                        'required': [],
+                    }
+                    fabscript_file = os.path.join(conf.FABSCRIPT_MODULE_DIR,
+                                                  fabscript_cluster, conf.FABSCRIPT_YAML)
+                    if os.path.exists(fabscript_file):
+                        with open(fabscript_file, 'r') as f:
                             tmp_data = yaml.load(f)
-                            fabscript_data.update(tmp_data.get(mod, {}))
+                            fabscript_data.update(tmp_data.get(fabscript_mod, {}))
 
-                    tmp_fabscript_map[fabrun] = fabscript_data
+                    tmp_fabscript_map[fabscript] = fabscript_data
 
-                tmp_fabscript_map[fabrun]['hosts'].extend(tmp_hosts)
+                tmp_fabscript_map[fabscript]['hosts'].extend(tmp_hosts)
 
         # tmp_fabscript_map を解析して、スクリプトの実行順序を組み立てる
         # 実行順序はcluster_runsに配列として格納する
@@ -115,8 +129,8 @@ def load_runs(query, find_depth=1):
                         if require['status'] == require_status and require['task_status'] == 0:
                             return
 
-                    print 'Require Error\nCluster: {0}\nFabscript: {1} require {2}:{3}'.format(
-                        cluster_name, fabscript, require_script, require_status)
+                    log.error('Require Error\nCluster: {0}\nFabscript: {1} require {2}:{3}'.format(
+                        cluster_name, fabscript, require_script, require_status))
                     exit()
 
         for fabscript, data in tmp_fabscript_map.items():
@@ -128,7 +142,7 @@ def load_runs(query, find_depth=1):
 
             for required in data['required']:
                 for i, run in enumerate(cluster_runs):
-                    if run['name'] == required:
+                    if run['fabscript'] == required:
                         if i < index:
                             index = i
 
@@ -142,14 +156,26 @@ def load_runs(query, find_depth=1):
                     else:
                         continue
 
-                status.register_node(status_node_map, host, fabscript)
                 tmp_hosts.append(host)
+                node = node_status_map.get(host, {'fabscript_map': {}})
+                if fabscript not in node['fabscript_map']:
+                    node['fabscript_map'][fabscript] = {
+                        'status': 0,
+                        'check_status': -1,
+                    }
+
+                node['fabscript_map'][fabscript].update({
+                    'msg': status.REGISTERED_MSG,
+                    'task_status': status.REGISTERED,
+                })
+
+                node_status_map[host] = node
 
             if len(tmp_hosts) > 0:
                 fabscript_status_map[fabscript]['task_status'] = status.REGISTERED
 
             data['hosts'] = tmp_hosts
-            cluster_status['node_map'] = status_node_map
+            cluster_status['node_map'] = node_status_map
             fabscript_status = fabscript_status_map[fabscript]['status']
 
             for flow in data['status_flow']:
@@ -177,43 +203,5 @@ def load_runs(query, find_depth=1):
 
     env.runs = runs
 
-
-def dump_cluster():
-    # print env.cluster
-    # TODO dump cluster
-    print 'TODO dump cluster'
-
-
-def remove_node(host=None):
-    if not host:
-        return
-
-    path = '%s/%s.yaml' % (conf.NODE_DIR, host)
-    os.remove(path)
-
-
-def update_log(fabscript, status, msg):
-    node = env.node_map.get(env.host)
-    tmp_logs = []
-    for log in node['logs']:
-        if log['fabscript'] == fabscript:
-            log['status'] = status
-            log['msg'] = msg
-            log['timestamp'] = time.time()
-
-        tmp_logs.append(log)
-
-    node['logs'] = tmp_logs
-    env.node_map[env.host] = node
-
-
-def print_db_nodes(nodes=[], option=''):
-    for node in nodes:
-        print node
-
-
-def convert_node(node={}):
-    return {
-        'fabruns': node.get('fabruns', []),
-        'data': node.get('data', {}),
-    }
+    log.debug('env.runs = {0}\n'.format(env.runs))
+    log.debug('env.cluster_map = {0}\n'.format(env.cluster_map))

@@ -23,8 +23,7 @@ def update_all(status_code, msg):
             update_node(status_code, msg,
                         path=path, cluster=cluster, data=status_data)
 
-        print data['__status']['node_map']
-        status_yaml = os.path.join(conf.NODE_DIR, cluster_name, '__status.yaml')
+        status_yaml = os.path.join(conf.NODE_DIR, cluster_name, conf.CLUSTER_YAML)
         with open(status_yaml, 'w') as f:
             f.write(yaml.dump({'__status': data['__status']}))
 

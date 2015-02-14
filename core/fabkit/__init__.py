@@ -3,6 +3,8 @@
 
 from fabric import api
 env = api.env
+parallel = api.parallel
+serial = api.serial
 
 from shell import *  # noqa
 from task import task  # noqa

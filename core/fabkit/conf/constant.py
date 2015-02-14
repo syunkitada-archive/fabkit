@@ -5,3 +5,7 @@ INIFILE_NAME = 'fabfile.ini'
 STDOUT_LOG_FILE_NAME = 'stdout.log'
 ALL_LOG_FILE_NAME = 'all.log'
 ERROR_LOG_FILE_NAME = 'error.log'
+
+YAML_EXTENSION = '.yml'
+CLUSTER_YAML = '__cluster.yml'
+FABSCRIPT_YAML = '__fabscript.yml'
