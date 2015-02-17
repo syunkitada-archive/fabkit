@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from fabkit import env, api, conf, status, db, log
+from fabkit import env, api, conf, status, log, util
 import re
 from types import DictType
 import importlib
@@ -9,7 +9,7 @@ import inspect
 
 @api.task
 def manage(*args):
-    if args[0] == 'test':
+    if len(args) > 0 and args[0] == 'test':
         option = 'test'
         args = args[1:]
     else:
@@ -138,12 +138,10 @@ def run_func(func_names=[], option=None, is_setup=False, is_check=False, is_mana
                             msg = result.get('msg',
                                              status.FABSCRIPT_SUCCESS_MSG.format(candidate))
 
-                            node_result.update({
-                                'task_status': task_status,
-                                'msg': msg,
-                            })
+                            node_result['task_status'] = task_status
 
                             if is_setup:
+                                node_result['msg'] = msg
                                 if result_status is not None:
                                     tmp_status = result_status
                                     node_result['status'] = result_status
@@ -157,6 +155,7 @@ def run_func(func_names=[], option=None, is_setup=False, is_check=False, is_mana
                                         log.error('{0}: expected status is {1}, bad status is {2}.'.format(  # noqa
                                             host, expected, result_status))
                             elif is_check:
+                                node_result['check_msg'] = msg
                                 if result_status is None:
                                     result_status = status.SUCCESS
 
@@ -175,8 +174,7 @@ def run_func(func_names=[], option=None, is_setup=False, is_check=False, is_mana
                         if is_contain_failed:
                             log.error('Failed task {0}.{1}. Exit setup.'.format(
                                 script_name, candidate))
-                            db.update_all(status.SUCCESS,
-                                          status.FABSCRIPT_SUCCESS_MSG.format(script_name))
+                            util.dump_status()
                             exit()
 
                         if tmp_status is not None:
@@ -189,12 +187,10 @@ def run_func(func_names=[], option=None, is_setup=False, is_check=False, is_mana
                         'task_status': status.SUCCESS,
                     }
 
-                    db.update_all(status.SUCCESS,
-                                  status.FABSCRIPT_SUCCESS_MSG.format(script_name))
+                    util.dump_status()
                 else:
                     log.error('bad status.')
                     exit()
             elif is_check:
                 env.cluster['__status']['fabscript_map'][script_name]['task_status'] = status.SUCCESS   # noqa
-                db.update_all(status.SUCCESS,
-                              status.FABSCRIPT_SUCCESS_MSG.format(script_name))
+                util.dump_status()

@@ -33,26 +33,29 @@ def node(*options):
                 find_depth = int(option)
 
         is_setup = False
-        setup_tasks = ['setup', 'manage', 'check']
         for task in env.tasks:
-            for setup_task in setup_tasks:
-                if task.find(setup_task) == 0:
-                    is_setup = True
-                    break
+            if task.find('setup') == 0:
+                env.is_setup = True
+            elif task.find('check') == 0:
+                env.is_check = True
+            elif task.find('manage') == 0:
+                env.is_manage = True
 
         util.load_runs(query, find_depth=find_depth)
         util.print_runs()
 
         if len(env.tasks) > 1:
             if util.confirm('Are you sure you want to run task on above nodes?', 'Canceled'):
-                if is_setup and (not env.password or env.password == ''):
+                if (env.is_setup or env.is_check or env.is_manage) \
+                        and (not env.password or env.password == ''):
                     print 'Enter your password.\n'
                     if platform.system().find('CYGWIN') == 0:
                         env.password = getpass.getpass()
                     else:
                         sudo('hostname')
 
-                db.update_all(status.REGISTERED, status.REGISTERED_MSG)
+                util.decode_cluster_map()
+                util.dump_status()
 
                 # DBのコネクションを閉じる
                 # ここでコネクションを閉じておかないと、次のタスクでIO ERRORが発生してしまう

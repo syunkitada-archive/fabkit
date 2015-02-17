@@ -162,12 +162,20 @@ def load_runs(query, find_depth=1):
                     node['fabscript_map'][fabscript] = {
                         'status': 0,
                         'check_status': -1,
+                        'msg': '',
+                        'check_msg': '',
                     }
 
-                node['fabscript_map'][fabscript].update({
-                    'msg': status.REGISTERED_MSG,
-                    'task_status': status.REGISTERED,
-                })
+                if env.is_setup:
+                    node['fabscript_map'][fabscript].update({
+                        'msg': status.REGISTERED_MSG,
+                        'task_status': status.REGISTERED,
+                    })
+                elif env.is_check:
+                    node['fabscript_map'][fabscript].update({
+                        'check_msg': status.REGISTERED_MSG,
+                        'task_status': status.REGISTERED,
+                    })
 
                 node_status_map[host] = node
 
@@ -205,3 +213,13 @@ def load_runs(query, find_depth=1):
 
     log.debug('env.runs = {0}\n'.format(env.runs))
     log.debug('env.cluster_map = {0}\n'.format(env.cluster_map))
+
+
+def dump_status():
+    for cluster_name, data in env.cluster_map.items():
+        node_status_map = data['__status'].pop('node_map')
+        data['__status']['node_map'] = node_status_map
+
+        status_yaml = os.path.join(conf.NODE_DIR, cluster_name, conf.CLUSTER_YAML)
+        with open(status_yaml, 'w') as f:
+            f.write(yaml.dump({'__status': data['__status']}))
