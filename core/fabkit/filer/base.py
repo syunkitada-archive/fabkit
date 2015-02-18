@@ -39,9 +39,11 @@ def __get_src_file(target, file_type, src_target=None, src_file=None):
             src_target = target.rsplit('/', 1)[1]
 
         for src in srcs_dirs:
-            src_file = os.path.join(src, src_target)
-            if os.path.exists(src_file):
-                return src_file
+            for root, dirs, files in os.walk(src):
+                for file in files:
+                    if file == src_target:
+                        src_file = os.path.join(root, src_target)
+                        return src_file
     else:
         return src_file
 

@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from types import DictType, ListType, StringType
+from types import DictType, ListType, StringType, IntType
 from fabkit import databag, env
 
 
@@ -39,6 +39,8 @@ def decode_data(data, origin_data=None):
                         tmp_data = decode_data(tmp_data, origin_data)
                         if type(tmp_data) is StringType:
                             result += tmp_data + splited_key[1]
+                        elif type(tmp_data) is IntType:
+                            result += str(tmp_data) + splited_key[1]
                         else:
                             return tmp_data
 
