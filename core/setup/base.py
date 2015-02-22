@@ -5,6 +5,7 @@ import re
 from types import DictType
 import importlib
 import inspect
+from remote import run_remote
 
 
 @api.task
@@ -58,12 +59,43 @@ def run_func(func_names=[], option=None, is_setup=False, is_check=False, is_mana
     if option == 'test':
         env.is_test = True
 
+    env.is_remote = False
+    if option == 'remote':
+        env.is_remote = True
+        env.remote_map = {}
+        remote_hosts = set()
+        tmp_runs = []
+        for i, run in enumerate(env.runs):
+            cluster = env.cluster_map[run['cluster']]
+            if 'remote' in cluster:
+                cluster = env.cluster_map[run['cluster']]
+                if 'remote' in cluster:
+                    cluster_remote = cluster['remote']
+                    remote = env.remote_map.get(cluster_remote['host'], {
+                        'clusters': [],
+                        'host_pattern': cluster['host_pattern'],
+                    })
+                    env.remote_map[cluster_remote['host']] = remote
+
+                    remote['clusters'].append(cluster['name'])
+                    remote_hosts.add(cluster_remote['host'])
+            else:
+                tmp_runs.append(run)
+
+        env.runs = tmp_runs
+        if len(remote_hosts) > 0:
+            env.hosts = list(remote_hosts)
+            results = api.execute(run_remote)
+            for host, result in results.items():
+                env.cluster_map.update(result)
+
+            util.dump_status()
+
     func_patterns = [re.compile(name) for name in func_names]
     host_filter = {}
     for run in env.runs:
         for cluster_run in run['runs']:
             script_name = cluster_run['fabscript']
-
             if is_check or is_manage:
                 # 二重実行を防ぐ
                 hosts = host_filter.get(script_name, [])
@@ -83,9 +115,8 @@ def run_func(func_names=[], option=None, is_setup=False, is_check=False, is_mana
             env.fabscript_status_map = env.cluster_status['fabscript_map']
             env.fabscript = env.fabscript_status_map[script_name]
 
-            log.info('run: {0}'.format(script_name))
-            log.info('status: {0}'.format(env.fabscript))
             log.info('hosts: {0}'.format(env.hosts))
+            log.info('run: {0}: {1}'.format(script_name, env.fabscript))
             log.debug('node_status_map: {0}'.format(env.node_status_map))
 
             # check require
@@ -106,7 +137,8 @@ def run_func(func_names=[], option=None, is_setup=False, is_check=False, is_mana
             # print cluster_run[require]
 
             script = '.'.join([conf.FABSCRIPT_MODULE, script_name])
-            module = importlib.import_module(script)
+            # module = importlib.import_module(script)  # importlibは、2.7以上じゃないと使えない
+            module = __import__(script, globals(), locals(), ['*'], -1)
 
             module_funcs = []
             for member in inspect.getmembers(module):

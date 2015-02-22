@@ -2,7 +2,6 @@
 
 import os
 import sys
-import django
 
 
 FABFILE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -17,8 +16,6 @@ sys.path.extend([
     TEST_REPO_DIR,
 ])
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "webapp.appconf.settings")
-django.setup()
 
 # initialize config
 from fabkit import conf, util, log
@@ -34,7 +31,6 @@ from node import node  # noqa
 from setup import setup, manage, check, h  # noqa
 from databag import databag  # noqa
 from doc import doc  # noqa
-from sync import sync  # noqa
 
 
 log.set_stdout_pipe()  # 標準出力をパイプ経由でログに流す

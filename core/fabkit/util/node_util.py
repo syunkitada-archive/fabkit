@@ -26,6 +26,7 @@ def load_runs(query, find_depth=1):
         host_pattern = splited_query[1]
         candidates = [re.compile(c.replace('*', '.*')) for c in get_expanded_hosts(host_pattern)]
     else:
+        host_pattern = ''
         candidates = None
 
     cluster_dir = os.path.join(conf.NODE_DIR, cluster_name)
@@ -44,6 +45,8 @@ def load_runs(query, find_depth=1):
 
         # default cluster dict
         cluster = {
+            'name': cluster_name,
+            'host_pattern': host_pattern,
             '__status': {
                 'node_map': {},
                 'fabscript_map': {},

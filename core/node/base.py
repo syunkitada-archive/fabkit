@@ -2,8 +2,7 @@
 
 import platform
 import getpass
-from fabkit import api, env, db, util, sudo, status
-from django import db as djangodb
+from fabkit import api, env, util, sudo
 
 
 @api.task
@@ -12,27 +11,20 @@ def node(*options):
     len_options = len(options)
 
     if len_options == 0 or options[0] in ['recent', 'r', 'error', 'e']:
+        # TODO print recent result and error result
         return
-        length = int(options[1]) if len_options > 1 else None
-        if len_options == 0 or options[0] in ['recent', 're']:
-            nodes = db.get_recent_nodes(length)
-        else:
-            nodes = db.get_error_nodes(length)
-
-        for node in nodes:
-            util.load_node(node.path)
-
-        util.print_node_map(option='status')
 
     else:
         query = options[0]
         find_depth = 1
+        is_yes = False
         if len_options > 1:
             option = options[1]
             if option.isdigit():
                 find_depth = int(option)
+            elif option == 'yes':
+                is_yes = True
 
-        is_setup = False
         for task in env.tasks:
             if task.find('setup') == 0:
                 env.is_setup = True
@@ -45,7 +37,8 @@ def node(*options):
         util.print_runs()
 
         if len(env.tasks) > 1:
-            if util.confirm('Are you sure you want to run task on above nodes?', 'Canceled'):
+            if is_yes or util.confirm(
+                    'Are you sure you want to run task on above nodes?', 'Canceled'):
                 if (env.is_setup or env.is_check or env.is_manage) \
                         and (not env.password or env.password == ''):
                     print 'Enter your password.\n'
@@ -57,8 +50,5 @@ def node(*options):
                 util.decode_cluster_map()
                 util.dump_status()
 
-                # DBのコネクションを閉じる
-                # ここでコネクションを閉じておかないと、次のタスクでIO ERRORが発生してしまう
-                djangodb.close_old_connections()
             else:
                 exit()
