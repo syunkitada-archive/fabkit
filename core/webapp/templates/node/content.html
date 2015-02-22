@@ -39,15 +39,12 @@
     </ul>
 </p>
 <div class="table-responsive">
-    <table class="table table-striped table-bordered">
+    <table class="table table-striped table-bordered tablesorter">
         <thead>
             <tr>
-                <th><input type="checkbox" id="all-checkbox"></th>
-                <th>Path</th>
                 <th>Status</th>
-                <th>Msg</th>
-                <th width="400px">Logs</th>
-                <th>Udate</th>
+                <th>Host</th>
+                <th>Fabscript</th>
             </tr>
         </thead>
         <tbody id="nodes-tbody">
@@ -56,7 +53,7 @@
 </div>
 
 
-<script type="application/json" id="nodes">{{ nodes|safe }}</script>
+<script type="application/json" id="node_cluster">{{ node_cluster|safe }}</script>
 <script type="application/json" id="node_clusters">{{ node_clusters|safe }}</script>
 <script type="application/json" id="fabscripts">{{ fabscripts|safe }}</script>
 
