@@ -20,10 +20,18 @@ def run_remote():
     run('rm -rf $HOME/fabric-repo')
     run('cd {0} && tar -xf fabrepo.tar.gz -C $HOME'.format(conf.REMOTE_TMP_DIR, remote_repo))
 
+    task_name = ''
+    if env.is_setup:
+        task_name = 'setup'
+    elif env.is_check:
+        task_name = 'check'
+    elif env.is_manage:
+        task_name = 'manage:{0}'.format(','.join(env.func_names))
+
     cluster_map = {}
     for cluster in remote['clusters']:
-        run('cd $HOME/{0} && fab node:{1}/{2},yes setup'.format(
-            dirname, cluster, remote['host_pattern']))
+        run('cd $HOME/{0} && fab node:{1}/{2},yes {3}'.format(
+            dirname, cluster, remote['host_pattern'], task_name))
         with api.warn_only():
             yaml_str = run('cat $HOME/{0}/nodes/{1}/__cluster.yml'.format(dirname, cluster))
         cluster_map[cluster] = yaml.load(yaml_str)

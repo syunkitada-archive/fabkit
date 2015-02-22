@@ -16,18 +16,18 @@ def manage(*args):
     else:
         option = None
 
-    run_func(args, option, is_manage=True)
+    run_func(args, option)
 
 
 @api.task
 def check(option=None):
-    run_func(['^check.*'], option, is_check=True)
+    run_func(['^check.*'], option)
 
 
 @api.task
 @api.runs_once
 def setup(option=None):
-    run_func(['^setup.*'], option, is_setup=True)
+    run_func(['^setup.*'], option)
 
 
 @api.task
@@ -55,7 +55,7 @@ def h(*func_names):
         print module_funcs
 
 
-def run_func(func_names=[], option=None, is_setup=False, is_check=False, is_manage=False):
+def run_func(func_names=[], option=None):
     if option == 'test':
         env.is_test = True
 
@@ -84,6 +84,7 @@ def run_func(func_names=[], option=None, is_setup=False, is_check=False, is_mana
 
         env.runs = tmp_runs
         if len(remote_hosts) > 0:
+            env.func_names = func_names
             env.hosts = list(remote_hosts)
             results = api.execute(run_remote)
             for host, result in results.items():
@@ -96,7 +97,7 @@ def run_func(func_names=[], option=None, is_setup=False, is_check=False, is_mana
     for run in env.runs:
         for cluster_run in run['runs']:
             script_name = cluster_run['fabscript']
-            if is_check or is_manage:
+            if env.is_check or env.is_manage:
                 # 二重実行を防ぐ
                 hosts = host_filter.get(script_name, [])
                 tmp_hosts = list(set(cluster_run['hosts']) - set(hosts))
@@ -121,7 +122,7 @@ def run_func(func_names=[], option=None, is_setup=False, is_check=False, is_mana
 
             # check require
             require = env.cluster['fabscript_map'][script_name]['require']
-            if is_setup:
+            if env.is_setup:
                 is_require = True
                 for script, status_code in require.items():
                     required_status = env.fabscript_status_map[script]['status']
@@ -172,7 +173,7 @@ def run_func(func_names=[], option=None, is_setup=False, is_check=False, is_mana
 
                             node_result['task_status'] = task_status
 
-                            if is_setup:
+                            if env.is_setup:
                                 node_result['msg'] = msg
                                 if result_status is not None:
                                     tmp_status = result_status
@@ -186,7 +187,7 @@ def run_func(func_names=[], option=None, is_setup=False, is_check=False, is_mana
                                         is_contain_unexpected = True
                                         log.error('{0}: expected status is {1}, bad status is {2}.'.format(  # noqa
                                             host, expected, result_status))
-                            elif is_check:
+                            elif env.is_check:
                                 node_result['check_msg'] = msg
                                 if result_status is None:
                                     result_status = status.SUCCESS
@@ -212,7 +213,7 @@ def run_func(func_names=[], option=None, is_setup=False, is_check=False, is_mana
                         if tmp_status is not None:
                             env.fabscript['tmp_status'] = tmp_status
 
-            if is_setup:
+            if env.is_setup:
                 if is_expected and not is_contain_unexpected or cluster_run['expected_status'] == 0:
                     env.cluster['__status']['fabscript_map'][script_name] = {
                         'status': cluster_run['expected_status'],
@@ -223,6 +224,6 @@ def run_func(func_names=[], option=None, is_setup=False, is_check=False, is_mana
                 else:
                     log.error('bad status.')
                     exit()
-            elif is_check:
+            elif env.is_check:
                 env.cluster['__status']['fabscript_map'][script_name]['task_status'] = status.SUCCESS   # noqa
                 util.dump_status()
