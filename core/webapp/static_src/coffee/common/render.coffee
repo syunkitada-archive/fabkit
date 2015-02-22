@@ -1,12 +1,12 @@
 render_all = ->
     if mode.current == mode.USER
         render_user()
-    else if mode.current == mode.FABSCRIPT
-        render_fabscript_clusters()
-        render_fabscript()
     else if mode.current == mode.NODE
         render_node_clusters()
-        render_node()
+        render_node_cluster()
+        $('.tablesorter').tablesorter({
+            sortList: [[0, -1], [1, 0]]
+        })
 
     $('[data-toggle=popover]').popover()
 
@@ -51,24 +51,14 @@ init = ->
     if node_clusters.length > 0
         node_clusters = JSON.parse(node_clusters.html())
 
-    fabscripts = $('#fabscripts')
-    if fabscripts.length > 0
-        mode.current = mode.FABSCRIPT
-        fabscripts = JSON.parse(fabscripts.html())
-        for fabscript in fabscripts
-            fabscript.fields.data = JSON.parse(fabscript.fields.data)
-            fabscript.fields.link = JSON.parse(fabscript.fields.link)
-            fabscript.fields.linked_fabscripts = JSON.parse(fabscript.fields.linked_fabscripts)
-
-    nodes = $('#nodes')
-    if nodes.length > 0
+    node_cluster = $('#node_cluster')
+    if node_cluster.length > 0
         mode.current = mode.NODE
-        nodes = JSON.parse(nodes.html())
+        node_cluster = JSON.parse(node_cluster.html())
 
     render_all()
 
     return
-
 
 init()
 

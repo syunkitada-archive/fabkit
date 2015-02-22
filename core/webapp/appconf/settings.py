@@ -107,3 +107,12 @@ TEMPLATE_DIRS = (
 )
 
 LOGIN_URL = '/user/login/'
+
+
+import ConfigParser
+REPO_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.join(BASE_DIR))))
+INIFILE = os.path.join(REPO_DIR, 'fabfile.ini')
+
+CONFIG = ConfigParser.SafeConfigParser()
+CONFIG.read(INIFILE)
+NODE_DIR = os.path.join(REPO_DIR, CONFIG.get('common', 'node_dir'))

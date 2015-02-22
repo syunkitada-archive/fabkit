@@ -1,12 +1,12 @@
 (function() {
-  var WARNING_STATUS_THRESHOLD, fabscripts, filter, graph_links, graph_nodes, init, mode, node_clusters, nodes, render_all, render_fabscript, render_fabscript_clusters, render_force_layout, render_node, render_node_clusters, render_overview_layout, render_user, users,
+  var WARNING_STATUS_THRESHOLD, fabscripts, filter, graph_links, graph_nodes, init, mode, node_cluster, node_clusters, render_all, render_fabscript, render_force_layout, render_node_cluster, render_node_clusters, render_overview_layout, render_user, users,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   window.fabkit = {};
 
   users = [];
 
-  nodes = [];
+  node_cluster = {};
 
   node_clusters = [];
 
@@ -95,7 +95,7 @@
         $('#modal-progress').hide();
       },
       success: function(data) {
-        var fabscript, node, pk, target, target_list, targets, tmp_fabscripts, tmp_nodes, tmp_targets, tmp_users, user, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2;
+        var fabscript, node, nodes, pk, target, target_list, targets, tmp_fabscripts, tmp_nodes, tmp_targets, tmp_users, user, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2;
         console.log(data);
         $('#modal-msg').html('<div class="bg-success msg-box">Success</div>').show();
         target_list = $('#target-list');
@@ -150,7 +150,7 @@
   });
 
   render_force_layout = function() {
-    var $svg, force, h, id, link, links, node, svg, w;
+    var $svg, force, h, id, link, links, node, nodes, svg, w;
     console.log('render force layout');
     id = '#graph-svg';
     nodes = graph_nodes;
@@ -205,7 +205,7 @@
   };
 
   render_overview_layout = function() {
-    var $svg, click, g, h, id, kx, ky, links, partition, root, svg, transform, vis, w, x, y;
+    var $svg, click, g, h, id, kx, ky, links, nodes, partition, root, svg, transform, vis, w, x, y;
     id = '#overview-svg';
     nodes = graph_nodes;
     links = graph_links;
@@ -311,38 +311,29 @@
   };
 
   render_node_clusters = function() {
-    var active, cluster_pk, clusters_html, expand_clusters, page, paths;
-    console.log(node_clusters);
-    paths = location.pathname.split('/', 3);
-    page = paths[1];
-    cluster_pk = parseInt(paths[2]);
-    if (cluster_pk === 0) {
-      active = 'active';
-    } else {
-      active = '';
-    }
-    clusters_html = $("<div class=\"panel-group\" id=\"accordion\">\n    <div class=\"panel\">\n        <div class=\"panel-heading\">\n            <span>\n                <span class=\"panel-title\">root</span>\n                <a class=\"pjax pull-right show " + active + "\"\n                        href=\"/" + page + "/0/\">show</a>\n            </span>\n        </div>\n    </div>\n</div>");
-    expand_clusters = function(html, clusters) {
-      var collapse_body, collapse_body_id, collapse_head_id, collapse_id, collapse_panel_id, full_name, name, node_cluster, parent_id, show, splited_cluster, tmp_cluster, tmp_clusters, tmp_name, _i, _len, _results;
+    var cluster_path, clusters_html, expand_clusters, page, paths;
+    paths = location.pathname.split('node/');
+    page = 'node';
+    cluster_path = paths[1].slice(0, -1);
+    clusters_html = $("<div class=\"panel-group\" id=\"accordion\">\n</div>");
+    expand_clusters = function(html, clusters, root_cluster) {
+      var active, cluster_name, collapse_body, collapse_body_id, collapse_head_id, collapse_id, collapse_panel_id, name, parent_id, show, splited_cluster, tmp_clusters, tmp_name, tmp_root_cluster, _i, _len, _results;
       parent_id = html.prop('id');
-      console.log(parent_id);
-      console.log(clusters);
       _results = [];
       for (_i = 0, _len = clusters.length; _i < _len; _i++) {
-        node_cluster = clusters[_i];
+        cluster_name = clusters[_i];
+        splited_cluster = cluster_name.split('/');
         tmp_clusters = [];
-        full_name = node_cluster.fields.name;
-        if (node_cluster.name == null) {
-          node_cluster.name = full_name;
-        }
-        splited_cluster = node_cluster.name.split('/');
         if (splited_cluster.length > 1) {
           tmp_name = splited_cluster.slice(1).join('/');
-          tmp_cluster = node_cluster;
-          tmp_cluster.name = tmp_name;
-          tmp_clusters.push(tmp_cluster);
+          tmp_clusters.push(tmp_name);
         }
         name = splited_cluster[0];
+        if (root_cluster === null) {
+          tmp_root_cluster = name;
+        } else {
+          tmp_root_cluster = root_cluster + '/' + name;
+        }
         collapse_id = "" + parent_id + "-" + name;
         collapse_panel_id = "" + parent_id + "-panel-" + name;
         collapse_head_id = "" + parent_id + "-head-" + name;
@@ -351,84 +342,29 @@
         if (collapse_body.length === 0) {
           active = '';
           if (splited_cluster.length === 1) {
-            if (cluster_pk === node_cluster.pk) {
+            if (tmp_root_cluster === cluster_path) {
               active = 'active';
-              $('#cluster-data').html(node_cluster.fields.data);
             }
-            show = "<a class=\"pjax pull-right show " + active + "\" href=\"/" + page + "/" + node_cluster.pk + "/\">show</a>";
+            show = "<a class=\"pjax pull-right show " + active + "\" href=\"/" + page + "/" + tmp_root_cluster + "/\">show</a>";
           } else {
             show = "";
           }
           html.append("<div class=\"panel\" id=\"" + collapse_panel_id + "\">\n    <div class=\"panel-heading\" id=\"" + collapse_head_id + "\">\n        <span>\n            <a class=\"panel-title collapsed\" data-toggle=\"collapse\"\n                    data-parent=\"#" + parent_id + "\" href=\"#" + collapse_id + "\"\n                    aria-controls=\"" + collapse_id + "\">" + name + "</a>\n            " + show + "\n        </span>\n    </div>\n    <div id=\"" + collapse_id + "\" class=\"panel-collapse collapse\"\n            aria-labelledby=\"" + collapse_head_id + "\">\n        <div class=\"panel-body panel-group\" id=\"" + collapse_body_id + "\">\n        </div>\n    </div>\n</div>");
           collapse_body = html.find("#" + collapse_body_id);
-          if (cluster_pk === node_cluster.pk && splited_cluster.length === 1) {
+          if (tmp_root_cluster === cluster_path && splited_cluster.length === 1) {
             html.find("#" + collapse_id).parents('.collapse').addClass('in');
             html.find("#" + collapse_panel_id).parents('.panel').find('> .panel-heading .panel-title').removeClass('collapsed');
           }
         }
-        _results.push(expand_clusters(collapse_body, tmp_clusters));
-      }
-      return _results;
-    };
-    expand_clusters(clusters_html, node_clusters);
-    return $('#sidebar').html(clusters_html);
-  };
-
-  render_fabscript_clusters = function() {
-    var cluster_hash, clusters_html, expand_clusters, page, paths;
-    paths = location.pathname.split('/', 3);
-    page = paths[1];
-    cluster_hash = location.hash;
-    clusters_html = $("<div class=\"panel-group\" id=\"accordion\">\n    <div class=\"panel\">\n        <div class=\"panel-heading\">\n            <span>\n                <span class=\"panel-title\">root</span>\n                <a class=\"pjax pull-right show\"\n                        href=\"#root\">show</a>\n            </span>\n        </div>\n    </div>\n</div>");
-    expand_clusters = function(html, clusters, parent, is_init) {
-      var active, collapse_body, collapse_body_id, collapse_head_id, collapse_id, collapse_panel_id, full_name, name, node_cluster, parent_id, parent_name, show, splited_cluster, tmp_cluster, tmp_clusters, tmp_name, _i, _len, _results;
-      clusters = clusters;
-      parent_id = html.attr('id');
-      _results = [];
-      for (_i = 0, _len = clusters.length; _i < _len; _i++) {
-        node_cluster = clusters[_i];
-        tmp_clusters = [];
-        full_name = node_cluster.fields.name;
-        if (is_init) {
-          node_cluster.name = full_name;
-        }
-        splited_cluster = node_cluster.name.split('.');
-        if (splited_cluster.length > 1) {
-          tmp_name = splited_cluster.slice(1).join('.');
-          tmp_cluster = node_cluster;
-          tmp_cluster.name = tmp_name;
-          tmp_clusters.push(tmp_cluster);
-        }
-        name = splited_cluster[0];
-        if (parent === null) {
-          parent_name = name;
+        if (tmp_clusters.length > 0) {
+          _results.push(expand_clusters(collapse_body, tmp_clusters, tmp_root_cluster));
         } else {
-          parent_name = "" + parent + "." + name;
+          _results.push(void 0);
         }
-        collapse_id = "" + parent_id + "-" + name;
-        collapse_panel_id = "" + parent_id + "-panel-" + name;
-        collapse_head_id = "" + parent_id + "-head-" + name;
-        collapse_body_id = "" + parent_id + "-body-" + name;
-        collapse_body = html.find("#" + collapse_body_id);
-        if (collapse_body.length === 0) {
-          if (cluster_hash === ("#" + parent_name)) {
-            active = 'active';
-          } else {
-            active = '';
-          }
-          show = "<a class=\"pjax pull-right show " + active + "\" href=\"#" + parent_name + "\">show</a>";
-          html.append("<div class=\"panel\" id=\"" + collapse_panel_id + "\">\n    <div class=\"panel-heading\" id=\"" + collapse_head_id + "\">\n        <span>\n            <a class=\"panel-title collapsed\" data-toggle=\"collapse\"\n                    data-parent=\"#" + parent_id + "\" href=\"#" + collapse_id + "\"\n                    aria-controls=\"" + collapse_id + "\">" + name + "</a>\n            " + show + "\n        </span>\n    </div>\n    <div id=\"" + collapse_id + "\" class=\"panel-collapse collapse\"\n            aria-labelledby=\"" + collapse_head_id + "\">\n        <div class=\"panel-body panel-group\" id=\"" + collapse_body_id + "\">\n        </div>\n    </div>\n</div>");
-          collapse_body = html.find("#" + collapse_body_id);
-          if (cluster_hash === ("#" + parent_name)) {
-            html.find("#" + collapse_id).parents('.collapse').addClass('in');
-            html.find("#" + collapse_panel_id).parents('.panel').find('> .panel-heading .panel-title').removeClass('collapsed');
-          }
-        }
-        _results.push(expand_clusters(collapse_body, tmp_clusters, parent_name, false));
       }
       return _results;
     };
-    expand_clusters(clusters_html, fabscripts, null, true);
+    expand_clusters(clusters_html, node_clusters, null);
     return $('#sidebar').html(clusters_html);
   };
 
@@ -545,183 +481,72 @@
     return $('#fabscripts-tbody').html(fabscripts_tbody);
   };
 
-  render_node = function() {
-    var all_node_length, danger_length, danger_node_length, danger_nodes, fabscript, fabscript_node, fabscript_node_map, i, index, link, linked_fabscript, log, logs_all, logs_all_html, logs_html, name, node, result, results_tbody_html, script_name, success_length, success_node_length, success_nodes, timestamp, tmp_logs_html, tr_class, warning_length, warning_node_length, warning_nodes, _i, _j, _k, _l, _len, _len1, _len2, _ref, _ref1, _results;
+  render_node_cluster = function() {
+    var all_node_length, danger_node_length, fabscript_map, fabscript_node_map, host, is_danger, is_warning, node, node_class, node_map, nodes_tbody_html, result, result_html, script, success_node_length, sum_status, warning_node_length, _ref;
     fabscript_node_map = {};
-    console.log(nodes);
-    results_tbody_html = '';
-    all_node_length = nodes.length;
+    console.dir(node_cluster);
+    node_map = node_cluster.__status.node_map;
+    fabscript_map = node_cluster.__status.fabscript_map;
+    nodes_tbody_html = '';
+    all_node_length = 0;
     success_node_length = 0;
     warning_node_length = 0;
     danger_node_length = 0;
-    for (i = _i = 0, _len = nodes.length; _i < _len; i = ++_i) {
-      result = nodes[i];
-      if (result.fields.status === 0) {
-        success_node_length++;
-      } else if (result.fields.status < WARNING_STATUS_THRESHOLD) {
+    for (host in node_map) {
+      node = node_map[host];
+      all_node_length++;
+      is_warning = false;
+      is_danger = false;
+      sum_status = 0;
+      result_html = '<div>';
+      _ref = node.fabscript_map;
+      for (script in _ref) {
+        result = _ref[script];
+        sum_status += result.task_status + result.check_status;
+        result_html += "" + script + " [" + result.task_status + "],\nsetup [" + result.status + "]: '" + result.msg + "',\ncheck [" + result.check_status + "]: '" + result.check_msg + "'\n</tr>";
+        if (result.task_status > 0 || result.check_status > 0) {
+          if (result.task_status < WARNING_STATUS_THRESHOLD || result.check_status < WARNING_STATUS_THRESHOLD) {
+            is_warning = true;
+          } else {
+            is_danger = true;
+          }
+        }
+      }
+      if (is_danger) {
+        node_class = 'danger';
+        danger_node_length++;
+      } else if (is_warning) {
+        node_class = 'warning';
         warning_node_length++;
       } else {
-        danger_node_length++;
+        node_class = '';
+        success_node_length++;
       }
-      tmp_logs_html = '';
-      i = 0;
-      _ref = JSON.parse(result.fields.logs);
-      for (fabscript in _ref) {
-        log = _ref[fabscript];
-        node = {
-          type: 'node',
-          'index': i,
-          'name': result.fields.path,
-          'size': 1
-        };
-        i++;
-        if (!(fabscript in fabscript_node_map)) {
-          fabscript_node_map[fabscript] = {
-            'links': [],
-            'success_nodes': [],
-            'warning_nodes': [],
-            'danger_nodes': []
-          };
-        }
-        if (log.status === 0) {
-          node['class'] = 'success';
-          fabscript_node_map[fabscript]['success_nodes'].push(node);
-        } else if (log.status < WARNING_STATUS_THRESHOLD) {
-          node['class'] = 'warning';
-          fabscript_node_map[fabscript]['warning_nodes'].push(node);
-        } else {
-          node['class'] = 'danger';
-          fabscript_node_map[fabscript]['danger_nodes'].push(node);
-        }
-        tmp_logs_html += "" + fabscript + " [" + log.status + "]: " + log.msg + "[" + log.task_status + "]<br>";
-      }
-      logs_all_html = '';
-      logs_all = JSON.parse(result.fields.logs_all);
-      if (logs_all.length === 0) {
-        logs_all_html = 'No data';
-      } else {
-        for (_j = logs_all.length - 1; _j >= 0; _j += -1) {
-          log = logs_all[_j];
-          timestamp = new Date(log.timestamp * 1000);
-          logs_all_html += "" + log.fabscript + "[" + log.status + "]: " + log.msg + "[" + log.task_status + "] " + timestamp + "<br>";
-        }
-      }
-      logs_html = "<a class=\"popover-anchor\" data-containe=\"body\" data-toggle=\"popover\"\n    data-placement=\"bottom\" data-html=\"true\" data-title=\"Logs all\" data-content=\"" + logs_all_html + "\">\n    " + tmp_logs_html + "\n</a>";
-      if (result.fields.status === 0) {
-        tr_class = '';
-      } else if (result.fields.status < WARNING_STATUS_THRESHOLD) {
-        tr_class = 'warning';
-      } else {
-        tr_class = 'danger';
-      }
-      results_tbody_html += "<tr id=\"" + result.pk + "\" class=\"" + tr_class + "\"> <td><input type=\"checkbox\"></td> <td>" + result.fields.path + "</td> <td>" + result.fields.status + "</td> <td>" + result.fields.msg + "</td> <td>" + logs_html + "</td> <td>" + result.fields.updated_at + "</td> </tr>";
+      result_html += '</div>';
+      nodes_tbody_html += "<tr class=\"" + node_class + "\">\n    <td>" + sum_status + "</td>\n    <td>" + host + "</td>\n    <td>" + result_html + "</td>\n</tr>";
     }
-    $('#nodes-tbody').html(results_tbody_html);
+    console.log(node_map);
     $('#all-node-badge').html(all_node_length);
     $('#success-node-badge').html(success_node_length);
     $('#warning-node-badge').html(warning_node_length);
     $('#danger-node-badge').html(danger_node_length);
-    index = 0;
-    for (_k = 0, _len1 = fabscripts.length; _k < _len1; _k++) {
-      fabscript = fabscripts[_k];
-      name = fabscript.fields.name;
-      if (!(name in fabscript_node_map)) {
-        continue;
-      }
-      fabscript_node_map[name].index = index;
-      if ('icon' in fabscript.fields.data) {
-        fabscript_node_map[name].icon = fabscript.fields.data.icon;
-      } else {
-        fabscript_node_map[name].icon = 'computer-retro';
-      }
-      _ref1 = fabscript.fields.linked_fabscripts;
-      for (_l = 0, _len2 = _ref1.length; _l < _len2; _l++) {
-        linked_fabscript = _ref1[_l];
-        script_name = linked_fabscript.split(':')[0];
-        if (!(script_name in fabscript_node_map)) {
-          fabscript_node_map[script_name] = {
-            'links': [],
-            'success_nodes': [],
-            'warning_nodes': [],
-            'danger_nodes': []
-          };
-        }
-        fabscript_node_map[script_name]['links'].push(index);
-      }
-      index++;
-    }
-    graph_nodes = [];
-    graph_links = [];
-    _results = [];
-    for (fabscript in fabscript_node_map) {
-      fabscript_node = fabscript_node_map[fabscript];
-      success_nodes = fabscript_node.success_nodes;
-      warning_nodes = fabscript_node.warning_nodes;
-      danger_nodes = fabscript_node.danger_nodes;
-      success_length = success_nodes.length;
-      warning_length = warning_nodes.length;
-      danger_length = danger_nodes.length;
-      graph_nodes[fabscript_node.index] = {
-        type: 'fabscript',
-        name: fabscript,
-        icon: fabscript_node.icon,
-        success_length: success_length,
-        warning_length: warning_length,
-        danger_length: danger_length,
-        children: [
-          {
-            type: 'status',
-            name: 'success',
-            "class": 'success',
-            length: success_length,
-            children: success_nodes
-          }, {
-            type: 'status',
-            name: 'warning',
-            "class": 'warning',
-            length: warning_length,
-            children: warning_nodes
-          }, {
-            type: 'status',
-            name: 'danger',
-            "class": 'danger',
-            length: danger_length,
-            children: danger_nodes
-          }
-        ]
-      };
-      _results.push((function() {
-        var _len3, _m, _ref2, _results1;
-        _ref2 = fabscript_node.links;
-        _results1 = [];
-        for (_m = 0, _len3 = _ref2.length; _m < _len3; _m++) {
-          link = _ref2[_m];
-          _results1.push(graph_links.push({
-            'source': fabscript_node.index,
-            'target': link
-          }));
-        }
-        return _results1;
-      })());
-    }
-    return _results;
+    return $('#nodes-tbody').html(nodes_tbody_html);
   };
 
   render_all = function() {
     if (mode.current === mode.USER) {
       render_user();
-    } else if (mode.current === mode.FABSCRIPT) {
-      render_fabscript_clusters();
-      render_fabscript();
     } else if (mode.current === mode.NODE) {
       render_node_clusters();
-      render_node();
+      render_node_cluster();
+      $('.tablesorter').tablesorter({
+        sortList: [[0, -1], [1, 0]]
+      });
     }
     return $('[data-toggle=popover]').popover();
   };
 
   init = function() {
-    var fabscript, _i, _len;
     $('#show-graph').on('click', function() {
       $('#graph-modal').modal();
     });
@@ -758,21 +583,10 @@
     if (node_clusters.length > 0) {
       node_clusters = JSON.parse(node_clusters.html());
     }
-    fabscripts = $('#fabscripts');
-    if (fabscripts.length > 0) {
-      mode.current = mode.FABSCRIPT;
-      fabscripts = JSON.parse(fabscripts.html());
-      for (_i = 0, _len = fabscripts.length; _i < _len; _i++) {
-        fabscript = fabscripts[_i];
-        fabscript.fields.data = JSON.parse(fabscript.fields.data);
-        fabscript.fields.link = JSON.parse(fabscript.fields.link);
-        fabscript.fields.linked_fabscripts = JSON.parse(fabscript.fields.linked_fabscripts);
-      }
-    }
-    nodes = $('#nodes');
-    if (nodes.length > 0) {
+    node_cluster = $('#node_cluster');
+    if (node_cluster.length > 0) {
       mode.current = mode.NODE;
-      nodes = JSON.parse(nodes.html());
+      node_cluster = JSON.parse(node_cluster.html());
     }
     render_all();
   };

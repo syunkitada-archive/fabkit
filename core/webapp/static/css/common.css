@@ -257,3 +257,23 @@ rect.warning { fill: #fcf8e3; }
 rect.danger { fill: #f2dede; }
 rect.parent { cursor: pointer; }
 text { pointer-events: none; }
+
+
+
+// table-sorter
+table.tablesorter {}
+table.tablesorter .header {
+    background-image: url(../vendor/tablesorter/bg.gif);
+    background-repeat: no-repeat;
+    background-position: center right;
+    cursor: pointer;
+}
+table.tablesorter .headerSortUp {
+    background-image: url(../vendor/tablesorter/asc.gif);
+}
+table.tablesorter .headerSortDown {
+    background-image: url(../vendor/tablesorter/desc.gif);
+}
+table.tablesorter .headerSortDown, table.tablesorter .headerSortUp {
+    background-color: #eee;
+}

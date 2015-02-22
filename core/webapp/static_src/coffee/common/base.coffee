@@ -2,7 +2,7 @@
 window.fabkit = {}
 
 users = []
-nodes = []
+node_cluster = {}
 node_clusters = []
 fabscripts = []
 

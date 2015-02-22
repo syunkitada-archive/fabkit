@@ -1,6 +1,9 @@
 # coding: utf-8
 
+import yaml
+import os
 import json
+from appconf import settings
 from django.http import HttpResponse
 from django.shortcuts import render
 from apps.node.models import Node, NodeCluster
@@ -11,28 +14,29 @@ from django.contrib.auth.decorators import login_required
 
 @login_required
 def index(request, cluster=None):
-    if cluster:
-        if int(cluster) == 0:
-            nodes = serializers.serialize(
-                'json',
-                Node.objects.filter(cluster=None, is_deleted=False).order_by('-status', '-updated_at').all())
-        else:
-            nodes = serializers.serialize(
-                'json',
-                Node.objects.filter(cluster=cluster, is_deleted=False).order_by('-status', '-updated_at').all())
-    else:
-        nodes = serializers.serialize(
-            'json',
-            Node.objects.order_by('-status', '-updated_at').filter(is_deleted=False).all()[:50])
+    node_clusters = []
+    for root, dirs, files in os.walk(settings.NODE_DIR):
+        cluster_name = root.split(settings.NODE_DIR)
+        cluster_yaml = os.path.join(root, '__cluster.yml')
+        if os.path.exists(cluster_yaml):
+            cluster_name = cluster_name[1][1:]
+            node_clusters.append(cluster_name)
+    node_clusters.sort()
+    node_clusters = json.dumps(node_clusters)
 
-    node_clusters = serializers.serialize(
-        'json', NodeCluster.objects.filter(is_deleted=False).order_by('name'))
-    fabscripts = serializers.serialize('json', Fabscript.objects.all())
+    node_cluster = {}
+    if cluster is not None:
+        cluster_yaml = os.path.join(settings.NODE_DIR, cluster, '__cluster.yml')
+        if os.path.exists(cluster_yaml):
+            with open(cluster_yaml) as f:
+                node_cluster = yaml.load(f)
+
+    node_cluster = json.dumps(node_cluster)
+
     context = {
         'title': 'Node List',
-        'nodes': nodes,
+        'node_cluster': node_cluster,
         'node_clusters': node_clusters,
-        'fabscripts': fabscripts,
     }
 
     if request.META.get('HTTP_X_PJAX'):

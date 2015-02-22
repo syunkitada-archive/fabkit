@@ -76,27 +76,35 @@ def print_node_map(node_map=None, option=None):
 
 def print_runs():
     runs = env.runs
-    max_len_name = 20
-    format_str = '{cluster:<10} {fabscript:<' + str(max_len_name) + '} {status:<6} {host}'  # noqa
+    max_len_cluster = 7
+    max_len_host = 7
+    for run in runs:
+        len_cluster = len(run['cluster'])
+        if len_cluster > max_len_host:
+            max_len_cluster = len_cluster
 
-    horizontal_line = '-' * (max_len_name + 50)
+        for cluster_run in run['runs']:
+            tmp_max_len_host = max([len(host) for host in cluster_run['hosts']])
+            if max_len_host < tmp_max_len_host:
+                max_len_host = tmp_max_len_host
+
+    format_str = '{cluster:<' + str(max_len_cluster) + '} {host:<' \
+        + str(max_len_host) + '} {fabscript}'
+
+    horizontal_line = '-' * (max_len_cluster + max_len_host + 40)
     print horizontal_line
-    print format_str.format(cluster='cluster',
-                            fabscript='fabscript',
-                            status='status',
-                            expected_status='expected',
-                            host='host')
+    print format_str.format(cluster='cluster', host='host', fabscript='fabscript')
     print horizontal_line
 
     for run in runs:
         cluster_status_map = env.cluster_map[run['cluster']]['__status']
         fabscript_status_map = cluster_status_map['fabscript_map']
         for cluster_run in run['runs']:
-            fabscript_status = fabscript_status_map[cluster_run['fabscript']]['status']
+            fabscript_name = cluster_run['fabscript']
+            fabscript = fabscript_status_map[fabscript_name]
+            fabscript_str = '{0}: {1} > {2}'.format(
+                fabscript_name, fabscript['status'], cluster_run['expected_status'])
             for host in cluster_run['hosts']:
                 print format_str.format(cluster=run['cluster'],
-                                        fabscript=cluster_run['fabscript'],
-                                        status='{0} > {1}'.format(
-                                            fabscript_status,
-                                            cluster_run['expected_status']),
+                                        fabscript=fabscript_str,
                                         host=host)
