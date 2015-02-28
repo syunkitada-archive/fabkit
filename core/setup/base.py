@@ -20,6 +20,17 @@ def manage(*args):
 
 
 @api.task
+def datamap(*args):
+    if len(args) > 0 and args[0] == 'test':
+        option = 'test'
+        args = args[1:]
+    else:
+        option = None
+
+    run_func(args, option)
+
+
+@api.task
 def check(option=None):
     run_func(['^check.*'], option)
 
@@ -159,6 +170,7 @@ def run_func(func_names=[], option=None):
                         results = api.execute(func)
 
                         # check results
+                        map_data = {}
                         tmp_status = None
                         is_contain_failed = False
                         for host, result in results.items():
@@ -187,6 +199,32 @@ def run_func(func_names=[], option=None):
                                         is_contain_unexpected = True
                                         log.error('{0}: expected status is {1}, bad status is {2}.'.format(  # noqa
                                             host, expected, result_status))
+
+                            elif env.is_datamap:
+                                map_data['name'] = result['name']
+                                map_data['type'] = result['type']
+                                if map_data['type'] == 'table':
+                                    head = map_data.get('head', ['host'])
+                                    body = map_data.get('body', [])
+                                    tr = [host]
+                                    for count in range(1, len(head)):
+                                        tr.append(None)
+
+                                    for key, value in result['data'].items():
+                                        try:
+                                            index = head.index(key)
+                                            print key
+                                            print index
+                                            tr[index] = value
+                                        except ValueError:
+                                            head.append(key)
+                                            tr.append(value)
+                                    body.append(tr)
+                                    map_data.update({
+                                        'head': head,
+                                        'body': body,
+                                    })
+
                             elif env.is_check:
                                 node_result['check_msg'] = msg
                                 if result_status is None:
@@ -203,6 +241,9 @@ def run_func(func_names=[], option=None):
                                 log.error('{0}: Failed task {1}.{2} [{3}]. {4}'.format(
                                     host, script_name, candidate, task_status, msg))
                                 is_contain_failed = True
+
+                        if env.is_datamap:
+                            util.dump_datamap(map_data)
 
                         if is_contain_failed:
                             log.error('Failed task {0}.{1}. Exit setup.'.format(

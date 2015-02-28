@@ -14,6 +14,7 @@ from constant import (  # noqa
     YAML_EXTENSION,
     CLUSTER_YAML,
     FABSCRIPT_YAML,
+    DATAMAP_DIR,
 )
 
 
@@ -26,6 +27,7 @@ env.is_test = False
 env.is_setup = False
 env.is_check = False
 env.is_manage = False
+env.is_datamap = False
 env.cmd_history = []  # for debug
 env.last_runs = []
 

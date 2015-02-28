@@ -1,7 +1,8 @@
 render_node_cluster = ->
     fabscript_node_map = {}
 
-    console.dir node_cluster
+    node_cluster.datamap.status = {'type': 'svg'}
+    node_cluster.datamap.relation = {'type': 'svg'}
     node_map = node_cluster.__status.node_map
     fabscript_map = node_cluster.__status.fabscript_map
 

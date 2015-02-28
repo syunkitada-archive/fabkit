@@ -2,6 +2,7 @@
 
 import os
 import yaml
+import json
 import re
 from fabkit import conf, env, status, log
 from host_util import get_expanded_hosts
@@ -226,3 +227,12 @@ def dump_status():
         status_yaml = os.path.join(conf.NODE_DIR, cluster_name, conf.CLUSTER_YAML)
         with open(status_yaml, 'w') as f:
             f.write(yaml.dump({'__status': data['__status']}))
+
+
+def dump_datamap(map_data):
+    datamap_dir = os.path.join(conf.NODE_DIR, env.cluster['name'], conf.DATAMAP_DIR)
+    if not os.path.exists(datamap_dir):
+        os.mkdir(datamap_dir)
+    datamap_json = os.path.join(datamap_dir, map_data['name'] + '.json')
+    with open(datamap_json, 'w') as f:
+        json.dump(map_data, f)

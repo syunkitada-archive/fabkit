@@ -1,5 +1,5 @@
 (function() {
-  var WARNING_STATUS_THRESHOLD, fabscripts, filter, graph_links, graph_nodes, init, mode, node_cluster, node_clusters, render_all, render_fabscript, render_force_layout, render_node_cluster, render_node_clusters, render_overview_layout, render_user, users,
+  var WARNING_STATUS_THRESHOLD, datamap_tabs, fabscripts, filter, graph_links, graph_nodes, init, mode, node_cluster, node_clusters, render_all, render_datamap, render_fabscript, render_force_layout, render_map, render_node_cluster, render_node_clusters, render_overview_layout, render_user, users,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   window.fabkit = {};
@@ -12,16 +12,16 @@
 
   fabscripts = [];
 
+  datamap_tabs = ['status', 'relation'];
+
   graph_links = [];
 
   graph_nodes = [];
 
   mode = {
     current: 0,
-    HOME: 0,
-    USER: 1,
-    NODE: 2,
-    FABSCRIPT: 3
+    USER: 0,
+    NODE: 1
   };
 
   WARNING_STATUS_THRESHOLD = 10000;
@@ -148,6 +148,62 @@
       }
     });
   });
+
+  render_datamap = function() {
+    var datamap, mapname, nav_html, panel_id, _i, _len;
+    datamap = node_cluster.datamap;
+    for (mapname in datamap) {
+      if (__indexOf.call(datamap_tabs, mapname) < 0) {
+        datamap_tabs.push(mapname);
+      }
+    }
+    console.log('render DEBUG');
+    nav_html = '';
+    for (_i = 0, _len = datamap_tabs.length; _i < _len; _i++) {
+      mapname = datamap_tabs[_i];
+      panel_id = "#datamap-" + datamap[mapname].type + "-panel";
+      nav_html += "<li role=\"presentation\">\n    <a id=\"map-" + mapname + "\" class=\"datamap-tab\" href=\"" + panel_id + "\" role=\"tab\" data-toggle=\"tab\">" + mapname + "</a>\n</li>";
+    }
+    $('#datamap-nav').html(nav_html);
+    return $('.datamap-tab').on('shown.bs.tab', function(e) {
+      var map, tbody_html, td, thead_html, tr, tr_html, _j, _k, _l, _len1, _len2, _len3, _ref, _ref1;
+      mapname = $(e.target).html();
+      map = node_cluster.datamap[mapname];
+      thead_html = '<tr>';
+      _ref = map.head;
+      for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
+        td = _ref[_j];
+        thead_html += "<th>" + td + "</th>";
+      }
+      thead_html += '</tr>';
+      tbody_html = '';
+      _ref1 = map.body;
+      for (_k = 0, _len2 = _ref1.length; _k < _len2; _k++) {
+        tr = _ref1[_k];
+        tr_html = '<tr>';
+        console.log(tr);
+        for (_l = 0, _len3 = tr.length; _l < _len3; _l++) {
+          td = tr[_l];
+          tr_html += "<td>" + td + "</td>";
+        }
+        tr_html += '</tr>';
+        tbody_html += tr_html;
+      }
+      console.log(tbody_html);
+      $('#datamap-thead').html(thead_html);
+      $('#datamap-tbody').html(tbody_html);
+      console.log(map);
+      console.log($('#datamap-table'));
+      console.log($('#node-table'));
+      $('#datamap-table').tablesorter({
+        sortList: [[0, 0]]
+      });
+    });
+  };
+
+  render_map = function() {
+    return console.log('test');
+  };
 
   render_force_layout = function() {
     var $svg, force, h, id, link, links, node, nodes, svg, w;
@@ -484,7 +540,12 @@
   render_node_cluster = function() {
     var all_node_length, danger_node_length, fabscript_map, fabscript_node_map, host, is_danger, is_warning, node, node_class, node_map, nodes_tbody_html, result, result_html, script, success_node_length, sum_status, warning_node_length, _ref;
     fabscript_node_map = {};
-    console.dir(node_cluster);
+    node_cluster.datamap.status = {
+      'type': 'svg'
+    };
+    node_cluster.datamap.relation = {
+      'type': 'svg'
+    };
     node_map = node_cluster.__status.node_map;
     fabscript_map = node_cluster.__status.fabscript_map;
     nodes_tbody_html = '';
@@ -539,26 +600,26 @@
     } else if (mode.current === mode.NODE) {
       render_node_clusters();
       render_node_cluster();
-      $('.tablesorter').tablesorter({
-        sortList: [[0, -1], [1, 0]]
+      $('#node-table').tablesorter({
+        sortList: [[0, 1], [1, 0]]
       });
+      console.log('DEBUG');
+      console.log(node_cluster);
+      console.log(node_clusters);
+      console.log(fabscripts);
+      $('#show-datamap').on('click', function() {
+        $('#datamap-modal').modal();
+      });
+      render_datamap();
+      $('#datamap-modal').on('shown.bs.modal', function() {
+        $('#map-df').tab('show');
+      });
+      $('#show-datamap').click();
     }
     return $('[data-toggle=popover]').popover();
   };
 
   init = function() {
-    $('#show-graph').on('click', function() {
-      $('#graph-modal').modal();
-    });
-    $('#graph-modal').on('shown.bs.modal', function() {
-      render_force_layout();
-    });
-    $('#show-overview').on('click', function() {
-      $('#overview-modal').modal();
-    });
-    $('#overview-modal').on('shown.bs.modal', function() {
-      render_overview_layout();
-    });
     $('#search-input').on('change', filter).on('keyup', filter);
     $('#all-checkbox').on('change', function() {
       var is_checked, tr, trs, _i, _len;
