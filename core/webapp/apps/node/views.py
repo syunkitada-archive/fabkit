@@ -41,6 +41,19 @@ def index(request, cluster=None):
                         datamap[data['name']] = data
 
     node_cluster['datamap'] = datamap
+    fabscript_map = node_cluster['__status']['fabscript_map']
+    for fabscript_name, fabscript in fabscript_map.items():
+        splited_name = fabscript_name.split('/')
+        fabscript_cluster = splited_name[0]
+        script = splited_name[1]
+        fabscript_yaml = os.path.join(
+            settings.FABSCRIPT_MODULE, fabscript_cluster, '__fabscript.yml')
+        if os.path.exists(fabscript_yaml):
+            with open(fabscript_yaml, 'r') as f:
+                data = yaml.load(f)
+                if data is not None:
+                    fabscript.update(data.get(script, {}))
+
     node_cluster = json.dumps(node_cluster)
 
     context = {

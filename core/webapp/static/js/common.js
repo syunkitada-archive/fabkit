@@ -1,5 +1,5 @@
 (function() {
-  var WARNING_STATUS_THRESHOLD, bind_shown_tab_event, datamap_tabs, fabscripts, filter, graph_links, graph_nodes, init, mode, node_cluster, node_clusters, render_all, render_datamap, render_map, render_node_cluster, render_node_clusters, render_partition_panel, render_table_panel, render_user, users,
+  var WARNING_STATUS_THRESHOLD, bind_shown_tab_event, datamap_tabs, fabscripts, filter, graph_links, graph_nodes, init, mode, node_cluster, node_clusters, render_all, render_datamap, render_force_panel, render_node_cluster, render_node_clusters, render_partition_panel, render_table_panel, render_user, users,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   window.fabkit = {};
@@ -12,7 +12,7 @@
 
   fabscripts = [];
 
-  datamap_tabs = ['status'];
+  datamap_tabs = ['status', 'relation'];
 
   graph_links = [];
 
@@ -150,13 +150,11 @@
   });
 
   render_partition_panel = function(panel_id, map) {
-    var $svg, click, g, h, id, kx, ky, links, nodes, partition, root, svg, transform, vis, w, x, y;
+    var $svg, click, g, h, id, kx, ky, partition, root, svg, transform, vis, w, x, y;
     id = 'partition-svg';
     root = map.data;
     $("#" + panel_id).html("<div class=\"graph-svg-wrapper\">\n    <svg id=\"" + id + "\"></svg>\n</div>");
     id = '#partition-svg';
-    nodes = graph_nodes;
-    links = graph_links;
     svg = d3.select(id);
     $svg = $(id).empty();
     w = $svg.width();
@@ -253,6 +251,68 @@
     });
   };
 
+  render_force_panel = function(panel_id, map) {
+    var $svg, force, h, i, id, link, links, node, nodes, svg, w, _i, _results;
+    console.log(panel_id);
+    console.log(map);
+    id = 'force-svg';
+    $("#" + panel_id).html("<div class=\"graph-svg-wrapper\">\n    <svg id=\"" + id + "\"></svg>\n</div>");
+    nodes = map.data.nodes;
+    links = map.data.links;
+    svg = d3.select("#" + id);
+    $svg = $("#" + id).empty();
+    w = $svg.width();
+    h = $svg.height();
+    force = d3.layout.force().nodes(nodes).links(links).linkDistance(150).linkStrength(0.1).friction(0.8).charge(-300).gravity(.05).size([w, h]);
+    link = svg.selectAll('.link').data(links).enter().append('line').attr('class', 'link').attr('marker-end', 'url(#markerArrow)');
+    node = svg.selectAll(".node").data(nodes).enter().append('g').attr('class', 'node').call(force.drag);
+    node.append('glyph').attr('class', 'glyphicon glyphicon-star').attr('unicode');
+    node.append("image").attr("xlink:href", function(d) {
+      return "/static/vendor/defaulticon/png/" + d.icon + ".png";
+    }).attr("x", 6).attr("y", -34).attr('width', 30).attr('height', 30);
+    node.append("circle").attr("r", 6).attr('class', 'node-circle');
+    node.append('text').attr('dx', 12).attr('dy', '.35em').attr('class', 'node-label').text(function(d) {
+      return d.name;
+    });
+    if (mode.current === mode.NODE) {
+      node.append('text').attr('dx', 12).attr('dy', '.35em').attr('y', 16).attr('class', function(d) {
+        if (d.danger_length > 0) {
+          return 'node-label-danger';
+        }
+        if (d.warning_length > 0) {
+          return 'node-label-warning';
+        } else {
+          return 'node-label-success';
+        }
+      }).text(function(d) {
+        return "✔ " + d.success_length + ", ▲ " + d.warning_length + ", ✘ " + d.danger_length;
+      });
+    }
+    force.on("tick", function(e) {
+      link.attr('x1', function(d) {
+        return d.source.x;
+      });
+      link.attr('y1', function(d) {
+        return d.source.y;
+      });
+      link.attr('x2', function(d) {
+        return d.target.x;
+      });
+      link.attr('y2', function(d) {
+        return d.target.y;
+      });
+      return node.attr('transform', function(d) {
+        return "translate(" + d.x + ", " + d.y + ")";
+      });
+    });
+    force.start();
+    _results = [];
+    for (i = _i = 0; _i <= 10000; i = ++_i) {
+      _results.push(force.tick());
+    }
+    return _results;
+  };
+
   render_datamap = function() {
     var datamap, mapname, nav_html, panel_id, tabpanels_html, _i, _len;
     datamap = node_cluster.datamap;
@@ -280,25 +340,21 @@
       panel_id = "datamap-" + mapname;
       map = node_cluster.datamap[mapname];
       if (!map.is_rendered) {
+        console.log("render " + mapname);
         map.is_rendered = true;
         if (map.type === 'table') {
           render_table_panel(panel_id, map);
-        }
-        if (map.type === 'partition') {
+        } else if (map.type === 'partition') {
           render_partition_panel(panel_id, map);
+        } else if (map.type === 'force') {
+          render_force_panel(panel_id, map);
         }
       }
     });
   };
 
-  render_map = function() {
-    return console.log('test');
-  };
-
   render_table_panel = function(panel_id, map) {
     var host, index, table_html, tbody_html, td, tds, th, thead_html, ths, tr, _i, _len, _ref;
-    thead_html = '<tr>';
-    console.log(map);
     thead_html = '<th>host</th>';
     ths = [];
     tbody_html = '';
@@ -417,7 +473,7 @@
   };
 
   render_node_cluster = function() {
-    var all_node_length, danger_node_length, data, fabscript, fabscript_map, fabscript_node_map, host, is_danger, is_warning, node, node_class, node_map, nodes_tbody_html, result, result_html, script, success_node_length, sum_status, tmp_fabscript, warning_node_length, _ref;
+    var all_node_length, danger_node_length, data, fabscript, fabscript_map, fabscript_node_map, host, i, index, is_danger, is_warning, links, name, node, node_class, node_map, nodes, nodes_tbody_html, require, result, result_html, script, status, success_node_length, sum_status, target, tmp_fabscript, warning_node_length, _i, _len, _ref, _ref1;
     fabscript_node_map = {};
     node_map = node_cluster.__status.node_map;
     fabscript_map = node_cluster.__status.fabscript_map;
@@ -445,7 +501,6 @@
         }
       ];
     }
-    console.log(fabscript_map);
     fabscripts = [];
     nodes_tbody_html = '';
     all_node_length = 0;
@@ -496,12 +551,9 @@
       result_html += '</div>';
       nodes_tbody_html += "<tr class=\"" + node_class + "\">\n    <td>" + sum_status + "</td>\n    <td>" + host + "</td>\n    <td>" + result_html + "</td>\n</tr>";
     }
-    console.log('DEBUG DD');
     fabscripts = [];
     for (fabscript in fabscript_map) {
       data = fabscript_map[fabscript];
-      console.log(fabscript);
-      console.log(data);
       data.name = fabscript;
       data.type = 'fabscript';
       data.success_length = data.children[0].length;
@@ -523,11 +575,51 @@
         children: fabscripts
       }
     };
-    console.log('DEBUG 22');
-    return console.log(node_cluster.datamap.status.data);
+    nodes = [];
+    links = [];
+    index = 0;
+    for (name in fabscript_map) {
+      fabscript = fabscript_map[name];
+      fabscript.icon = 'computer-retro';
+      fabscript.index = index;
+      nodes.push(fabscript);
+      index++;
+    }
+    for (i = _i = 0, _len = nodes.length; _i < _len; i = ++_i) {
+      node = nodes[i];
+      _ref1 = node.require;
+      for (require in _ref1) {
+        status = _ref1[require];
+        if (require in fabscript_map) {
+          target = fabscript_map[require].index;
+        } else {
+          target = nodes.length;
+          fabscript = {
+            name: require,
+            icon: 'computer-retro',
+            index: target
+          };
+          nodes.push(fabscript);
+          fabscript_map[require] = fabscript;
+        }
+        links.push({
+          'source': i,
+          'target': target
+        });
+      }
+    }
+    return node_cluster.datamap.relation = {
+      'name': 'relation',
+      'type': 'force',
+      'data': {
+        'nodes': nodes,
+        'links': links
+      }
+    };
   };
 
   render_all = function() {
+    var tab;
     if (mode.current === mode.USER) {
       render_user();
     } else if (mode.current === mode.NODE) {
@@ -536,18 +628,28 @@
       $('#node-table').tablesorter({
         sortList: [[0, 1], [1, 0]]
       });
-      console.log('DEBUG');
-      console.log(node_cluster);
-      console.log(fabscripts);
+      render_datamap();
+      bind_shown_tab_event();
+      tab = 0;
+      $('#datamap-modal').on('shown.bs.modal', function() {
+        console.log('shown');
+        $("#map-" + datamap_tabs[tab]).tab('show');
+      });
       $('#show-datamap').on('click', function() {
         $('#datamap-modal').modal();
+        tab = 0;
+        if (datamap_tabs.length > 2) {
+          tab = 2;
+        }
       });
-      render_datamap();
-      $('#datamap-modal').on('shown.bs.modal', function() {
-        $('#map-df').tab('show');
+      $('#show-statusmap').on('click', function() {
+        tab = 0;
+        $('#datamap-modal').modal();
       });
-      bind_shown_tab_event();
-      $('#show-datamap').click();
+      $('#show-relationmap').on('click', function() {
+        tab = 1;
+        $('#datamap-modal').modal();
+      });
     }
     return $('[data-toggle=popover]').popover();
   };

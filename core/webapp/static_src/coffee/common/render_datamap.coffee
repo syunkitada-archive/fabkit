@@ -27,23 +27,19 @@ bind_shown_tab_event = ->
         panel_id = "datamap-#{mapname}"
         map = node_cluster.datamap[mapname]
         if not map.is_rendered
+            console.log "render #{mapname}"
             map.is_rendered = true
             if map.type == 'table'
                 render_table_panel(panel_id, map)
-            if map.type == 'partition'
+            else if map.type == 'partition'
                 render_partition_panel(panel_id, map)
+            else if map.type == 'force'
+                render_force_panel(panel_id, map)
 
         return)
 
 
-render_map = ->
-    console.log 'test'
-
-
 render_table_panel = (panel_id, map) ->
-    thead_html = '<tr>'
-    console.log map
-
     thead_html = '<th>host</th>'
     ths = []
     tbody_html = ''

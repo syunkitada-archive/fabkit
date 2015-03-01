@@ -8,9 +8,6 @@ render_partition_panel = (panel_id, map) ->
     </div>""")
     id = '#partition-svg'
 
-    nodes = graph_nodes
-    links = graph_links
-
     svg = d3.select(id)
     $svg = $(id).empty()
     w = $svg.width()
