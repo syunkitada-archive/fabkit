@@ -5,7 +5,7 @@ users = []
 node_cluster = {}
 node_clusters = []
 fabscripts = []
-datamap_tabs = ['status', 'relation']
+datamap_tabs = ['status']
 
 graph_links = []
 graph_nodes = []

@@ -1,5 +1,5 @@
 (function() {
-  var WARNING_STATUS_THRESHOLD, datamap_tabs, fabscripts, filter, graph_links, graph_nodes, init, mode, node_cluster, node_clusters, render_all, render_datamap, render_fabscript, render_force_layout, render_map, render_node_cluster, render_node_clusters, render_overview_layout, render_user, users,
+  var WARNING_STATUS_THRESHOLD, bind_shown_tab_event, datamap_tabs, fabscripts, filter, graph_links, graph_nodes, init, mode, node_cluster, node_clusters, render_all, render_datamap, render_map, render_node_cluster, render_node_clusters, render_partition_panel, render_table_panel, render_user, users,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   window.fabkit = {};
@@ -12,7 +12,7 @@
 
   fabscripts = [];
 
-  datamap_tabs = ['status', 'relation'];
+  datamap_tabs = ['status'];
 
   graph_links = [];
 
@@ -149,120 +149,12 @@
     });
   });
 
-  render_datamap = function() {
-    var datamap, mapname, nav_html, panel_id, _i, _len;
-    datamap = node_cluster.datamap;
-    for (mapname in datamap) {
-      if (__indexOf.call(datamap_tabs, mapname) < 0) {
-        datamap_tabs.push(mapname);
-      }
-    }
-    console.log('render DEBUG');
-    nav_html = '';
-    for (_i = 0, _len = datamap_tabs.length; _i < _len; _i++) {
-      mapname = datamap_tabs[_i];
-      panel_id = "#datamap-" + datamap[mapname].type + "-panel";
-      nav_html += "<li role=\"presentation\">\n    <a id=\"map-" + mapname + "\" class=\"datamap-tab\" href=\"" + panel_id + "\" role=\"tab\" data-toggle=\"tab\">" + mapname + "</a>\n</li>";
-    }
-    $('#datamap-nav').html(nav_html);
-    return $('.datamap-tab').on('shown.bs.tab', function(e) {
-      var map, tbody_html, td, thead_html, tr, tr_html, _j, _k, _l, _len1, _len2, _len3, _ref, _ref1;
-      mapname = $(e.target).html();
-      map = node_cluster.datamap[mapname];
-      thead_html = '<tr>';
-      _ref = map.head;
-      for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
-        td = _ref[_j];
-        thead_html += "<th>" + td + "</th>";
-      }
-      thead_html += '</tr>';
-      tbody_html = '';
-      _ref1 = map.body;
-      for (_k = 0, _len2 = _ref1.length; _k < _len2; _k++) {
-        tr = _ref1[_k];
-        tr_html = '<tr>';
-        console.log(tr);
-        for (_l = 0, _len3 = tr.length; _l < _len3; _l++) {
-          td = tr[_l];
-          tr_html += "<td>" + td + "</td>";
-        }
-        tr_html += '</tr>';
-        tbody_html += tr_html;
-      }
-      console.log(tbody_html);
-      $('#datamap-thead').html(thead_html);
-      $('#datamap-tbody').html(tbody_html);
-      console.log(map);
-      console.log($('#datamap-table'));
-      console.log($('#node-table'));
-      $('#datamap-table').tablesorter({
-        sortList: [[0, 0]]
-      });
-    });
-  };
-
-  render_map = function() {
-    return console.log('test');
-  };
-
-  render_force_layout = function() {
-    var $svg, force, h, id, link, links, node, nodes, svg, w;
-    console.log('render force layout');
-    id = '#graph-svg';
-    nodes = graph_nodes;
-    links = graph_links;
-    svg = d3.select(id);
-    $svg = $(id).empty();
-    w = $svg.width();
-    h = $svg.height();
-    force = d3.layout.force().nodes(nodes).links(links).linkDistance(150).linkStrength(0.1).friction(0.8).charge(-300).gravity(.05).size([w, h]);
-    link = svg.selectAll('.link').data(links).enter().append('line').attr('class', 'link').attr('marker-end', 'url(#markerArrow)');
-    node = svg.selectAll(".node").data(nodes).enter().append('g').attr('class', 'node').call(force.drag);
-    node.append('glyph').attr('class', 'glyphicon glyphicon-star').attr('unicode');
-    node.append("image").attr("xlink:href", function(d) {
-      return "/static/vendor/defaulticon/png/" + d.icon + ".png";
-    }).attr("x", 6).attr("y", -34).attr('width', 30).attr('height', 30);
-    node.append("circle").attr("r", 6).attr('class', 'node-circle');
-    node.append('text').attr('dx', 12).attr('dy', '.35em').attr('class', 'node-label').text(function(d) {
-      return d.name;
-    });
-    if (mode.current === mode.NODE) {
-      node.append('text').attr('dx', 12).attr('dy', '.35em').attr('y', 16).attr('class', function(d) {
-        if (d.danger_length > 0) {
-          return 'node-label-danger';
-        }
-        if (d.warning_length > 0) {
-          return 'node-label-warning';
-        } else {
-          return 'node-label-success';
-        }
-      }).text(function(d) {
-        return "✔ " + d.success_length + ", ▲ " + d.warning_length + ", ✘ " + d.danger_length;
-      });
-    }
-    force.on("tick", function(e) {
-      link.attr('x1', function(d) {
-        return d.source.x;
-      });
-      link.attr('y1', function(d) {
-        return d.source.y;
-      });
-      link.attr('x2', function(d) {
-        return d.target.x;
-      });
-      link.attr('y2', function(d) {
-        return d.target.y;
-      });
-      return node.attr('transform', function(d) {
-        return "translate(" + d.x + ", " + d.y + ")";
-      });
-    });
-    return force.start();
-  };
-
-  render_overview_layout = function() {
+  render_partition_panel = function(panel_id, map) {
     var $svg, click, g, h, id, kx, ky, links, nodes, partition, root, svg, transform, vis, w, x, y;
-    id = '#overview-svg';
+    id = 'partition-svg';
+    root = map.data;
+    $("#" + panel_id).html("<div class=\"graph-svg-wrapper\">\n    <svg id=\"" + id + "\"></svg>\n</div>");
+    id = '#partition-svg';
     nodes = graph_nodes;
     links = graph_links;
     svg = d3.select(id);
@@ -271,11 +163,6 @@
     h = $svg.height();
     x = d3.scale.linear().range([0, w]);
     y = d3.scale.linear().range([0, h]);
-    root = {
-      type: 'root',
-      name: 'fabscript',
-      children: graph_nodes
-    };
     vis = d3.select(id).attr("width", w).attr("height", h);
     partition = d3.layout.partition().value(function(d) {
       return d.size;
@@ -366,6 +253,77 @@
     });
   };
 
+  render_datamap = function() {
+    var datamap, mapname, nav_html, panel_id, tabpanels_html, _i, _len;
+    datamap = node_cluster.datamap;
+    for (mapname in datamap) {
+      if (__indexOf.call(datamap_tabs, mapname) < 0) {
+        datamap_tabs.push(mapname);
+      }
+    }
+    nav_html = '';
+    tabpanels_html = '';
+    for (_i = 0, _len = datamap_tabs.length; _i < _len; _i++) {
+      mapname = datamap_tabs[_i];
+      panel_id = "datamap-" + mapname;
+      nav_html += "<li role=\"presentation\">\n    <a id=\"map-" + mapname + "\" class=\"datamap-tab\" href=\"#" + panel_id + "\" role=\"tab\" data-toggle=\"tab\">" + mapname + "</a>\n</li>";
+      tabpanels_html += "<div role=\"tabpanel\" class=\"tab-pane active\" id=\"" + panel_id + "\">\n</div>";
+    }
+    $('#datamap-nav').html(nav_html);
+    return $('#datamap-tabpanels').html(tabpanels_html);
+  };
+
+  bind_shown_tab_event = function() {
+    return $('.datamap-tab').on('shown.bs.tab', function(e) {
+      var map, mapname, panel_id;
+      mapname = $(e.target).html();
+      panel_id = "datamap-" + mapname;
+      map = node_cluster.datamap[mapname];
+      if (!map.is_rendered) {
+        map.is_rendered = true;
+        if (map.type === 'table') {
+          render_table_panel(panel_id, map);
+        }
+        if (map.type === 'partition') {
+          render_partition_panel(panel_id, map);
+        }
+      }
+    });
+  };
+
+  render_map = function() {
+    return console.log('test');
+  };
+
+  render_table_panel = function(panel_id, map) {
+    var table_html, tbody_html, td, thead_html, tr, tr_html, _i, _j, _k, _len, _len1, _len2, _ref, _ref1;
+    thead_html = '<tr>';
+    _ref = map.head;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      td = _ref[_i];
+      thead_html += "<th>" + td + "</th>";
+    }
+    thead_html += '</tr>';
+    tbody_html = '';
+    _ref1 = map.body;
+    for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+      tr = _ref1[_j];
+      tr_html = '<tr>';
+      console.log(tr);
+      for (_k = 0, _len2 = tr.length; _k < _len2; _k++) {
+        td = tr[_k];
+        tr_html += "<td>" + td + "</td>";
+      }
+      tr_html += '</tr>';
+      tbody_html += tr_html;
+    }
+    table_html = "<table id=\"datamap-table\" class=\"table table-striped table-bordered tablesorter\">\n    <thead id=\"datamap-thead\">" + thead_html + "</thead>\n    <tbody id=\"datamap-tbody\">" + tbody_html + "</tbody>\n</table>";
+    $("#" + panel_id).html(table_html);
+    return $('#datamap-table').tablesorter({
+      sortList: [[0, 0]]
+    });
+  };
+
   render_node_clusters = function() {
     var cluster_path, clusters_html, expand_clusters, page, paths;
     paths = location.pathname.split('node/');
@@ -451,103 +409,37 @@
     }
   };
 
-  render_fabscript = function() {
-    var fabscript, fabscripts_tbody, hash, i, icon, is_exist, linked, linked_html, linked_index, node, node_index, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1;
-    hash = location.hash;
-    if (hash === '') {
-      hash = '#root';
-    }
-    if (hash === '#root') {
-      $('#show-graph').hide();
-    } else {
-      $('#show-graph').show();
-    }
-    graph_nodes = [];
-    graph_links = [];
-    fabscripts_tbody = '';
-    for (_i = 0, _len = fabscripts.length; _i < _len; _i++) {
-      fabscript = fabscripts[_i];
-      linked_html = '';
-      _ref = fabscript.fields.linked_fabscripts;
-      for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
-        linked = _ref[_j];
-        linked_html += "" + linked + "</br>";
-      }
-      if (hash === '#root' || ("#" + fabscript.fields.name).indexOf("" + hash + ".") === 0) {
-        fabscripts_tbody += "<tr id=\"" + fabscript.pk + "\"> <td><input type=\"checkbox\"></td> <td>" + fabscript.fields.name + "</td> <td>" + linked_html + "</td> <td>" + fabscript.fields.updated_at + "</td> </tr>";
-        if (hash !== "#root") {
-          is_exist = false;
-          node_index = 0;
-          for (i = _k = 0, _len2 = graph_nodes.length; _k < _len2; i = ++_k) {
-            node = graph_nodes[i];
-            if (node.name === fabscript.fields.name) {
-              is_exist = true;
-              node_index = i;
-              if ('icon' in fabscript.fields.data) {
-                node.icon = fabscript.fields.data.icon;
-              } else {
-                node.icon = 'computer-retro';
-              }
-              break;
-            }
-          }
-          if (!is_exist) {
-            if ('icon' in fabscript.fields.data) {
-              icon = fabscript.fields.data.icon;
-            } else {
-              icon = 'computer-retro';
-            }
-            node_index = graph_nodes.length;
-            graph_nodes.push({
-              'name': fabscript.fields.name,
-              'icon': icon
-            });
-          }
-          _ref1 = fabscript.fields.linked_fabscripts;
-          for (_l = 0, _len3 = _ref1.length; _l < _len3; _l++) {
-            linked = _ref1[_l];
-            linked = linked.split(':')[0];
-            is_exist = false;
-            linked_index = 0;
-            for (i = _m = 0, _len4 = graph_nodes.length; _m < _len4; i = ++_m) {
-              node = graph_nodes[i];
-              if (node.name === linked) {
-                is_exist = true;
-                linked_index = i;
-                break;
-              }
-            }
-            if (!is_exist) {
-              linked_index = graph_nodes.length;
-              graph_nodes.push({
-                'name': linked,
-                'icon': icon
-              });
-            }
-            if (node_index !== linked_index) {
-              graph_links.push({
-                'source': linked_index,
-                'target': node_index
-              });
-            }
-          }
-        }
-      }
-    }
-    return $('#fabscripts-tbody').html(fabscripts_tbody);
-  };
-
   render_node_cluster = function() {
-    var all_node_length, danger_node_length, fabscript_map, fabscript_node_map, host, is_danger, is_warning, node, node_class, node_map, nodes_tbody_html, result, result_html, script, success_node_length, sum_status, warning_node_length, _ref;
+    var all_node_length, danger_node_length, data, fabscript, fabscript_map, fabscript_node_map, host, is_danger, is_warning, node, node_class, node_map, nodes_tbody_html, result, result_html, script, success_node_length, sum_status, tmp_fabscript, warning_node_length, _ref;
     fabscript_node_map = {};
-    node_cluster.datamap.status = {
-      'type': 'svg'
-    };
-    node_cluster.datamap.relation = {
-      'type': 'svg'
-    };
     node_map = node_cluster.__status.node_map;
     fabscript_map = node_cluster.__status.fabscript_map;
+    for (fabscript in fabscript_map) {
+      data = fabscript_map[fabscript];
+      data.children = [
+        {
+          type: 'status',
+          name: 'success',
+          "class": 'success',
+          length: 0,
+          children: []
+        }, {
+          type: 'status',
+          name: 'warning',
+          "class": 'warning',
+          length: 0,
+          children: []
+        }, {
+          type: 'status',
+          name: 'danger',
+          "class": 'danger',
+          length: 0,
+          children: []
+        }
+      ];
+    }
+    console.log(fabscript_map);
+    fabscripts = [];
     nodes_tbody_html = '';
     all_node_length = 0;
     success_node_length = 0;
@@ -565,13 +457,24 @@
         result = _ref[script];
         sum_status += result.task_status + result.check_status;
         result_html += "" + script + " [" + result.task_status + "],\nsetup [" + result.status + "]: '" + result.msg + "',\ncheck [" + result.check_status + "]: '" + result.check_msg + "'\n</tr>";
+        node = {
+          'type': node,
+          'name': host,
+          'size': 1
+        };
         if (result.task_status > 0 || result.check_status > 0) {
           if (result.task_status < WARNING_STATUS_THRESHOLD || result.check_status < WARNING_STATUS_THRESHOLD) {
             is_warning = true;
+            tmp_fabscript = fabscript_map[script].children[1];
           } else {
             is_danger = true;
+            tmp_fabscript = fabscript_map[script].children[2];
           }
+        } else {
+          tmp_fabscript = fabscript_map[script].children[0];
         }
+        tmp_fabscript.children.push(node);
+        tmp_fabscript.length++;
       }
       if (is_danger) {
         node_class = 'danger';
@@ -586,12 +489,35 @@
       result_html += '</div>';
       nodes_tbody_html += "<tr class=\"" + node_class + "\">\n    <td>" + sum_status + "</td>\n    <td>" + host + "</td>\n    <td>" + result_html + "</td>\n</tr>";
     }
-    console.log(node_map);
+    console.log('DEBUG DD');
+    fabscripts = [];
+    for (fabscript in fabscript_map) {
+      data = fabscript_map[fabscript];
+      console.log(fabscript);
+      console.log(data);
+      data.name = fabscript;
+      data.type = 'fabscript';
+      data.success_length = data.children[0].length;
+      data.warning_length = data.children[1].length;
+      data.danger_length = data.children[2].length;
+      fabscripts.push(data);
+    }
     $('#all-node-badge').html(all_node_length);
     $('#success-node-badge').html(success_node_length);
     $('#warning-node-badge').html(warning_node_length);
     $('#danger-node-badge').html(danger_node_length);
-    return $('#nodes-tbody').html(nodes_tbody_html);
+    $('#nodes-tbody').html(nodes_tbody_html);
+    node_cluster.datamap.status = {
+      'name': 'status',
+      'type': 'partition',
+      'data': {
+        type: 'root',
+        name: 'status',
+        children: fabscripts
+      }
+    };
+    console.log('DEBUG 22');
+    return console.log(node_cluster.datamap.status.data);
   };
 
   render_all = function() {
@@ -605,15 +531,15 @@
       });
       console.log('DEBUG');
       console.log(node_cluster);
-      console.log(node_clusters);
       console.log(fabscripts);
       $('#show-datamap').on('click', function() {
         $('#datamap-modal').modal();
       });
       render_datamap();
       $('#datamap-modal').on('shown.bs.modal', function() {
-        $('#map-df').tab('show');
+        $('#map-status').tab('show');
       });
+      bind_shown_tab_event();
       $('#show-datamap').click();
     }
     return $('[data-toggle=popover]').popover();

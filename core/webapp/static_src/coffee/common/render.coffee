@@ -11,7 +11,6 @@ render_all = ->
 
         console.log 'DEBUG'
         console.log node_cluster
-        console.log node_clusters
         console.log fabscripts
         $('#show-datamap').on('click', ->
             $('#datamap-modal').modal()
@@ -19,8 +18,10 @@ render_all = ->
 
         render_datamap()
         $('#datamap-modal').on('shown.bs.modal', ->
-            $('#map-df').tab('show')
+            $('#map-status').tab('show')
             return)
+
+        bind_shown_tab_event()
 
         $('#show-datamap').click()
 

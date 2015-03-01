@@ -148,7 +148,8 @@ def run_func(func_names=[], option=None):
 
             # print cluster_run[require]
 
-            script = '.'.join([conf.FABSCRIPT_MODULE, script_name])
+            script = '.'.join([conf.FABSCRIPT_MODULE, script_name.replace('/', '.')])
+            print script
             # module = importlib.import_module(script)  # importlibは、2.7以上じゃないと使えない
             module = __import__(script, globals(), locals(), ['*'], -1)
 

@@ -1,10 +1,18 @@
 render_node_cluster = ->
     fabscript_node_map = {}
 
-    node_cluster.datamap.status = {'type': 'svg'}
-    node_cluster.datamap.relation = {'type': 'svg'}
+    # node_cluster.datamap.relation = {'type': 'force'}  TODO
     node_map = node_cluster.__status.node_map
     fabscript_map = node_cluster.__status.fabscript_map
+    for fabscript, data of fabscript_map
+        data.children = [
+            {type: 'status', name: 'success', class: 'success', length: 0, children: []},
+            {type: 'status', name: 'warning', class: 'warning', length: 0, children: []},
+            {type: 'status', name: 'danger', class: 'danger', length: 0, children: []},
+        ]
+
+    console.log fabscript_map
+    fabscripts = []
 
     nodes_tbody_html = ''
     all_node_length = 0
@@ -26,11 +34,20 @@ render_node_cluster = ->
             check [#{result.check_status}]: '#{result.check_msg}'
             </tr>
             """
+
+            node = {'type': node, 'name': host, 'size': 1}
             if result.task_status > 0 or result.check_status > 0
                 if result.task_status < WARNING_STATUS_THRESHOLD or result.check_status < WARNING_STATUS_THRESHOLD
                     is_warning = true
+                    tmp_fabscript = fabscript_map[script].children[1]
                 else
                     is_danger = true
+                    tmp_fabscript = fabscript_map[script].children[2]
+            else
+                tmp_fabscript = fabscript_map[script].children[0]
+
+            tmp_fabscript.children.push(node)
+            tmp_fabscript.length++
 
         if is_danger
             node_class = 'danger'
@@ -50,12 +67,37 @@ render_node_cluster = ->
                 <td>#{result_html}</td>
             </tr>"""
 
-    console.log node_map
+    console.log 'DEBUG DD'
+    fabscripts = []
+    for fabscript, data of fabscript_map
+        console.log fabscript
+        console.log data
+        data.name = fabscript
+        data.type = 'fabscript'
+        data.success_length = data.children[0].length
+        data.warning_length = data.children[1].length
+        data.danger_length = data.children[2].length
+        fabscripts.push(data)
+
     $('#all-node-badge').html(all_node_length)
     $('#success-node-badge').html(success_node_length)
     $('#warning-node-badge').html(warning_node_length)
     $('#danger-node-badge').html(danger_node_length)
     $('#nodes-tbody').html(nodes_tbody_html)
+
+    node_cluster.datamap.status = {
+        'name': 'status',
+        'type': 'partition',
+        'data': {
+            type: 'root',
+            name: 'status',
+            children: fabscripts,
+        }
+    }
+    console.log 'DEBUG 22'
+    console.log node_cluster.datamap.status.data
+
+
 #
 #    $('#all-node-badge').html(all_node_length)
 #

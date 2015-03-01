@@ -86,7 +86,6 @@ def load_runs(query, find_depth=1):
                 # fabscriptは、クラスタ単位で管理する
                 fabscript_cluster = fabscript.rsplit('/', 1)[0]
                 fabscript_mod = fabscript.rsplit('/', 1)[1]
-                fabscript = fabscript.replace('/', '.')  # モジュールとして読み込めるよう.ドット区切りに直す
 
                 if fabscript not in tmp_fabscript_map:
                     if fabscript not in fabscript_status_map:

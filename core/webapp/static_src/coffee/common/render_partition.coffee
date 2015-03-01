@@ -1,5 +1,13 @@
-render_overview_layout = () ->
-    id = '#overview-svg'
+render_partition_panel = (panel_id, map) ->
+    id = 'partition-svg'
+    root = map.data
+
+    $("##{panel_id}").html("""
+    <div class="graph-svg-wrapper">
+        <svg id="#{id}"></svg>
+    </div>""")
+    id = '#partition-svg'
+
     nodes = graph_nodes
     links = graph_links
 
@@ -10,11 +18,6 @@ render_overview_layout = () ->
     x = d3.scale.linear().range([0, w])
     y = d3.scale.linear().range([0, h])
 
-    root = {
-        type: 'root',
-        name: 'fabscript',
-        children: graph_nodes,
-    }
 
     vis = d3.select(id)
             .attr("width", w)
