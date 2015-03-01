@@ -2,6 +2,7 @@
 
 import os
 import yaml
+import json
 import re
 from fabkit import conf, env, status, log
 from host_util import get_expanded_hosts
@@ -85,7 +86,6 @@ def load_runs(query, find_depth=1):
                 # fabscriptは、クラスタ単位で管理する
                 fabscript_cluster = fabscript.rsplit('/', 1)[0]
                 fabscript_mod = fabscript.rsplit('/', 1)[1]
-                fabscript = fabscript.replace('/', '.')  # モジュールとして読み込めるよう.ドット区切りに直す
 
                 if fabscript not in tmp_fabscript_map:
                     if fabscript not in fabscript_status_map:
@@ -226,3 +226,20 @@ def dump_status():
         status_yaml = os.path.join(conf.NODE_DIR, cluster_name, conf.CLUSTER_YAML)
         with open(status_yaml, 'w') as f:
             f.write(yaml.dump({'__status': data['__status']}))
+
+
+def dump_datamap(data_map):
+    datamap_dir = os.path.join(conf.NODE_DIR, env.cluster['name'], conf.DATAMAP_DIR)
+    if not os.path.exists(datamap_dir):
+        os.mkdir(datamap_dir)
+
+    for map_name, map_data in data_map.items():
+        datamap_json = os.path.join(datamap_dir, map_name + '.yml')
+        if os.path.exists(datamap_json):
+            with open(datamap_json, 'r') as f:
+                tmp_map_data = yaml.load(f)
+                tmp_map_data['data'].update(map_data['data'])
+                map_data = tmp_map_data
+
+        with open(datamap_json, 'w') as f:
+            yaml.dump(map_data, f)

@@ -135,10 +135,10 @@ def run_func(func_names=[], option=None):
                 if not is_require:
                     break
 
-            # print cluster_run[require]
+            script = '.'.join([conf.FABSCRIPT_MODULE, script_name.replace('/', '.')])
 
-            script = '.'.join([conf.FABSCRIPT_MODULE, script_name])
-            # module = importlib.import_module(script)  # importlibは、2.7以上じゃないと使えない
+            # importlibは、2.7以上じゃないと使えない
+            # module = importlib.import_module(script)
             module = __import__(script, globals(), locals(), ['*'], -1)
 
             module_funcs = []
@@ -159,6 +159,7 @@ def run_func(func_names=[], option=None):
                         results = api.execute(func)
 
                         # check results
+                        data_map = {}
                         tmp_status = None
                         is_contain_failed = False
                         for host, result in results.items():
@@ -172,6 +173,18 @@ def run_func(func_names=[], option=None):
                                              status.FABSCRIPT_SUCCESS_MSG.format(candidate))
 
                             node_result['task_status'] = task_status
+
+                            tmp_data_map = result.get('data_map')
+                            if tmp_data_map is not None:
+                                for map_name, tmp_map_data in tmp_data_map.items():
+                                    if tmp_map_data['type'] == 'table':
+                                        map_data = data_map.get(map_name, {
+                                            'name': map_name,
+                                            'type': 'table',
+                                            'data': {},
+                                        })
+                                        map_data['data'][host] = tmp_map_data['data']
+                                        data_map[map_name] = map_data
 
                             if env.is_setup:
                                 node_result['msg'] = msg
@@ -187,6 +200,7 @@ def run_func(func_names=[], option=None):
                                         is_contain_unexpected = True
                                         log.error('{0}: expected status is {1}, bad status is {2}.'.format(  # noqa
                                             host, expected, result_status))
+
                             elif env.is_check:
                                 node_result['check_msg'] = msg
                                 if result_status is None:
@@ -203,6 +217,10 @@ def run_func(func_names=[], option=None):
                                 log.error('{0}: Failed task {1}.{2} [{3}]. {4}'.format(
                                     host, script_name, candidate, task_status, msg))
                                 is_contain_failed = True
+
+                        if len(data_map) > 0:
+                            print data_map
+                            util.dump_datamap(data_map)
 
                         if is_contain_failed:
                             log.error('Failed task {0}.{1}. Exit setup.'.format(

@@ -80,78 +80,8 @@
         </ul>
     </footer>
 
-    <div class="modal fade" id="remove-modal">
-        <div class="modal-dialog">
-            <form class="modal-content" id="remove-form" method="POST">
-                {% csrf_token %}
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title">Remove</h4>
-                </div>
-                <div class="modal-body">
-                    <ul id="target-list">
-                    </ul>
-
-                    <div class="progress" id="modal-progress">
-                        <div class="progress-bar progress-bar-striped active" style="width: 100%">
-                        </div>
-                    </div>
-                    <div id="modal-msg">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-danger" id="remove-submit">Remove</button>
-                </div>
-            </form><!-- /.modal-content -->
-        </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
-
-    <div class="modal fade" id="overview-modal">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title">Overview</h4>
-                </div>
-                <div class="modal-body" id="overview-modal-body">
-                    <div class="graph-svg-wrapper chart">
-                        <svg id="overview-svg"></svg>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                </div>
-            </div><!-- /.modal-content -->
-        </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
-
-    <div class="modal fade" id="graph-modal">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title">Graph</h4>
-                </div>
-                <div class="modal-body" id="graph-modal-body">
-                    <svg class="svg-defs">
-                        <defs>
-                            <marker id="markerArrow" markerWidth="10" markerHeight="10" refx="16" refy="6"
-                                    orient="auto">
-                                <path d="M2,2 L2,11 L10,6 L2,2" style="fill: #000000;" />
-                            </marker>
-                        </defs>
-                    </svg>
-                    <div class="graph-svg-wrapper">
-                        <svg id="graph-svg"></svg>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                </div>
-            </div><!-- /.modal-content -->
-        </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
+    {% include 'modal/remove.html' %}
+    {% include 'modal/datamap.html' %}
 
     <script src="{% static 'vendor/js/jquery-2.1.1.min.js' %}"></script>
     <script src="{% static 'vendor/js/jquery.pjax.js' %}"></script>

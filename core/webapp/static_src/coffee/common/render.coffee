@@ -4,30 +4,41 @@ render_all = ->
     else if mode.current == mode.NODE
         render_node_clusters()
         render_node_cluster()
-        $('.tablesorter').tablesorter({
-            sortList: [[0, -1], [1, 0]]
+
+        $('#node-table').tablesorter({
+            sortList: [[0, 1], [1, 0]]
         })
+
+        render_datamap()
+        bind_shown_tab_event()
+
+        tab = 0
+        $('#datamap-modal').on('shown.bs.modal', ->
+            console.log 'shown'
+            $("#map-#{datamap_tabs[tab]}").tab('show')
+            return)
+
+        $('#show-datamap').on('click', ->
+            $('#datamap-modal').modal()
+            tab = 0
+            if datamap_tabs.length > 2
+                tab = 2
+            return)
+
+        $('#show-statusmap').on('click', ->
+            tab = 0
+            $('#datamap-modal').modal()
+            return)
+
+        $('#show-relationmap').on('click', ->
+            tab = 1
+            $('#datamap-modal').modal()
+            return)
 
     $('[data-toggle=popover]').popover()
 
 
 init = ->
-    $('#show-graph').on('click', ->
-        $('#graph-modal').modal()
-        return)
-
-    $('#graph-modal').on('shown.bs.modal', ->
-        render_force_layout()
-        return)
-
-    $('#show-overview').on('click', ->
-        $('#overview-modal').modal()
-        return)
-
-    $('#overview-modal').on('shown.bs.modal', ->
-        render_overview_layout()
-        return)
-
     $('#search-input').on('change', filter)
                       .on('keyup', filter)
 

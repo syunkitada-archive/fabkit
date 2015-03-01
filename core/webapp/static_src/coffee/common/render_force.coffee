@@ -1,11 +1,17 @@
-render_force_layout = () ->
-    console.log 'render force layout'
-    id = '#graph-svg'
-    nodes = graph_nodes
-    links = graph_links
+render_force_panel = (panel_id, map) ->
+    console.log panel_id
+    console.log map
+    id = 'force-svg'
+    $("##{panel_id}").html("""
+    <div class="graph-svg-wrapper">
+        <svg id="#{id}"></svg>
+    </div>""")
 
-    svg = d3.select(id)
-    $svg = $(id).empty()
+    nodes = map.data.nodes
+    links = map.data.links
+
+    svg = d3.select("##{id}")
+    $svg = $("##{id}").empty()
     w = $svg.width()
     h = $svg.height()
 
@@ -83,3 +89,5 @@ render_force_layout = () ->
 
     #forceシミュレーションの開始
     force.start()
+    for i in [0 .. 10000]
+        force.tick()

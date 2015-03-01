@@ -84,7 +84,10 @@ def print_runs():
             max_len_cluster = len_cluster
 
         for cluster_run in run['runs']:
-            tmp_max_len_host = max([len(host) for host in cluster_run['hosts']])
+            hosts = cluster_run['hosts']
+            if len(hosts) == 0:
+                continue
+            tmp_max_len_host = max([len(host) for host in hosts])
             if max_len_host < tmp_max_len_host:
                 max_len_host = tmp_max_len_host
 

@@ -10,11 +10,12 @@ module.exports = function(grunt) {
                     'static/js/common.js': [
                         'static_src/coffee/common/base.coffee',
                         'static_src/coffee/common/filter.coffee',
-                        'static_src/coffee/common/render_force_layout.coffee',
-                        'static_src/coffee/common/render_overview.coffee',
+                        'static_src/coffee/common/render_partition.coffee',
+                        'static_src/coffee/common/render_force.coffee',
+                        'static_src/coffee/common/render_datamap.coffee',
                         'static_src/coffee/common/render_clusters.coffee',
                         'static_src/coffee/common/render_user.coffee',
-                        'static_src/coffee/common/render_fabscript.coffee',
+                        // 'static_src/coffee/common/render_fabscript.coffee',
                         'static_src/coffee/common/render_node.coffee',
                         'static_src/coffee/common/render.coffee',
                     ]

@@ -14,8 +14,9 @@
         </div>
     </div>
     <div class="col-xs-6">
-        <input id="show-graph" class="btn btn-default" type="button" value="Show Graph">
-        <input id="show-overview" class="btn btn-default" type="button" value="Show Overview">
+        <input id="show-datamap" class="btn btn-default" type="button" value="DataMap">
+        <input id="show-statusmap" class="btn btn-default" type="button" value="StatusMap">
+        <input id="show-relationmap" class="btn btn-default" type="button" value="RelationMap">
         <button class="btn btn-default" type="button" data-toggle="collapse" data-target="#collapse-memo" aria-expanded="false" aria-controls="collapse-memo">
             Info</button>
     </div>
@@ -38,7 +39,7 @@
     </ul>
 </p>
 <div class="table-responsive">
-    <table class="table table-striped table-bordered tablesorter">
+    <table class="table table-striped table-bordered tablesorter" id="node-table">
         <thead>
             <tr>
                 <th>Status</th>

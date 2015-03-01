@@ -32,6 +32,8 @@ def node(*options):
                 env.is_check = True
             elif task.find('manage') == 0:
                 env.is_manage = True
+            elif task.find('datamap') == 0:
+                env.is_datamap = True
 
         util.load_runs(query, find_depth=find_depth)
         util.print_runs()
