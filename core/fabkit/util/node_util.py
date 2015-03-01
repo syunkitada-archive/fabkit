@@ -228,10 +228,18 @@ def dump_status():
             f.write(yaml.dump({'__status': data['__status']}))
 
 
-def dump_datamap(map_data):
+def dump_datamap(data_map):
     datamap_dir = os.path.join(conf.NODE_DIR, env.cluster['name'], conf.DATAMAP_DIR)
     if not os.path.exists(datamap_dir):
         os.mkdir(datamap_dir)
-    datamap_json = os.path.join(datamap_dir, map_data['name'] + '.json')
-    with open(datamap_json, 'w') as f:
-        json.dump(map_data, f)
+
+    for map_name, map_data in data_map.items():
+        datamap_json = os.path.join(datamap_dir, map_name + '.yml')
+        if os.path.exists(datamap_json):
+            with open(datamap_json, 'r') as f:
+                tmp_map_data = yaml.load(f)
+                tmp_map_data['data'].update(map_data['data'])
+                map_data = tmp_map_data
+
+        with open(datamap_json, 'w') as f:
+            yaml.dump(map_data, f)

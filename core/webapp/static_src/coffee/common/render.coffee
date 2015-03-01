@@ -18,7 +18,7 @@ render_all = ->
 
         render_datamap()
         $('#datamap-modal').on('shown.bs.modal', ->
-            $('#map-status').tab('show')
+            $('#map-df').tab('show')
             return)
 
         bind_shown_tab_event()

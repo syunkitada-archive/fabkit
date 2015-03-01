@@ -296,28 +296,35 @@
   };
 
   render_table_panel = function(panel_id, map) {
-    var table_html, tbody_html, td, thead_html, tr, tr_html, _i, _j, _k, _len, _len1, _len2, _ref, _ref1;
+    var host, index, table_html, tbody_html, td, tds, th, thead_html, ths, tr, _i, _len, _ref;
     thead_html = '<tr>';
-    _ref = map.head;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      td = _ref[_i];
-      thead_html += "<th>" + td + "</th>";
-    }
-    thead_html += '</tr>';
+    console.log(map);
+    thead_html = '<th>host</th>';
+    ths = [];
     tbody_html = '';
-    _ref1 = map.body;
-    for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-      tr = _ref1[_j];
-      tr_html = '<tr>';
-      console.log(tr);
-      for (_k = 0, _len2 = tr.length; _k < _len2; _k++) {
-        td = tr[_k];
-        tr_html += "<td>" + td + "</td>";
+    _ref = map.data;
+    for (host in _ref) {
+      tr = _ref[host];
+      tds = [];
+      for (th in tr) {
+        td = tr[th];
+        index = ths.indexOf(th);
+        if (index === -1) {
+          thead_html += "<th>" + th + "</th>";
+          ths.push(th);
+          index = ths.length - 1;
+        }
+        tds[index] = td;
       }
-      tr_html += '</tr>';
-      tbody_html += tr_html;
+      tbody_html += '<tr>';
+      tbody_html += "<td>" + host + "</td>";
+      for (_i = 0, _len = tds.length; _i < _len; _i++) {
+        td = tds[_i];
+        tbody_html += "<td>" + td + "</td>";
+      }
+      tbody_html += '</tr>';
     }
-    table_html = "<table id=\"datamap-table\" class=\"table table-striped table-bordered tablesorter\">\n    <thead id=\"datamap-thead\">" + thead_html + "</thead>\n    <tbody id=\"datamap-tbody\">" + tbody_html + "</tbody>\n</table>";
+    table_html = "<table id=\"datamap-table\" class=\"table table-striped table-bordered tablesorter\">\n    <thead id=\"datamap-thead\"><tr>" + thead_html + "</tr></thead>\n    <tbody id=\"datamap-tbody\">" + tbody_html + "</tbody>\n</table>";
     $("#" + panel_id).html(table_html);
     return $('#datamap-table').tablesorter({
       sortList: [[0, 0]]
@@ -537,7 +544,7 @@
       });
       render_datamap();
       $('#datamap-modal').on('shown.bs.modal', function() {
-        $('#map-status').tab('show');
+        $('#map-df').tab('show');
       });
       bind_shown_tab_event();
       $('#show-datamap').click();

@@ -42,22 +42,32 @@ render_map = ->
 
 render_table_panel = (panel_id, map) ->
     thead_html = '<tr>'
-    for td in map.head
-        thead_html += "<th>#{td}</th>"
-    thead_html += '</tr>'
+    console.log map
 
+    thead_html = '<th>host</th>'
+    ths = []
     tbody_html = ''
-    for tr in map.body
-        tr_html = '<tr>'
-        console.log tr
-        for td in tr
-            tr_html += "<td>#{td}</td>"
-        tr_html += '</tr>'
-        tbody_html += tr_html
+    for host, tr of map.data
+        tds = []
+        for th, td of tr
+            index = ths.indexOf(th)
+            if index == -1
+                thead_html += "<th>#{th}</th>"
+                ths.push(th)
+                index = ths.length - 1
+            tds[index] = td
+
+        tbody_html += '<tr>'
+        tbody_html += "<td>#{host}</td>"
+        for td in tds
+            tbody_html += "<td>#{td}</td>"
+
+        tbody_html += '</tr>'
+
 
     table_html = """
     <table id="datamap-table" class="table table-striped table-bordered tablesorter">
-        <thead id="datamap-thead">#{thead_html}</thead>
+        <thead id="datamap-thead"><tr>#{thead_html}</tr></thead>
         <tbody id="datamap-tbody">#{tbody_html}</tbody>
     </table>
     """

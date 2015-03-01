@@ -37,7 +37,7 @@ def index(request, cluster=None):
                 for file in files:
                     file = os.path.join(root, file)
                     with open(file, 'r') as f:
-                        data = json.load(f)
+                        data = yaml.load(f)
                         datamap[data['name']] = data
 
     node_cluster['datamap'] = datamap
