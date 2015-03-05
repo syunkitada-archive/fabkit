@@ -16,8 +16,8 @@ START = 101
 START_MSG = 'start: {0}'
 
 # fabscript status
-FABSCRIPT_SUCCESS_MSG = 'success {0}'
-FABSCRIPT_FAILED_MSG = 'failed {0}'
+FABSCRIPT_SUCCESS_MSG = 'success'
+FABSCRIPT_FAILED_MSG = 'failed'
 FABSCRIPT_END_EMPTY_MSG = 'run empty'
 FABSCRIPT_REGISTERED = 200
 FABSCRIPT_REGISTERED_MSG = 'registered fabscript: {0}.{1}'
