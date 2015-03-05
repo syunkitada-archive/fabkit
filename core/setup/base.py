@@ -169,8 +169,12 @@ def run_func(func_names=[], option=None):
                             node_result = env.node_status_map[host]['fabscript_map'][script_name]
                             result_status = result.get('status')
                             task_status = result.get('task_status', status.SUCCESS)
-                            msg = result.get('msg',
-                                             status.FABSCRIPT_SUCCESS_MSG.format(candidate))
+                            msg = result.get('msg')
+                            if msg is None:
+                                if task_status is status.SUCCESS:
+                                    msg = status.FABSCRIPT_SUCCESS_MSG
+                                else:
+                                    msg = status.FABSCRIPT_FAILED_MSG
 
                             node_result['task_status'] = task_status
 
@@ -198,8 +202,8 @@ def run_func(func_names=[], option=None):
                                             host, msg, result_status))
                                     else:
                                         is_contain_unexpected = True
-                                        log.error('{0}: expected status is {1}, bad status is {2}.'.format(  # noqa
-                                            host, expected, result_status))
+                                        log.error('expected status is {0}, bad status is {1}.'.format(  # noqa
+                                            expected, result_status), host)
 
                             elif env.is_check:
                                 node_result['check_msg'] = msg
@@ -210,12 +214,15 @@ def run_func(func_names=[], option=None):
                                     'check_status': result_status,
                                 })
                                 if result_status != status.SUCCESS:
-                                    log.error('{0}: failed check {1}.{2} [{3}]. {4}'.format(  # noqa
-                                        host, script_name, candidate, result_status, msg))
+                                    log.error('Failed check {0}.{1} [{2}]. {3}'.format(  # noqa
+                                        script_name, candidate, result_status, msg), host)
 
-                            if task_status != status.SUCCESS:
-                                log.error('{0}: Failed task {1}.{2} [{3}]. {4}'.format(
-                                    host, script_name, candidate, task_status, msg))
+                            if task_status == status.SUCCESS:
+                                log.info('Success task {0}.{1} [{2}]. {3}'.format(
+                                    script_name, candidate, task_status, msg), host)
+                            else:
+                                log.error('Failed task {0}.{1} [{2}]. {3}'.format(
+                                    script_name, candidate, task_status, msg), host)
                                 is_contain_failed = True
 
                         if len(data_map) > 0:

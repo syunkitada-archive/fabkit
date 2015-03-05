@@ -1,3 +1,5 @@
+# XXX statusmap, relationmapを切り替えるとバグる
+# XXX datamapのタブ情報がリセットされない
 render_datamap = ->
     datamap = node_cluster.datamap
     for mapname of datamap
