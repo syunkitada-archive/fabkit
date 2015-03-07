@@ -1,7 +1,9 @@
 # coding: utf-8
 
 from databag import databag
+from test import test
 from node import node
+from setup import setup, check, manage
 from fabkit import api, conf
 from jinja2 import Template
 import os
@@ -10,13 +12,27 @@ import os
 @api.task
 def doc(option):
     if option == 'dump':
-        dump_doc(node)
+        dump_doc(check)
+        dump_doc(doc)
         dump_doc(databag)
-
-    elif option == 'node':
-        print_doc(node)
+        dump_doc(manage)
+        dump_doc(node)
+        dump_doc(setup)
+        dump_doc(test)
+    elif option == 'check':
+        print_doc(check)
     elif option == 'databag':
         print_doc(databag)
+    elif option == 'doc':
+        print_doc(doc)
+    elif option == 'manage':
+        print_doc(manage)
+    elif option == 'node':
+        print_doc(node)
+    elif option == 'setup':
+        print_doc(setup)
+    elif option == 'test':
+        print_doc(test)
 
 
 def dump_doc(func):

@@ -1,24 +1,35 @@
 # Task databag
 
 
-access databag
+Set key-value to databag, or show value or list.
 
 ## Args
-* option (str): action option
-  * set: set databag
-  * get: get databag
-  * list: show databag list
+* set(s),<databag.key>,<value>
+  * set key-value to databag.
+* get(g),<databag.key>
+  * get value from key.
+* list(l),<databag>
+  * show databag list
+  * if not databag, show all databag list
 
 ## Examples
 ``` bash
-$ fab databag:set,test/database.password,dbpass
+% fab databag:s,test/database.password,dbpass
 [localhost] Executing task 'databag'
 set key:test/database.password, value:dbpass
 
-$ fab databag:get,test/database.password
+% fab databag:g,test/database.password
 [localhost] Executing task 'databag'
 dbpass
 
-$ fab databag:list
+% fab databag:l,test
+[localhost] Executing task 'databag'
+test/database
+
+% fab databag:l
+[localhost] Executing task 'databag'
+test/database
+test2/database
+test3/database
 ...
 ```

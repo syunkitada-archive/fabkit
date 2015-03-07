@@ -1,8 +1,6 @@
-# coding: utf-8
+# Task node
 
-from base import node  # noqa
 
-node.__doc__ = """
 Load node and cluster from yaml files in node_dir.
 
 ## Args
@@ -35,4 +33,3 @@ cluster      host        fabscript
 test         api01.host  test/api: 0 > 0
 test/cluster capi01.host cluster/api: 0 > 0
 ```
-"""
