@@ -1,2 +1,3 @@
 *.pyc
+*.stackdump
 db.sqlite3

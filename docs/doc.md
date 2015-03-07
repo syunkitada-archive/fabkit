@@ -1,9 +1,6 @@
-# coding: utf-8
+# Task doc
 
 
-from base import doc  # noqa
-
-doc.__doc__ = """
 Dump docs, or show doc of task.
 
 ## Args:
@@ -18,4 +15,3 @@ Dump docs, or show doc of task.
 ...
 ...
 ```
-"""

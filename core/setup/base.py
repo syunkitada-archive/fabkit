@@ -3,16 +3,20 @@
 from fabkit import env, api, conf, status, log, util
 import re
 from types import DictType
-import importlib
 import inspect
 from remote import run_remote
 
 
 @api.task
 def manage(*args):
-    if len(args) > 0 and args[0] == 'test':
-        option = 'test'
-        args = args[1:]
+    if len(args) > 0:
+        if args[0] == 'test':
+            option = 'test'
+            args = args[1:]
+        elif args[0] == 'help':
+            args = args[1:]
+            option = 'help'
+
     else:
         option = None
 
@@ -30,34 +34,12 @@ def setup(option=None):
     run_func(['^setup.*'], option)
 
 
-@api.task
-def h(*func_names):
-    func_patterns = [re.compile(name) for name in func_names]
-    node = env.node_map.get(env.host)
-    for fabscript in node.get('fabruns', []):
-        script = '.'.join((conf.FABSCRIPT_MODULE, fabscript))
-        module = importlib.import_module(script)
-
-        module_funcs = []
-        for member in inspect.getmembers(module):
-            if inspect.isfunction(member[1]):
-                if not hasattr(member[1], 'is_task') or not member[1].is_task:
-                    continue
-
-                if len(func_patterns) == 0:
-                    module_funcs.append(member[0])
-                else:
-                    for func_pattern in func_patterns:
-                        if func_pattern.match(member[0]):
-                            module_funcs.append(member[0])
-                            help(member[1])
-
-        print module_funcs
-
-
 def run_func(func_names=[], option=None):
     if option == 'test':
         env.is_test = True
+    is_help = False
+    if option == 'help':
+        is_help = True
 
     env.is_remote = False
     if option == 'remote':
@@ -146,6 +128,13 @@ def run_func(func_names=[], option=None):
                 if inspect.isfunction(member[1]):
                     module_funcs.append(member[0])
 
+            if is_help and len(func_patterns) == 0:
+                for candidate in module_funcs:
+                    func = getattr(module, candidate)
+                    print 'Task: {0}'.format(func.__name__)
+                    print func.__doc__
+                continue
+
             # func_patterns にマッチしたタスク関数をすべて実行する
             is_expected = False
             is_contain_unexpected = False
@@ -154,6 +143,11 @@ def run_func(func_names=[], option=None):
                     if func_pattern.match(candidate):
                         # taskデコレータの付いているものだけ実行する
                         func = getattr(module, candidate)
+                        if is_help:
+                            print 'Task: {0}'.format(func.__name__)
+                            print func.__doc__
+                            continue
+
                         if not hasattr(func, 'is_task') or not func.is_task:
                             continue
                         results = api.execute(func)
