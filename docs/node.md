@@ -4,7 +4,7 @@
 Load node and cluster from yaml files in node_dir.
 
 ## Args
-* <cluster_path/pattern>,<find_depth>
+* [cluster_path/pattern],[find_depth]
   * load cluster and narrow down node from pattern.
 
 ## Examples

@@ -6,8 +6,8 @@ Test tasks.
 ## Args
 * none
   * test all tasks.
-* <task>
-  * test <task>.
+* [task]
+  * test [task].
 
 ## Examples
 ```

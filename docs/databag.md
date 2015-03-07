@@ -4,11 +4,11 @@
 Set key-value to databag, or show value or list.
 
 ## Args
-* set(s),<databag.key>,<value>
+* set(s),[databag.key],[value]
   * set key-value to databag.
-* get(g),<databag.key>
+* get(g),[databag.key]
   * get value from key.
-* list(l),<databag>
+* list(l),[databag]
   * show databag list
   * if not databag, show all databag list
 
