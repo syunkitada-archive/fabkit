@@ -40,19 +40,19 @@ def index(request, cluster=None):
                         data = yaml.load(f)
                         datamap[data['name']] = data
 
-    node_cluster['datamap'] = datamap
-    fabscript_map = node_cluster['__status']['fabscript_map']
-    for fabscript_name, fabscript in fabscript_map.items():
-        splited_name = fabscript_name.split('/')
-        fabscript_cluster = splited_name[0]
-        script = splited_name[1]
-        fabscript_yaml = os.path.join(
-            settings.FABSCRIPT_MODULE, fabscript_cluster, '__fabscript.yml')
-        if os.path.exists(fabscript_yaml):
-            with open(fabscript_yaml, 'r') as f:
-                data = yaml.load(f)
-                if data is not None:
-                    fabscript.update(data.get(script, {}))
+        node_cluster['datamap'] = datamap
+        fabscript_map = node_cluster['__status']['fabscript_map']
+        for fabscript_name, fabscript in fabscript_map.items():
+            splited_name = fabscript_name.split('/')
+            fabscript_cluster = splited_name[0]
+            script = splited_name[1]
+            fabscript_yaml = os.path.join(
+                settings.FABSCRIPT_MODULE, fabscript_cluster, '__fabscript.yml')
+            if os.path.exists(fabscript_yaml):
+                with open(fabscript_yaml, 'r') as f:
+                    data = yaml.load(f)
+                    if data is not None:
+                        fabscript.update(data.get(script, {}))
 
     node_cluster = json.dumps(node_cluster)
 
@@ -67,33 +67,3 @@ def index(request, cluster=None):
         return render(request, 'node/content.html', context)
 
     return render(request, 'node/index.html', context)
-
-
-@login_required
-def remove(request):
-    if request.method == 'POST':
-        targets = request.POST.getlist('target')
-        clusters = set()
-        for target in targets:
-            node = Node.objects.get(pk=target)
-            clusters.add(node.cluster.pk)
-            node.is_deleted = True
-            node.save()
-
-        for cluster in clusters:
-            node_count = Node.objects.filter(cluster=cluster, is_deleted=False).count()
-            if node_count == 0:
-                node_cluster = NodeCluster.objects.get(pk=cluster)
-                node_cluster.is_deleted = True
-                node_cluster.save()
-
-        result = {
-            'status': True,
-        }
-
-    else:
-        result = {
-            'status': True,
-        }
-
-    return HttpResponse(json.dumps(result))

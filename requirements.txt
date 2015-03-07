@@ -1,4 +1,4 @@
 fabric==1.10.1
 pyyaml==3.11
 jinja2==2.7.3
-django==1.7.3
+django==1.6.5
