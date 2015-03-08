@@ -9,17 +9,13 @@ from terminal import confirm
 # create directory, if directory not exists
 def create_dir(directory, is_create_init_py=False):
     if not os.path.exists(directory):
-        if confirm('"{0}" is not exists.\nDo you want to create?'.format(directory),
-                   'Canceled.') or api.env.is_test:
-            os.makedirs(directory)
-            print '"{0}" is created.'.format(directory)
-            if is_create_init_py:
-                init_py = os.path.join(directory, '__init__.py')
-                with open(init_py, 'w') as f:
-                    f.write('# coding: utf-8')
-                    print '"{0} is created."'.format(init_py)
-        else:
-            exit(0)
+        os.makedirs(directory)
+        print '"{0}" is created.'.format(directory)
+        if is_create_init_py:
+            init_py = os.path.join(directory, '__init__.py')
+            with open(init_py, 'w') as f:
+                f.write('# coding: utf-8')
+                print '"{0} is created."'.format(init_py)
 
 
 def git_clone_required_fablib():

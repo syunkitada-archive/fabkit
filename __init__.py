@@ -26,11 +26,11 @@ log.init_logger()
 
 
 # register fabric tasks
-from test import test  # noqa
 from node import node  # noqa
 from setup import setup, manage, check  # noqa
 from databag import databag  # noqa
 from doc import doc  # noqa
+from testtools import test  # noqa
 
 
 log.set_stdout_pipe()  # 標準出力をパイプ経由でログに流す

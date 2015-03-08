@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from databag import databag
-from test import test
+from testtools import test
 from node import node
 from setup import setup, check, manage
 from fabkit import api, conf
