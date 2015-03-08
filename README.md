@@ -1,8 +1,6 @@
-# Chefric
+# Fabkit
 
-This is fabfile of fabric for chef.
+Fabkit is fabfile for fabric.  
+This is deploy-management kit based on fabric
 
 Want to learn more? [See the wiki](https://github.com/syunkitada/chefric/wiki)
-
-いろいろと未完成です。
-ドキュメントに書いてあることもいろいろと未実装だったりする。
