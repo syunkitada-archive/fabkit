@@ -9,6 +9,7 @@ from remote import run_remote
 
 @api.task
 def manage(*args):
+    option = None
     if len(args) > 0:
         if args[0] == 'test':
             option = 'test'
@@ -16,9 +17,6 @@ def manage(*args):
         elif args[0] == 'help':
             args = args[1:]
             option = 'help'
-
-    else:
-        option = None
 
     run_func(args, option)
 
