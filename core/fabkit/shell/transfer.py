@@ -38,12 +38,10 @@ def scp(from_path, to_path, is_local=True, is_receive=False, use_env_host=True):
             cmd += tmp_target
 
             if conf.USER and conf.PASSWORD:
-                with api.hide('running', 'output', 'warnings'):
-                    print '\n\nDEBUG\n\n'
-                    result = expect(
-                        cmd,
-                        [['* password:', '{0}\\n'.format(conf.PASSWORD)]],
-                        is_local=is_local)
+                result = expect(
+                    cmd,
+                    [['* password:', '{0}\\n'.format(conf.PASSWORD)]],
+                    is_local=is_local)
 
             else:
                 result = local(cmd)
