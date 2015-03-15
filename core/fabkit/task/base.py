@@ -25,6 +25,7 @@ def task(function=None, is_bootstrap=True):
         # wrapper.__name__ = func.__name__
         # wrapper.__module__ = func.__module__
         sub_wrapper.is_task = True
+        sub_wrapper.is_bootstrap = is_bootstrap
         return sub_wrapper
 
     if function:
