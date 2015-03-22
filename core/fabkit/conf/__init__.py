@@ -37,6 +37,7 @@ env.fabscript = {}
 env.fabscript_map = {}
 env.cluster = {}
 env.cluster_map = {}
+# env.hide = 'running'
 
 
 # append module dir to sys.path
@@ -102,7 +103,8 @@ def init(fabfile_dir=None, repo_dir=None, test_repo_dir=None):
     STDOUT_LOG_FILE = os.path.join(LOG_DIR, STDOUT_LOG_FILE_NAME)
 
     DATABAG_DIR = complement_path(CONFIG.get('common', 'databag_dir'))
-    NODE_DIR = complement_path(CONFIG.get('common', 'node_dir'))
+    node_dir = CONFIG.get('common', 'node_dir')
+    NODE_DIR = complement_path(node_dir)
     FABSCRIPT_MODULE = CONFIG.get('common', 'fabscript_module')
     FABSCRIPT_MODULE_DIR = os.path.join(REPO_DIR, FABSCRIPT_MODULE)
     FABLIB_MODULE = CONFIG.get('common', 'fablib_module')

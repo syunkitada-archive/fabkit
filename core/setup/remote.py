@@ -29,11 +29,12 @@ def run_remote():
         task_name = 'manage:{0}'.format(','.join(env.func_names))
 
     cluster_map = {}
-    for cluster in remote['clusters']:
-        run('cd $HOME/{0} && fab node:{1}/{2},yes {3}'.format(
-            dirname, cluster, remote['host_pattern'], task_name))
-        with api.warn_only():
-            yaml_str = run('cat $HOME/{0}/nodes/{1}/__cluster.yml'.format(dirname, cluster))
-        cluster_map[cluster] = yaml.load(yaml_str)
+    with api.shell_env(password=env.password):
+        for cluster in remote['clusters']:
+            run('cd $HOME/{0} && fab node:{1}/{2},yes {3} -u $USER -p $password'.format(
+                dirname, cluster, remote['host_pattern'], task_name, env.password))
+            with api.warn_only():
+                yaml_str = run('cat $HOME/{0}/nodes/{1}/__cluster.yml'.format(dirname, cluster))
+            cluster_map[cluster] = yaml.load(yaml_str)
 
     return cluster_map

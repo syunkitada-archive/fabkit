@@ -3,18 +3,20 @@
 import os
 import logging
 from logging.handlers import RotatingFileHandler
-from fabkit import api, conf
+from fabkit import conf, env, api
 
 
 loggers = {}
 
 
 def get_logger(host=None):
-    if not host:
-        host = api.env.host
-
     if host is None:
+        host = api.env.host
+    cluster_name = env.cluster.get('name')
+    if host is None or cluster_name is None:
         return logging
+
+    host = cluster_name + '/' + host
 
     logger = None
     if host in loggers:
@@ -22,7 +24,9 @@ def get_logger(host=None):
     else:
         logger = logging.getLogger(host)
         logger.setLevel(conf.LOGGER_LEVEL)
-        handler = RotatingFileHandler(get_node_log(host),
+        log_file = os.path.join(conf.LOG_DIR, '{0}.log'.format(host))
+
+        handler = RotatingFileHandler(log_file,
                                       'a', conf.NODE_LOGGER_MAX_BYTES,
                                       conf.NODE_LOGGER_BACKUP_COUNT)
         handler.setFormatter(conf.LOGGER_FORMATTER)
@@ -30,21 +34,6 @@ def get_logger(host=None):
         loggers.update({host: logger})
 
     return logger
-
-
-def get_node_logdir(host=None):
-    node_logdir = os.path.join(conf.LOG_DIR, host)
-    if not os.path.exists(node_logdir):
-        os.makedirs(node_logdir)
-    return node_logdir
-
-
-def get_node_log(host=None):
-    return os.path.join(get_node_logdir(host), '{0}.log'.format(host))
-
-
-def get_node_log_file(host=None):
-    return os.path.join(get_node_logdir(host), 'status.yaml')
 
 
 def debug(msg, host=None):
