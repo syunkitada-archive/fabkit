@@ -22,7 +22,6 @@ from fabkit import conf, util, log
 conf.init(FABFILE_DIR, REPO_DIR, TEST_REPO_DIR)
 util.create_required_dirs()
 util.git_clone_required_fablib()
-log.init_logger()
 
 
 # register fabric tasks
@@ -31,6 +30,3 @@ from setup import setup, manage, check  # noqa
 from databag import databag  # noqa
 from doc import doc  # noqa
 from testtools import test  # noqa
-
-
-log.set_stdout_pipe()  # 標準出力をパイプ経由でログに流す

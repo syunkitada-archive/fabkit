@@ -35,6 +35,7 @@ def setup(option=None):
 def run_func(func_names=[], option=None):
     if option == 'test':
         env.is_test = True
+
     is_help = False
     if option == 'help':
         is_help = True
@@ -96,6 +97,7 @@ def run_func(func_names=[], option=None):
             env.fabscript_status_map = env.cluster_status['fabscript_map']
             env.fabscript = env.fabscript_status_map[script_name]
 
+            log.init_logger(run['cluster'])
             log.info('hosts: {0}'.format(env.hosts))
             log.info('run: {0}: {1}'.format(script_name, env.fabscript))
             log.debug('node_status_map: {0}'.format(env.node_status_map))

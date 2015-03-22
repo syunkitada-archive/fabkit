@@ -3,7 +3,6 @@
 import os
 import commands
 from fabkit import conf, api
-from terminal import confirm
 
 
 # create directory, if directory not exists

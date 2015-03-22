@@ -27,7 +27,7 @@ def cmd(cmd):
 def run(cmd, **kwargs):
     log_cmd = 'run> ' + cmd
     api.env.cmd_history.append(log_cmd)
-    log.info(log_cmd)
+    log.debug(log_cmd)
     print_for_test(log_cmd)
 
     if api.env.is_test:
@@ -36,7 +36,7 @@ def run(cmd, **kwargs):
         result = api.run(cmd, **kwargs)
 
     result_msg = 'return> {0}  out>\n{1}'.format(result.return_code, result)
-    log.info(result_msg)
+    log.debug(result_msg)
     print_for_test(result_msg)
 
     return result
@@ -45,7 +45,7 @@ def run(cmd, **kwargs):
 def sudo(cmd, **kwargs):
     log_cmd = 'sudo> ' + cmd
     api.env.cmd_history.append(log_cmd)
-    log.info(log_cmd)
+    log.debug(log_cmd)
     print_for_test(log_cmd)
 
     if api.env.is_test:
@@ -54,7 +54,7 @@ def sudo(cmd, **kwargs):
         result = api.sudo(cmd, **kwargs)
 
     result_msg = 'return> {0}  out>\n{1}'.format(result.return_code, result)
-    log.info(result_msg)
+    log.debug(result_msg)
     print_for_test(result_msg)
 
     return result
