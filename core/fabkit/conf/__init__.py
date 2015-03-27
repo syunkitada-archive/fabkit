@@ -20,7 +20,8 @@ from constant import (  # noqa
 
 # setup fabric env
 env.forward_agent = True
-env.use_ssh_config = True
+if os.path.isfile(os.path.expanduser(env.ssh_config_path)):
+    env.use_ssh_config = True
 env.warn_only = False
 env.colorize_errors = True
 env.is_test = False
@@ -123,8 +124,10 @@ def init(fabfile_dir=None, repo_dir=None, test_repo_dir=None):
     #
     USER = CONFIG.get('common', 'user')
     PASSWORD = CONFIG.get('common', 'password')
-    api.env.user = USER
-    api.env.password = PASSWORD
+    if USER != '':
+        env.user = USER
+    if PASSWORD != '':
+        env.password = PASSWORD
 
     #
     # LOGGER settings
