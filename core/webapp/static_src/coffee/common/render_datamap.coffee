@@ -1,5 +1,3 @@
-# XXX statusmap, relationmapを切り替えるとバグる
-# XXX datamapのタブ情報がリセットされない
 render_datamap = ->
     datamap = node_cluster.datamap
     for mapname of datamap
@@ -46,12 +44,20 @@ render_table_panel = (panel_id, map) ->
     ths = []
     tbody_html = ''
     for tr in map.data
+        for th, td of tr
+            if ths.indexOf(th) == -1
+                ths.push(th)
+
+    ths.sort()
+    for th in ths
+        th = th.replace(/^![!0-9]/, '')
+        thead_html += "<th>#{th}</th>"
+
+    for tr in map.data
         tds = []
         for th, td of tr
             index = ths.indexOf(th)
             if index == -1
-                thead_html += "<th>#{th}</th>"
-                ths.push(th)
                 index = ths.length - 1
             tds[index] = td
 

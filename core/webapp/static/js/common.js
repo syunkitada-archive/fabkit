@@ -349,27 +349,41 @@
   };
 
   render_table_panel = function(panel_id, map) {
-    var index, table_html, tbody_html, td, tds, th, thead_html, ths, tr, _i, _j, _len, _len1, _ref;
+    var index, table_html, tbody_html, td, tds, th, thead_html, ths, tr, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1;
     thead_html = '';
     ths = [];
     tbody_html = '';
     _ref = map.data;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       tr = _ref[_i];
+      for (th in tr) {
+        td = tr[th];
+        if (ths.indexOf(th) === -1) {
+          ths.push(th);
+        }
+      }
+    }
+    ths.sort();
+    for (_j = 0, _len1 = ths.length; _j < _len1; _j++) {
+      th = ths[_j];
+      th = th.replace(/^![!0-9]/, '');
+      thead_html += "<th>" + th + "</th>";
+    }
+    _ref1 = map.data;
+    for (_k = 0, _len2 = _ref1.length; _k < _len2; _k++) {
+      tr = _ref1[_k];
       tds = [];
       for (th in tr) {
         td = tr[th];
         index = ths.indexOf(th);
         if (index === -1) {
-          thead_html += "<th>" + th + "</th>";
-          ths.push(th);
           index = ths.length - 1;
         }
         tds[index] = td;
       }
       tbody_html += '<tr>';
-      for (_j = 0, _len1 = tds.length; _j < _len1; _j++) {
-        td = tds[_j];
+      for (_l = 0, _len3 = tds.length; _l < _len3; _l++) {
+        td = tds[_l];
         tbody_html += "<td>" + td + "</td>";
       }
       tbody_html += '</tr>';
@@ -559,10 +573,10 @@
       data.warning_length = data.children[1].length;
       data.danger_length = data.children[2].length;
       fabscript_status_map.push({
-        'fabscript': fabscript,
-        'success': data.success_length,
-        'warning': data.warning_length,
-        'danger': data.danger_length
+        '!!fabscript': fabscript,
+        '!0success': data.success_length,
+        '!1warning': data.warning_length,
+        '!2danger': data.danger_length
       });
     }
     node_cluster.datamap.status = {
