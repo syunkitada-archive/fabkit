@@ -80,10 +80,10 @@ render_node_cluster = ->
         data.danger_length = data.children[2].length
 
         fabscript_status_map.push({
-            'fabscript': fabscript,
-            'success': data.success_length,
-            'warning': data.warning_length,
-            'danger': data.danger_length,
+            '!!fabscript': fabscript,
+            '!0success': data.success_length,
+            '!1warning': data.warning_length,
+            '!2danger': data.danger_length,
         })
 
     node_cluster.datamap.status = {

@@ -179,9 +179,12 @@ def run_func(func_names=[], option=None):
                                         map_data = data_map.get(map_name, {
                                             'name': map_name,
                                             'type': 'table',
-                                            'data': {},
+                                            'data': [],
                                         })
-                                        map_data['data'][host] = tmp_map_data['data']
+
+                                        tmp_data = {'!!host': host}
+                                        tmp_data.update(tmp_map_data['data'])
+                                        map_data['data'].append(tmp_data)
                                         data_map[map_name] = map_data
 
                             if env.is_setup:
@@ -220,7 +223,6 @@ def run_func(func_names=[], option=None):
                                 is_contain_failed = True
 
                         if len(data_map) > 0:
-                            print data_map
                             util.dump_datamap(data_map)
 
                         if is_contain_failed:
