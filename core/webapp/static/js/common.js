@@ -252,7 +252,7 @@
   };
 
   render_force_panel = function(panel_id, map) {
-    var $svg, force, h, i, id, link, links, node, nodes, svg, w, _i, _results;
+    var $svg, force, h, id, link, links, node, nodes, svg, w;
     console.log(panel_id);
     console.log(map);
     id = 'force-svg';
@@ -305,12 +305,7 @@
         return "translate(" + d.x + ", " + d.y + ")";
       });
     });
-    force.start();
-    _results = [];
-    for (i = _i = 0; _i <= 10000; i = ++_i) {
-      _results.push(force.tick());
-    }
-    return _results;
+    return force.start();
   };
 
   render_datamap = function() {
@@ -354,13 +349,13 @@
   };
 
   render_table_panel = function(panel_id, map) {
-    var host, index, table_html, tbody_html, td, tds, th, thead_html, ths, tr, _i, _len, _ref;
-    thead_html = '<th>host</th>';
+    var index, table_html, tbody_html, td, tds, th, thead_html, ths, tr, _i, _j, _len, _len1, _ref;
+    thead_html = '';
     ths = [];
     tbody_html = '';
     _ref = map.data;
-    for (host in _ref) {
-      tr = _ref[host];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      tr = _ref[_i];
       tds = [];
       for (th in tr) {
         td = tr[th];
@@ -373,9 +368,8 @@
         tds[index] = td;
       }
       tbody_html += '<tr>';
-      tbody_html += "<td>" + host + "</td>";
-      for (_i = 0, _len = tds.length; _i < _len; _i++) {
-        td = tds[_i];
+      for (_j = 0, _len1 = tds.length; _j < _len1; _j++) {
+        td = tds[_j];
         tbody_html += "<td>" + td + "</td>";
       }
       tbody_html += '</tr>';
@@ -473,7 +467,7 @@
   };
 
   render_node_cluster = function() {
-    var all_node_length, danger_node_length, data, fabscript, fabscript_map, fabscript_node_map, host, i, index, is_danger, is_warning, links, name, node, node_class, node_map, nodes, nodes_tbody_html, require, result, result_html, script, status, success_node_length, sum_status, target, tmp_fabscript, warning_node_length, _i, _len, _ref, _ref1;
+    var all_node_length, danger_node_length, data, fabscript, fabscript_map, fabscript_node_map, fabscript_status_map, host, i, index, is_danger, is_warning, links, name, node, node_class, node_map, nodes, nodes_tbody_html, require, result, result_html, script, status, success_node_length, sum_status, target, tmp_fabscript, warning_node_length, _i, _len, _ref, _ref1;
     fabscript_node_map = {};
     node_map = node_cluster.__status.node_map;
     fabscript_map = node_cluster.__status.fabscript_map;
@@ -551,7 +545,12 @@
       result_html += '</div>';
       nodes_tbody_html += "<tr class=\"" + node_class + "\">\n    <td>" + sum_status + "</td>\n    <td>" + host + "</td>\n    <td>" + result_html + "</td>\n</tr>";
     }
-    fabscripts = [];
+    $('#all-node-badge').html(all_node_length);
+    $('#success-node-badge').html(success_node_length);
+    $('#warning-node-badge').html(warning_node_length);
+    $('#danger-node-badge').html(danger_node_length);
+    $('#nodes-tbody').html(nodes_tbody_html);
+    fabscript_status_map = [];
     for (fabscript in fabscript_map) {
       data = fabscript_map[fabscript];
       data.name = fabscript;
@@ -559,21 +558,17 @@
       data.success_length = data.children[0].length;
       data.warning_length = data.children[1].length;
       data.danger_length = data.children[2].length;
-      fabscripts.push(data);
+      fabscript_status_map.push({
+        'fabscript': fabscript,
+        'success': data.success_length,
+        'warning': data.warning_length,
+        'danger': data.danger_length
+      });
     }
-    $('#all-node-badge').html(all_node_length);
-    $('#success-node-badge').html(success_node_length);
-    $('#warning-node-badge').html(warning_node_length);
-    $('#danger-node-badge').html(danger_node_length);
-    $('#nodes-tbody').html(nodes_tbody_html);
     node_cluster.datamap.status = {
       'name': 'status',
-      'type': 'partition',
-      'data': {
-        type: 'root',
-        name: 'status',
-        children: fabscripts
-      }
+      'type': 'table',
+      'data': fabscript_status_map
     };
     nodes = [];
     links = [];

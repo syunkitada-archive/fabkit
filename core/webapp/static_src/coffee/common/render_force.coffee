@@ -89,5 +89,3 @@ render_force_panel = (panel_id, map) ->
 
     #forceシミュレーションの開始
     force.start()
-    for i in [0 .. 10000]
-        force.tick()

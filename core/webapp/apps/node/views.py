@@ -3,6 +3,7 @@
 import yaml
 import os
 import json
+from markdown import markdown
 from appconf import settings
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -13,12 +14,18 @@ from django.contrib.auth.decorators import login_required
 @login_required
 def index(request, cluster=None):
     node_clusters = []
+    readme_html = ''
     for root, dirs, files in os.walk(settings.NODE_DIR):
         cluster_name = root.split(settings.NODE_DIR)
         cluster_yaml = os.path.join(root, '__cluster.yml')
         if os.path.exists(cluster_yaml):
             cluster_name = cluster_name[1][1:]
             node_clusters.append(cluster_name)
+
+        readme = os.path.join(root, 'README.md')
+        if os.path.exists(readme):
+            with open(readme) as f:
+                readme_html = markdown(f.read())
 
     node_clusters.sort()
     node_clusters = json.dumps(node_clusters)
@@ -61,6 +68,7 @@ def index(request, cluster=None):
         'node_cluster': node_cluster,
         'node_clusters': node_clusters,
         'datamap': datamap,
+        'readme_html': readme_html,
     }
 
     if request.META.get('HTTP_X_PJAX'):

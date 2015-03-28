@@ -65,29 +65,31 @@ render_node_cluster = ->
                 <td>#{result_html}</td>
             </tr>"""
 
-    fabscripts = []
-    for fabscript, data of fabscript_map
-        data.name = fabscript
-        data.type = 'fabscript'
-        data.success_length = data.children[0].length
-        data.warning_length = data.children[1].length
-        data.danger_length = data.children[2].length
-        fabscripts.push(data)
-
     $('#all-node-badge').html(all_node_length)
     $('#success-node-badge').html(success_node_length)
     $('#warning-node-badge').html(warning_node_length)
     $('#danger-node-badge').html(danger_node_length)
     $('#nodes-tbody').html(nodes_tbody_html)
 
+    fabscript_status_map = []
+    for fabscript, data of fabscript_map
+        data.name = fabscript
+        data.type = 'fabscript'
+        data.success_length = data.children[0].length
+        data.warning_length = data.children[1].length
+        data.danger_length = data.children[2].length
+
+        fabscript_status_map.push({
+            'fabscript': fabscript,
+            'success': data.success_length,
+            'warning': data.warning_length,
+            'danger': data.danger_length,
+        })
+
     node_cluster.datamap.status = {
         'name': 'status',
-        'type': 'partition',
-        'data': {
-            type: 'root',
-            name: 'status',
-            children: fabscripts,
-        }
+        'type': 'table',
+        'data': fabscript_status_map,
     }
 
 

@@ -17,12 +17,13 @@
         <input id="show-datamap" class="btn btn-default" type="button" value="DataMap">
         <input id="show-statusmap" class="btn btn-default" type="button" value="StatusMap">
         <input id="show-relationmap" class="btn btn-default" type="button" value="RelationMap">
-        <button class="btn btn-default" type="button" data-toggle="collapse" data-target="#collapse-memo" aria-expanded="false" aria-controls="collapse-memo">
-            Info</button>
+        <button class="btn btn-default" type="button" data-toggle="collapse" data-target="#collapse-readme" aria-expanded="false" aria-controls="collapse-readme">
+            Readme</button>
     </div>
 </div>
-<div class="collapse" id="collapse-memo">
-    <div class="well" id="cluster-data">
+<div class="collapse" id="collapse-readme">
+    <div class="well readme">
+        {{ readme_html|safe }}
     </div>
 </div>
 
