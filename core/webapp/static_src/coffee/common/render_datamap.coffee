@@ -42,10 +42,10 @@ bind_shown_tab_event = ->
 
 
 render_table_panel = (panel_id, map) ->
-    thead_html = '<th>host</th>'
+    thead_html = ''
     ths = []
     tbody_html = ''
-    for host, tr of map.data
+    for tr in map.data
         tds = []
         for th, td of tr
             index = ths.indexOf(th)
@@ -56,12 +56,10 @@ render_table_panel = (panel_id, map) ->
             tds[index] = td
 
         tbody_html += '<tr>'
-        tbody_html += "<td>#{host}</td>"
         for td in tds
             tbody_html += "<td>#{td}</td>"
 
         tbody_html += '</tr>'
-
 
     table_html = """
     <table id="datamap-table" class="table table-striped table-bordered tablesorter">
