@@ -76,6 +76,7 @@ def run_func(func_names=[], option=None):
     func_patterns = [re.compile(name) for name in func_names]
     host_filter = {}
     for run in env.runs:
+        log.init_logger(run['cluster'])
         for cluster_run in run['runs']:
             script_name = cluster_run['fabscript']
             if env.is_check or env.is_manage:
@@ -89,15 +90,22 @@ def run_func(func_names=[], option=None):
             if len(cluster_run['hosts']) == 0:
                 continue
 
+            hosts = []
+            for host in cluster_run['hosts']:
+                env.node_map[host] = env.node_map.get(host, {
+                    'bootstrap_status': -1,
+                })
+                if env.node_map[host]['bootstrap_status'] != status.FAILED_CHECK:
+                    hosts.append(host)
+
             env.script_name = script_name
-            env.hosts = cluster_run['hosts']
+            env.hosts = hosts
             env.cluster = env.cluster_map[run['cluster']]
             env.cluster_status = env.cluster['__status']
             env.node_status_map = env.cluster_status['node_map']
             env.fabscript_status_map = env.cluster_status['fabscript_map']
             env.fabscript = env.fabscript_status_map[script_name]
 
-            log.init_logger(run['cluster'])
             log.info('hosts: {0}'.format(env.hosts))
             log.info('run: {0}: {1}'.format(script_name, env.fabscript))
             log.debug('node_status_map: {0}'.format(env.node_status_map))
@@ -150,6 +158,7 @@ def run_func(func_names=[], option=None):
 
                         if not hasattr(func, 'is_task') or not func.is_task:
                             continue
+
                         results = api.execute(func)
 
                         # check results
@@ -169,6 +178,13 @@ def run_func(func_names=[], option=None):
                                     msg = status.FABSCRIPT_SUCCESS_MSG
                                 else:
                                     msg = status.FABSCRIPT_FAILED_MSG
+
+                            if func.is_bootstrap:
+                                if task_status == status.FAILED_CHECK or \
+                                        task_status == status.FAILED_CHECK_PING:
+                                    env.node_map[host]['bootstrap_status'] = status.FAILED_CHECK
+                                else:
+                                    env.node_map[host]['bootstrap_status'] = status.SUCCESS
 
                             node_result['task_status'] = task_status
 
@@ -246,5 +262,8 @@ def run_func(func_names=[], option=None):
                     log.error('bad status.')
                     exit()
             elif env.is_check:
+                env.cluster['__status']['fabscript_map'][script_name]['task_status'] = status.SUCCESS   # noqa
+                util.dump_status()
+            elif env.is_manage:
                 env.cluster['__status']['fabscript_map'][script_name]['task_status'] = status.SUCCESS   # noqa
                 util.dump_status()

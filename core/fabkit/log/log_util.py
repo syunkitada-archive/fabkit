@@ -6,17 +6,17 @@ import subprocess
 import logging
 from logging import StreamHandler
 from logging.handlers import RotatingFileHandler
-from fabkit import conf, env
+from fabkit import conf
 
 
 def init_logger(cluster_name):
     root_logger = logging.getLogger()
     root_logger.setLevel(conf.LOGGER_LEVEL)
 
-    stream_handler = StreamHandler()
-    stream_handler.setFormatter(conf.LOGGER_CONSOLE_FORMATTER)
-    stream_handler.setLevel(conf.LOGGER_CONSOLE_LEVEL)
-    root_logger.addHandler(stream_handler)
+    # stream_handler = StreamHandler()
+    # stream_handler.setFormatter(conf.LOGGER_CONSOLE_FORMATTER)
+    # stream_handler.setLevel(conf.LOGGER_CONSOLE_LEVEL)
+    # root_logger.addHandler(stream_handler)
 
     cluster_log_dir = os.path.join(conf.LOG_DIR, cluster_name)
     if not os.path.exists(cluster_log_dir):

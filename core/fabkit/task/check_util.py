@@ -19,7 +19,7 @@ def check_basic():
     uptime = ''
     result = {
         'msg': status.FAILED_CHECK_MSG,
-        'task_status': status.FAILED_CHECK_MSG,
+        'task_status': status.FAILED_CHECK,
     }
 
     with api.warn_only():
