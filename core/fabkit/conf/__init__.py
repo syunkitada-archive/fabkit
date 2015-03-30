@@ -115,9 +115,8 @@ def init(fabfile_dir=None, repo_dir=None, test_repo_dir=None):
     # REMOTE settings
     #
     REMOTE_NODE = CONFIG.get('common', 'remote_node')
-    REMOTE_DIR = complement_path(CONFIG.get('common', 'remote_dir'))
+    REMOTE_DIR = os.path.join('/home', env.user, CONFIG.get('common', 'remote_dir'))
     REMOTE_STORAGE_DIR = os.path.join(REMOTE_DIR, 'storage')
-    REMOTE_TMP_DIR = os.path.join(REMOTE_STORAGE_DIR, 'tmp')
 
     #
     # USER settings

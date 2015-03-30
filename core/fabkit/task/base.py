@@ -15,9 +15,8 @@ def task(function=None, is_bootstrap=True):
                 if result['task_status'] != status.SUCCESS:
                     return result
 
-                filer.mkdir(conf.REMOTE_DIR)
-                filer.mkdir(conf.REMOTE_STORAGE_DIR)
-                filer.mkdir(conf.REMOTE_TMP_DIR, mode='777')
+                filer.mkdir(conf.REMOTE_DIR, owner='{0}:root'.format(env.user), mode='770')
+                filer.mkdir(conf.REMOTE_STORAGE_DIR, owner='{0}:root'.format(env.user), mode='770')
 
             return func(*args, **kwargs)
 

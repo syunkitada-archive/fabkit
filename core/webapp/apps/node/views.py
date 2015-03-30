@@ -58,7 +58,7 @@ def index(request, cluster=None):
         readme = os.path.join(cluster_dir, 'README.md')
         if os.path.exists(readme):
             with open(readme) as f:
-                readme_html = markdown(f.read())
+                readme_html = markdown(f.read(), extensions=['gfm'])
 
     node_cluster = json.dumps(node_cluster)
 
