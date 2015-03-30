@@ -88,7 +88,7 @@ def template(target, mode='644', owner='root:root', data={},
     mkdir(local_tmp_dir, is_local=True)
 
     tmp_dir = tmp_path.rsplit('/', 1)[0]
-    mkdir(tmp_dir, mode='777')
+    mkdir(tmp_dir, mode='770', owner='{0}:root'.format(env.user))
 
     with open(src_file, 'rb') as f:
         template = Template(f.read().decode('utf-8'))
