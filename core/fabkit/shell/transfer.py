@@ -9,8 +9,6 @@ def scp(from_path, to_path, is_local=True, is_receive=False, use_env_host=True):
         target = conf.REMOTE_TMP_DIR + from_path
         target_dir = target.rsplit('/', 1)[0]
         run('mkdir -p {0}'.format(target_dir))
-        # sudo('cp {0} {1}'.format(from_path, target))
-        # sudo('chown {0}:{0} {1}'.format(api.env.user, target))
         cmd = 'scp -o "StrictHostKeyChecking=no" {0}@{1}:{2} {3}'.format(
             api.env.user, api.env.host, target, to_path)
 
