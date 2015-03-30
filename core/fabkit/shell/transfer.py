@@ -8,9 +8,7 @@ def scp(from_path, to_path, is_local=True, is_receive=False, use_env_host=True):
     if is_receive:
         target = conf.REMOTE_TMP_DIR + from_path
         target_dir = target.rsplit('/', 1)[0]
-        sudo('mkdir -p {0} && chmod 777 {0}'.format(target_dir))
-        sudo('cp {0} {1}'.format(from_path, target))
-        sudo('chown {0}:{0} {1}'.format(api.env.user, target))
+        run('mkdir -p {0}'.format(target_dir))
         cmd = 'scp -o "StrictHostKeyChecking=no" {0}@{1}:{2} {3}'.format(
             api.env.user, api.env.host, target, to_path)
 
@@ -34,7 +32,7 @@ def scp(from_path, to_path, is_local=True, is_receive=False, use_env_host=True):
             tmp_target = conf.REMOTE_TMP_DIR + to_path
             tmp_target_dir = tmp_target.rsplit('/', 1)[0]
 
-            sudo('mkdir -p {0} && chmod 777 {0}'.format(tmp_target_dir))
+            run('mkdir -p {0}'.format(tmp_target_dir))
             cmd += tmp_target
 
             if conf.USER and conf.PASSWORD:

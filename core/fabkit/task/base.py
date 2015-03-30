@@ -11,13 +11,17 @@ def task(function=None, is_bootstrap=True):
         def sub_wrapper(*args, **kwargs):
             env.node.update(env.node_status_map[env.host]['fabscript_map'][env.script_name])
             if is_bootstrap:
-                result = check_basic()
-                if result['task_status'] != status.SUCCESS:
-                    return result
+                bootstrap_status = env.node_map[env.host]['bootstrap_status']
+                if not bootstrap_status == status.SUCCESS:
+                    result = check_basic()
+                    if result['task_status'] != status.SUCCESS:
+                        return result
 
-                filer.mkdir(conf.REMOTE_DIR)
-                filer.mkdir(conf.REMOTE_STORAGE_DIR)
-                filer.mkdir(conf.REMOTE_TMP_DIR, mode='777')
+                    filer.mkdir(conf.REMOTE_DIR, owner='{0}:root'.format(env.user), mode='770')
+                    filer.mkdir(conf.REMOTE_STORAGE_DIR, owner='{0}:root'.format(env.user),
+                                mode='770')
+                    filer.mkdir(conf.REMOTE_TMP_DIR, owner='{0}:root'.format(env.user),
+                                mode='770')
 
             return func(*args, **kwargs)
 

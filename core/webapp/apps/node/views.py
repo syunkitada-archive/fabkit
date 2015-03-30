@@ -5,16 +5,13 @@ import os
 import json
 from markdown import markdown
 from appconf import settings
-from django.http import HttpResponse
 from django.shortcuts import render
-from apps.node.models import Node, NodeCluster
 from django.contrib.auth.decorators import login_required
 
 
 @login_required
 def index(request, cluster=None):
     node_clusters = []
-    readme_html = ''
     for root, dirs, files in os.walk(settings.NODE_DIR):
         cluster_name = root.split(settings.NODE_DIR)
         cluster_yaml = os.path.join(root, '__cluster.yml')
@@ -22,20 +19,17 @@ def index(request, cluster=None):
             cluster_name = cluster_name[1][1:]
             node_clusters.append(cluster_name)
 
-        readme = os.path.join(root, 'README.md')
-        if os.path.exists(readme):
-            with open(readme) as f:
-                readme_html = markdown(f.read())
-
     node_clusters.sort()
     node_clusters = json.dumps(node_clusters)
 
     node_cluster = {}
     datamap = {}
+    readme_html = ''
     if cluster is not None:
         cluster_dir = os.path.join(settings.NODE_DIR, cluster)
         cluster_yaml = os.path.join(cluster_dir, '__cluster.yml')
         datamap_dir = os.path.join(cluster_dir, 'datamap')
+
         if os.path.exists(cluster_yaml):
             with open(cluster_yaml) as f:
                 node_cluster = yaml.load(f)
@@ -50,7 +44,7 @@ def index(request, cluster=None):
         node_cluster['datamap'] = datamap
         fabscript_map = node_cluster['__status']['fabscript_map']
         for fabscript_name, fabscript in fabscript_map.items():
-            splited_name = fabscript_name.split('/')
+            splited_name = fabscript_name.rsplit('/', 1)
             fabscript_cluster = splited_name[0]
             script = splited_name[1]
             fabscript_yaml = os.path.join(
@@ -60,6 +54,11 @@ def index(request, cluster=None):
                     data = yaml.load(f)
                     if data is not None:
                         fabscript.update(data.get(script, {}))
+
+        readme = os.path.join(cluster_dir, 'README.md')
+        if os.path.exists(readme):
+            with open(readme) as f:
+                readme_html = markdown(f.read(), extensions=['gfm'])
 
     node_cluster = json.dumps(node_cluster)
 
