@@ -44,7 +44,7 @@ def index(request, cluster=None):
         node_cluster['datamap'] = datamap
         fabscript_map = node_cluster['__status']['fabscript_map']
         for fabscript_name, fabscript in fabscript_map.items():
-            splited_name = fabscript_name.split('/')
+            splited_name = fabscript_name.rsplit('/', 1)
             fabscript_cluster = splited_name[0]
             script = splited_name[1]
             fabscript_yaml = os.path.join(
