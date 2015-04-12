@@ -9,6 +9,7 @@ def task(function=None, is_bootstrap=True):
     def wrapper(func):
         @wraps(func)
         def sub_wrapper(*args, **kwargs):
+            env.node = env.node_map[env.host]
             env.node.update(env.node_status_map[env.host]['fabscript_map'][env.script_name])
             if is_bootstrap:
                 bootstrap_status = env.node_map[env.host]['bootstrap_status']
@@ -23,7 +24,9 @@ def task(function=None, is_bootstrap=True):
                     filer.mkdir(conf.REMOTE_TMP_DIR, owner='{0}:root'.format(env.user),
                                 mode='770')
 
-            return func(*args, **kwargs)
+            result = func(*args, **kwargs)
+            result['node'] = env.node
+            return result
 
         # wrapper.__doc__ = func.__doc__
         # wrapper.__name__ = func.__name__
