@@ -166,6 +166,7 @@ def run_func(func_names=[], option=None):
                         tmp_status = None
                         is_contain_failed = False
                         for host, result in results.items():
+                            env.node_map[host].update(result['node'])
                             if not result or type(result) is not DictType:
                                 result = {}
 
