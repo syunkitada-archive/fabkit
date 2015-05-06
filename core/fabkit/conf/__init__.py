@@ -112,14 +112,6 @@ def init(fabfile_dir=None, repo_dir=None, test_repo_dir=None):
     FABLIB_MODULE_DIR = os.path.join(REPO_DIR, FABLIB_MODULE)
 
     #
-    # REMOTE settings
-    #
-    REMOTE_NODE = CONFIG.get('common', 'remote_node')
-    REMOTE_DIR = os.path.join('/home', env.user, CONFIG.get('common', 'remote_dir'))
-    REMOTE_STORAGE_DIR = os.path.join(REMOTE_DIR, 'storage')
-    REMOTE_TMP_DIR = os.path.join(REMOTE_STORAGE_DIR, 'tmp')
-
-    #
     # USER settings
     #
     USER = CONFIG.get('common', 'user')
@@ -128,6 +120,14 @@ def init(fabfile_dir=None, repo_dir=None, test_repo_dir=None):
         env.user = USER
     if PASSWORD != '':
         env.password = PASSWORD
+
+    #
+    # REMOTE settings
+    #
+    REMOTE_NODE = CONFIG.get('common', 'remote_node')
+    REMOTE_DIR = os.path.join('/home', env.user, CONFIG.get('common', 'remote_dir'))
+    REMOTE_STORAGE_DIR = os.path.join(REMOTE_DIR, 'storage')
+    REMOTE_TMP_DIR = os.path.join(REMOTE_STORAGE_DIR, 'tmp')
 
     #
     # LOGGER settings
