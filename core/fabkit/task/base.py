@@ -25,7 +25,10 @@ def task(function=None, is_bootstrap=True):
                                 mode='770')
 
             result = func(*args, **kwargs)
+            if result is None:
+                result = {}
             result['node'] = env.node
+
             return result
 
         # wrapper.__doc__ = func.__doc__
