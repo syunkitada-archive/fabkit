@@ -3,6 +3,7 @@
 import os
 import commands
 from fabkit import conf, api
+from terminal import confirm
 
 
 # create directory, if directory not exists
@@ -24,7 +25,7 @@ def git_clone_required_fablib():
 
         if not os.path.exists(fablib) and not api.env.is_test:
             cmd_gitclone = 'git clone {0} {1}'.format(git_repo, fablib)
-            if util.confirm('{0} is not exists in fablib.\nDo you want to run "{1}"?'.format(fablib_name, cmd_gitclone), 'Canceled.'):  # noqa
+            if confirm('{0} is not exists in fablib.\nDo you want to run "{1}"?'.format(fablib_name, cmd_gitclone), 'Canceled.'):  # noqa
                 (status, output) = commands.getstatusoutput(cmd_gitclone)
                 print output
                 if status != 0:
