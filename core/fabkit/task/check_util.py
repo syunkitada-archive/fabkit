@@ -39,6 +39,12 @@ def check_basic():
                 uptime = run('uptime')
                 ssh = 'success'
 
+                # os
+                result = run('cat /etc/centos-release')
+                if result.return_code == 0:
+                    re_search = re.search('(.*) .*release ([0-9.]+) ', result)
+                    node['os'] = '{0} {1}'.format(re_search.group(1), re_search.group(2))
+
                 log.info(status.SUCCESS_CHECK_MSG)
                 result = {
                     'msg': status.SUCCESS_CHECK_MSG,

@@ -101,6 +101,13 @@ def run_func(func_names=[], option=None):
             env.script_name = script_name
             env.hosts = hosts
             env.cluster = env.cluster_map[run['cluster']]
+
+            # override env
+            if 'env' in env.cluster:
+                cluster_env = env.cluster['env']
+                for key, value in cluster_env.items():
+                    setattr(env, key, value)
+
             env.cluster_status = env.cluster['__status']
             env.node_status_map = env.cluster_status['node_map']
             env.fabscript_status_map = env.cluster_status['fabscript_map']
