@@ -57,4 +57,6 @@ def check_basic():
             'uptime': uptime,
         })
 
+        result['node'] = node
+
         return result
