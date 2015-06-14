@@ -23,10 +23,15 @@ def load_runs(query, find_depth=1):
 
     # query rule
     # <cluster_name>/<node_search_pattern>
+    is_contain_candidates = True
     splited_query = query.rsplit('/', 1)
     cluster_name = splited_query[0]
     if len(splited_query) > 1 and splited_query[1]:
         host_pattern = splited_query[1]
+        if host_pattern.find('!') == 0:
+            print 'DEBU'
+            is_contain_candidates = False
+            host_pattern = host_pattern[1:]
         candidates = [re.compile(c.replace('*', '.*')) for c in get_expanded_hosts(host_pattern)]
     else:
         host_pattern = ''
@@ -160,10 +165,14 @@ def load_runs(query, find_depth=1):
             tmp_hosts = []
             for host in data['hosts']:
                 if candidates:
+                    is_match = False
                     for candidate in candidates:
                         if candidate.search(host):
+                            is_match = True
                             break
-                    else:
+                    if is_match and not is_contain_candidates:
+                        continue
+                    elif not is_match and is_contain_candidates:
                         continue
 
                 tmp_hosts.append(host)
