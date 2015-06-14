@@ -1,7 +1,8 @@
 # coding: utf-8
 
 from types import DictType, ListType, StringType, IntType
-from fabkit import databag, env
+from fabkit import databag, env, conf
+import commands
 
 
 def decode_cluster_map():
@@ -43,7 +44,17 @@ def decode_data(data, origin_data=None):
                             result += str(tmp_data) + splited_key[1]
                         else:
                             return tmp_data
+                    elif key.find('!-') == 0:
+                        tmp_key = key[2:]
+                        host_cmd = 'cd {0} && {1}'.format(conf.NODE_DIR, tmp_key)
+                        result = commands.getstatusoutput(host_cmd)
+                        if result[0] != 0:
+                            print 'Failed cmd({0}): {1}'.format(result[0], host_cmd)
+                            print result[1]
+                            return []
 
+                        hosts = result[1].split('\n')
+                        return hosts
                     else:
                         result += databag.get(key) + splited_key[1]
                 else:

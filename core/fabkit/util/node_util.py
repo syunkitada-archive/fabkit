@@ -6,6 +6,8 @@ import pickle
 import re
 from fabkit import conf, env, status, log
 from host_util import get_expanded_hosts
+from data_util import decode_data
+from types import ListType
 
 
 RE_UPTIME = re.compile('^.*up (.+),.*user.*$')
@@ -77,7 +79,12 @@ def load_runs(query, find_depth=1):
 
             tmp_hosts = []
             for node_host in node_hosts:
-                tmp_hosts.extend(get_expanded_hosts(node_host))
+                node_host = decode_data(node_host)
+                if type(node_host) is ListType:
+                    for tmp_node_host in node_host:
+                        tmp_hosts.extend(get_expanded_hosts(tmp_node_host))
+                else:
+                    tmp_hosts.extend(get_expanded_hosts(node_host))
 
             cluster_node['hosts'] = tmp_hosts
 

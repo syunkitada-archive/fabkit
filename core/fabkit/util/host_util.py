@@ -4,7 +4,7 @@ import re
 import os
 import commands
 from types import StringType
-from fabkit import conf, local
+from fabkit import conf
 
 
 def get_expanded_hosts(host=None):
@@ -13,12 +13,12 @@ def get_expanded_hosts(host=None):
     if not host or type(host) is not StringType:
         return []
 
-    start = host.find('$')
-    if start == 0:
-        host_cmd = 'cd {0} && {1}'.format(conf.NODE_DIR, host[1:])
-        hosts = commands.getoutput(host_cmd)
-        hosts = hosts.split('\n')
-        return hosts
+    # start = host.find('!')
+    # if start == 0:
+    #     host_cmd = 'cd {0} && {1}'.format(conf.NODE_DIR, host[1:])
+    #     hosts = commands.getoutput(host_cmd)
+    #     hosts = hosts.split('\n')
+    #     return hosts
 
     hosts = []
     start = host.find('[') + 1
