@@ -2,7 +2,7 @@
 
 import os
 import yaml
-import json
+import pickle
 import re
 from fabkit import conf, env, status, log
 from host_util import get_expanded_hosts
@@ -219,13 +219,41 @@ def load_runs(query, find_depth=1):
 
 
 def dump_status():
+    if os.path.exists(conf.NODE_META_PICKLE):
+        with open(conf.NODE_META_PICKLE) as f:
+            node_meta = pickle.load(f)
+    else:
+        node_meta = {
+            'recent_clusters': [],
+        }
+
+    recent_clusters = node_meta['recent_clusters']
+
     for cluster_name, data in env.cluster_map.items():
         node_status_map = data['__status'].pop('node_map')
         data['__status']['node_map'] = node_status_map
 
         status_yaml = os.path.join(conf.NODE_DIR, cluster_name, conf.CLUSTER_YAML)
+        status_pickle = os.path.join(conf.NODE_DIR, cluster_name, conf.CLUSTER_PICKLE)
+        status_data = {'__status': data['__status']}
         with open(status_yaml, 'w') as f:
-            f.write(yaml.dump({'__status': data['__status']}))
+            f.write(yaml.dump(status_data))
+        with open(status_pickle, 'w') as f:
+            pickle.dump(status_data, f)
+
+        try:
+            cluster_index = recent_clusters.index(cluster_name)
+            del(recent_clusters[cluster_index])
+        except ValueError:
+            last_index = len(recent_clusters) - 1
+            max_index = conf.MAX_RECENT_CLUSTERS - 1
+            if last_index == max_index:
+                del(recent_clusters[last_index])
+        recent_clusters.insert(0, cluster_name)
+
+    node_meta['recent_clusters'] = recent_clusters
+    with open(conf.NODE_META_PICKLE, 'w') as f:
+        pickle.dump(node_meta, f)
 
 
 def dump_datamap(data_map):

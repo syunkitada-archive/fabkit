@@ -78,6 +78,7 @@ def run_func(func_names=[], option=None):
     for run in env.runs:
         log.init_logger(run['cluster'])
         for cluster_run in run['runs']:
+            run_results = []
             script_name = cluster_run['fabscript']
             if env.is_check or env.is_manage:
                 # 二重実行を防ぐ
@@ -155,108 +156,116 @@ def run_func(func_names=[], option=None):
             is_contain_unexpected = False
             for func_pattern in func_patterns:
                 for candidate in module_funcs:
-                    if func_pattern.match(candidate):
-                        # taskデコレータの付いているものだけ実行する
-                        func = getattr(module, candidate)
-                        if is_help:
-                            print 'Task: {0}'.format(func.__name__)
-                            print func.__doc__
-                            continue
+                    if not func_pattern.match(candidate):
+                        continue
 
-                        if not hasattr(func, 'is_task') or not func.is_task:
-                            continue
+                    func = getattr(module, candidate)
 
-                        results = api.execute(func)
+                    if not hasattr(func, 'is_task') or not func.is_task:
+                        continue
 
-                        # check results
-                        data_map = {}
-                        tmp_status = None
-                        is_contain_failed = False
-                        for host, result in results.items():
-                            env.node_map[host].update(result['node'])
-                            if not result or type(result) is not DictType:
-                                result = {}
+                    # taskデコレータの付いているものだけ実行する
+                    if is_help:
+                        print 'Task: {0}'.format(func.__name__)
+                        print func.__doc__
+                        continue
 
-                            node_result = env.node_status_map[host]['fabscript_map'][script_name]
-                            result_status = result.get('status')
-                            task_status = result.get('task_status', status.SUCCESS)
-                            msg = result.get('msg')
-                            if msg is None:
-                                if task_status is status.SUCCESS:
-                                    msg = status.FABSCRIPT_SUCCESS_MSG
-                                else:
-                                    msg = status.FABSCRIPT_FAILED_MSG
+                    results = api.execute(func)
 
-                            if func.is_bootstrap:
-                                if task_status == status.FAILED_CHECK or \
-                                        task_status == status.FAILED_CHECK_PING:
-                                    env.node_map[host]['bootstrap_status'] = status.FAILED_CHECK
-                                else:
-                                    env.node_map[host]['bootstrap_status'] = status.SUCCESS
+                    # check results
+                    data_map = {}
+                    tmp_status = None
+                    is_contain_failed = False
+                    for host, result in results.items():
+                        env.node_map[host].update(result['node'])
+                        if not result or type(result) is not DictType:
+                            result = {}
 
-                            node_result['task_status'] = task_status
-
-                            tmp_data_map = result.get('data_map')
-                            if tmp_data_map is not None:
-                                for map_name, tmp_map_data in tmp_data_map.items():
-                                    if tmp_map_data['type'] == 'table':
-                                        map_data = data_map.get(map_name, {
-                                            'name': map_name,
-                                            'type': 'table',
-                                            'data': [],
-                                        })
-
-                                        tmp_data = {'!!host': host}
-                                        tmp_data.update(tmp_map_data['data'])
-                                        map_data['data'].append(tmp_data)
-                                        data_map[map_name] = map_data
-
-                            if env.is_setup:
-                                node_result['msg'] = msg
-                                if result_status is not None:
-                                    tmp_status = result_status
-                                    node_result['status'] = result_status
-                                    expected = cluster_run['expected_status']
-                                    if expected == result_status:
-                                        is_expected = True
-                                        log.info('{0}: {1} is expected status.'.format(
-                                            host, msg, result_status))
-                                    else:
-                                        is_contain_unexpected = True
-                                        log.error('expected status is {0}, bad status is {1}.'.format(  # noqa
-                                            expected, result_status), host)
-
-                            elif env.is_check:
-                                node_result['check_msg'] = msg
-                                if result_status is None:
-                                    result_status = status.SUCCESS
-
-                                node_result.update({
-                                    'check_status': result_status,
-                                })
-                                if result_status != status.SUCCESS:
-                                    log.error('Failed check {0}.{1} [{2}]. {3}'.format(  # noqa
-                                        script_name, candidate, result_status, msg), host)
-
-                            if task_status == status.SUCCESS:
-                                log.info('Success task {0}.{1} [{2}]. {3}'.format(
-                                    script_name, candidate, task_status, msg), host)
+                        node_result = env.node_status_map[host]['fabscript_map'][script_name]
+                        result_status = result.get('status')
+                        task_status = result.get('task_status', status.SUCCESS)
+                        msg = result.get('msg')
+                        if msg is None:
+                            if task_status is status.SUCCESS:
+                                msg = status.FABSCRIPT_SUCCESS_MSG
                             else:
-                                log.error('Failed task {0}.{1} [{2}]. {3}'.format(
-                                    script_name, candidate, task_status, msg), host)
-                                is_contain_failed = True
+                                msg = status.FABSCRIPT_FAILED_MSG
 
-                        if len(data_map) > 0:
-                            util.dump_datamap(data_map)
+                        if func.is_bootstrap:
+                            if task_status == status.FAILED_CHECK or \
+                                    task_status == status.FAILED_CHECK_PING:
+                                env.node_map[host]['bootstrap_status'] = status.FAILED_CHECK
+                            else:
+                                env.node_map[host]['bootstrap_status'] = status.SUCCESS
 
-                        if is_contain_failed:
-                            log.error('Failed task {0}.{1}. Exit setup.'.format(
-                                script_name, candidate))
-                            util.dump_status()
-                            exit()
+                        node_result['task_status'] = task_status
 
-                        if tmp_status is not None:
-                            env.fabscript['tmp_status'] = tmp_status
+                        tmp_data_map = result.get('data_map')
+                        if tmp_data_map is not None:
+                            for map_name, tmp_map_data in tmp_data_map.items():
+                                if tmp_map_data['type'] == 'table':
+                                    map_data = data_map.get(map_name, {
+                                        'name': map_name,
+                                        'type': 'table',
+                                        'data': [],
+                                    })
+
+                                    tmp_data = {'!!host': host}
+                                    tmp_data.update(tmp_map_data['data'])
+                                    map_data['data'].append(tmp_data)
+                                    data_map[map_name] = map_data
+
+                        if env.is_setup:
+                            node_result['msg'] = msg
+                            if result_status is not None:
+                                tmp_status = result_status
+                                node_result['status'] = result_status
+                                expected = cluster_run['expected_status']
+                                if expected == result_status:
+                                    is_expected = True
+                                    log.info('{0}: {1} is expected status.'.format(
+                                        host, msg, result_status))
+                                else:
+                                    is_contain_unexpected = True
+                                    log.error('expected status is {0}, bad status is {1}.'.format(  # noqa
+                                        expected, result_status), host)
+
+                        elif env.is_check:
+                            node_result['check_msg'] = msg
+                            if result_status is None:
+                                result_status = status.SUCCESS
+
+                            node_result.update({
+                                'check_status': result_status,
+                            })
+                            if result_status != status.SUCCESS:
+                                log.error('Failed check {0}.{1} [{2}]. {3}'.format(  # noqa
+                                    script_name, candidate, result_status, msg), host)
+
+                        if task_status == status.SUCCESS:
+                            log.info('Success task {0}.{1} [{2}]. {3}'.format(
+                                script_name, candidate, task_status, msg), host)
+                        else:
+                            log.error('Failed task {0}.{1} [{2}]. {3}'.format(
+                                script_name, candidate, task_status, msg), host)
+                            is_contain_failed = True
+
+                    # end for host, result in results.items():
+
+                    if len(data_map) > 0:
+                        util.dump_datamap(data_map)
+
+                    if is_contain_failed:
+                        log.error('Failed task {0}.{1}. Exit setup.'.format(
+                            script_name, candidate))
+                        util.dump_status()
+                        exit()
+
+                    if tmp_status is not None:
+                        env.fabscript['tmp_status'] = tmp_status
+
+                # for candidate in module_funcs:
+            # for func_pattern in func_patterns:
 
             if env.is_setup:
                 if is_expected and not is_contain_unexpected or cluster_run['expected_status'] == 0:
@@ -275,3 +284,6 @@ def run_func(func_names=[], option=None):
             elif env.is_manage:
                 env.cluster['__status']['fabscript_map'][script_name]['task_status'] = status.SUCCESS   # noqa
                 util.dump_status()
+
+        # end for cluster_run in run['runs']:
+    # end for run in env.runs:

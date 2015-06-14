@@ -8,5 +8,6 @@ ERROR_LOG_FILE_NAME = 'error.log'
 
 YAML_EXTENSION = '.yml'
 CLUSTER_YAML = '__cluster.yml'
+CLUSTER_PICKLE = '__cluster.pickle'
 FABSCRIPT_YAML = '__fabscript.yml'
 DATAMAP_DIR = 'datamap'

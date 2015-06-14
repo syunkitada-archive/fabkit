@@ -2,6 +2,8 @@ render_node_clusters = ->
     paths = location.pathname.split('node/')
     page = 'node'
     cluster_path = paths[1].slice(0, -1)
+    if cluster_path == ''
+        cluster_path = 'recent'
 
     clusters_html = $("""<div class="panel-group" id="accordion">
             </div>""")
@@ -32,6 +34,7 @@ render_node_clusters = ->
             if collapse_body.length == 0
                 active = ''
                 if splited_cluster.length == 1
+                    tmp_root_cluster = tmp_root_cluster.replace(/__/g, '/')
                     if tmp_root_cluster == cluster_path
                         active = 'active'
 

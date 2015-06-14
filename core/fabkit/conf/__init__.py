@@ -13,6 +13,7 @@ from constant import (  # noqa
     DOC_DIR_NAME,
     YAML_EXTENSION,
     CLUSTER_YAML,
+    CLUSTER_PICKLE,
     FABSCRIPT_YAML,
     DATAMAP_DIR,
 )
@@ -57,6 +58,7 @@ def init(fabfile_dir=None, repo_dir=None, test_repo_dir=None):
     global STORAGE_DIR, LOG_DIR, TMP_DIR, DATABAG_DIR
     global FABSCRIPT_MODULE, FABSCRIPT_MODULE_DIR, NODE_DIR, ROLE_DIR
     global FABLIB_MODULE_DIR, FABLIB_MAP
+    global MAX_RECENT_CLUSTERS, NODE_META_PICKLE
     global LOGGER_LEVEL, LOGGER_FORMATTER, LOGGER_CONSOLE_LEVEL, LOGGER_CONSOLE_FORMATTER
     global STDOUT_LOG_FILE, ALL_LOG_FILE, ERROR_LOG_FILE
     global LOGGER_MAX_BYTES, LOGGER_BACKUP_COUNT, NODE_LOGGER_MAX_BYTES, NODE_LOGGER_BACKUP_COUNT
@@ -110,6 +112,9 @@ def init(fabfile_dir=None, repo_dir=None, test_repo_dir=None):
     FABSCRIPT_MODULE_DIR = os.path.join(REPO_DIR, FABSCRIPT_MODULE)
     FABLIB_MODULE = CONFIG.get('common', 'fablib_module')
     FABLIB_MODULE_DIR = os.path.join(REPO_DIR, FABLIB_MODULE)
+
+    MAX_RECENT_CLUSTERS = CONFIG.getint('common', 'max_recent_clusters')
+    NODE_META_PICKLE = os.path.join(NODE_DIR, 'meta.pickle')
 
     #
     # USER settings
