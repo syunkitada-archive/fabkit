@@ -111,3 +111,54 @@ def print_runs():
                 print format_str.format(cluster=run['cluster'],
                                         fabscript=fabscript_str,
                                         host=host)
+
+
+def print_cluster(cluster_name, cluster, is_only_error=False):
+    fabscript_map = cluster['__status']['fabscript_map']
+    max_len_fabscript = max([len(key) for key in fabscript_map.keys()])
+    format_str = u'{fabscript:<' + str(max_len_fabscript) + '} {status:<6} {task_status}'
+
+    print '-' * 40
+    print 'Cluster: {0}'.format(cluster_name)
+    print
+
+    print '-' * 40
+    print format_str.format(
+        fabscript='fabscript', status='status', task_status='task_status')
+    print '-' * 40
+    for fabscript, st in fabscript_map.items():
+        print format_str.format(
+            fabscript=fabscript,
+            status=st['status'],
+            task_status=st['task_status'])
+
+    print '\n'
+    node_map = cluster['__status']['node_map']
+    max_len_host = max([len(key) for key in node_map.keys()])
+    format_str = u'{status:<10} {host:<' + str(max_len_host) + '} {fabscript}'
+    print '-' * 80
+    print format_str.format(status='status', host='host', fabscript='fabscript')
+    print '-' * 80
+    node_list = []
+    for host, node in node_map.items():
+        status = ''
+        sum_status = 0
+        for script_name, fabscript in node['fabscript_map'].items():
+            status += '{0}:{1} '.format(script_name, str(fabscript))
+            sum_status += fabscript['status'] + fabscript['task_status'] + fabscript['check_status']
+
+        if is_only_error and sum_status <= 0:
+            continue
+
+        node_list.append([sum_status, host, status])
+
+    node_list = sorted(node_list, key=lambda x: x[1])
+    node_list = sorted(node_list, key=lambda x: x[0])
+    for node in node_list:
+        print format_str.format(
+            status=node[0],
+            host=node[1],
+            fabscript=node[2])
+
+    if len(node_list) == 0:
+        print 'No error node.'

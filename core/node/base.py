@@ -2,7 +2,10 @@
 
 import platform
 import getpass
-from fabkit import api, env, util, sudo
+import pickle
+import os
+import yaml
+from fabkit import api, env, util, sudo, conf
 
 
 @api.task
@@ -11,7 +14,35 @@ def node(*options):
     len_options = len(options)
 
     if len_options == 0 or options[0] in ['recent', 'r', 'error', 'e']:
-        # TODO print recent result and error result
+        with open(conf.NODE_META_PICKLE) as f:
+            node_meta = pickle.load(f)
+        recent_clusters = node_meta['recent_clusters']
+
+        if len(options) > 1:
+            index = int(options[1])
+        else:
+            index = 0
+        cluster = recent_clusters[index]
+
+        cluster_dir = os.path.join(conf.NODE_DIR, cluster)
+        cluster_yaml = os.path.join(cluster_dir, '__cluster.yml')
+        cluster_pickle = os.path.join(cluster_dir, '__cluster.pickle')
+
+        if os.path.exists(cluster_pickle):
+            with open(cluster_pickle) as f:
+                node_cluster = pickle.load(f)
+        elif os.path.exists(cluster_yaml):
+            with open(cluster_yaml) as f:
+                node_cluster = yaml.load(f)
+            with open(cluster_pickle, 'w') as f:
+                pickle.dump(node_cluster, f)
+
+        if options[0] in ['error', 'e']:
+            is_only_error = True
+        else:
+            is_only_error = False
+
+        util.print_cluster(cluster, node_cluster, is_only_error)
         return
 
     else:

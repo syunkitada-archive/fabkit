@@ -45,8 +45,6 @@ def index(request, cluster=None):
         else:
             index = int(splited_cluster[1])
         cluster = recent_clusters[index]
-        print '\n\ncluster DEBUG'
-        print cluster
 
     cluster_dir = os.path.join(settings.NODE_DIR, cluster)
     cluster_yaml = os.path.join(cluster_dir, '__cluster.yml')
