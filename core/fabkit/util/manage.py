@@ -3,7 +3,8 @@
 import os
 import commands
 from fabkit import conf, api
-from terminal import confirm
+import pickle
+import ConfigParser
 
 
 # create directory, if directory not exists
@@ -19,19 +20,32 @@ def create_dir(directory, is_create_init_py=False):
 
 
 def git_clone_required_fablib():
-    for fablib_name in conf.CONFIG.options('fablib'):
-        fablib = os.path.join(conf.FABLIB_MODULE_DIR, fablib_name)
-        git_repo = conf.CONFIG.get('fablib', fablib_name)
+    if api.env.is_test:
+        return
 
-        if not os.path.exists(fablib) and not api.env.is_test:
-            cmd_gitclone = 'git clone {0} {1}'.format(git_repo, fablib)
-            if confirm('{0} is not exists in fablib.\nDo you want to run "{1}"?'.format(fablib_name, cmd_gitclone), 'Canceled.'):  # noqa
-                (status, output) = commands.getstatusoutput(cmd_gitclone)
-                print output
-                if status != 0:
-                    exit(0)
-            else:
-                exit(0)
+    for fablib_name in conf.CONFIG.options('fablib'):
+        git_repo = conf.CONFIG.get('fablib', fablib_name)
+        git_clone(fablib_name, git_repo)
+
+
+def git_clone(fablib_name, git_repo):
+    fablib = os.path.join(conf.FABLIB_MODULE_DIR, fablib_name)
+    if not os.path.exists(fablib):
+        cmd_gitclone = 'git clone {0} {1}'.format(git_repo, fablib)
+        print cmd_gitclone
+        (status, output) = commands.getstatusoutput(cmd_gitclone)
+        print output
+        if status != 0:
+            exit(0)
+
+    if os.path.exists(fablib):
+        config = ConfigParser.SafeConfigParser()
+        fablib_ini = os.path.join(fablib, 'fablib.ini')
+        if os.path.exists(fablib_ini):
+            config.read(fablib_ini)
+            for require_fablib_name in config.options('fablib'):
+                git_repo = config.get('fablib', require_fablib_name)
+                git_clone(require_fablib_name, git_repo)
 
 
 def create_required_dirs():
@@ -42,3 +56,11 @@ def create_required_dirs():
     create_dir(conf.NODE_DIR)
     create_dir(conf.FABSCRIPT_MODULE_DIR, True)
     create_dir(conf.FABLIB_MODULE_DIR, True)
+
+    if not os.path.exists(conf.NODE_META_PICKLE):
+        node_meta = {
+            'recent_clusters': [],
+        }
+
+        with open(conf.NODE_META_PICKLE, 'w') as f:
+            pickle.dump(node_meta, f)
