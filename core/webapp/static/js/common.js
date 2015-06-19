@@ -530,7 +530,7 @@
       for (script in _ref) {
         result = _ref[script];
         sum_status += result.task_status + result.check_status;
-        result_html += "" + script + " [" + result.task_status + "],\nsetup [" + result.status + "]: '" + result.msg + "',\ncheck [" + result.check_status + "]: '" + result.check_msg + "'\n</tr>";
+        result_html += "" + script + " [" + result.task_status + "],\nsetup [" + result.status + "]: '" + result.msg + "',\ncheck [" + result.check_status + "]: '" + result.check_msg + "'\n<br>";
         node = {
           'type': node,
           'name': host,

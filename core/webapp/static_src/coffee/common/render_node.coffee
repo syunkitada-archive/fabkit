@@ -30,7 +30,7 @@ render_node_cluster = ->
             #{script} [#{result.task_status}],
             setup [#{result.status}]: '#{result.msg}',
             check [#{result.check_status}]: '#{result.check_msg}'
-            </tr>
+            <br>
             """
 
             node = {'type': node, 'name': host, 'size': 1}
