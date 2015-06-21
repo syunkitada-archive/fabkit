@@ -8,41 +8,38 @@ from remote import run_remote
 
 
 @api.task
-def manage(*args):
-    option = None
-    if len(args) > 0:
-        if args[0] == 'test':
-            option = 'test'
-            args = args[1:]
-        elif args[0] == 'help':
-            args = args[1:]
-            option = 'help'
-
-    run_func(args, option)
+def manage(*args, **kwargs):
+    run_func(args, *args, **kwargs)
 
 
 @api.task
-def check(option=None):
-    run_func(['^check.*'], option)
+def check(*args, **kwargs):
+    run_func(['^check.*'], *args, **kwargs)
 
 
 @api.task
 @api.runs_once
-def setup(option=None):
-    run_func(['^setup.*'], option)
+def setup(*args, **kwargs):
+    run_func(['^setup.*'], *args, **kwargs)
 
 
-def run_func(func_names=[], option=None):
-    if option == 'test':
-        env.is_test = True
-
-    is_help = False
-    if option == 'help':
-        is_help = True
+def run_func(func_names=[], *args, **kwargs):
+    env.is_test = False
+    env.is_help = False
+    env.is_remote = False
+    if len(args) > 0:
+        if args[0] == 'test':
+            env.is_test = True
+            args = args[1:]
+        elif args[0] == 'help':
+            env.is_help = True
+            args = args[1:]
+        elif args[0] == 'remote':
+            env.is_remote = True
+            args = args[1:]
 
     env.is_remote = False
-    if option == 'remote':
-        env.is_remote = True
+    if env.is_remote:
         env.remote_map = {}
         remote_hosts = set()
         tmp_runs = []
@@ -144,7 +141,7 @@ def run_func(func_names=[], option=None):
                 if inspect.isfunction(member[1]):
                     module_funcs.append(member[0])
 
-            if is_help and len(func_patterns) == 0:
+            if env.is_help and len(func_patterns) == 0:
                 for candidate in module_funcs:
                     func = getattr(module, candidate)
                     print 'Task: {0}'.format(func.__name__)
@@ -165,12 +162,12 @@ def run_func(func_names=[], option=None):
                         continue
 
                     # taskデコレータの付いているものだけ実行する
-                    if is_help:
+                    if env.is_help:
                         print 'Task: {0}'.format(func.__name__)
                         print func.__doc__
                         continue
 
-                    results = api.execute(func)
+                    results = api.execute(func, *args, **kwargs)
 
                     # check results
                     data_map = {}

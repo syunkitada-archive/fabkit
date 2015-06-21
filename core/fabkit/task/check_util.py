@@ -39,11 +39,12 @@ def check_basic():
                 uptime = run('uptime')
                 ssh = 'success'
 
-                # os
+                # Check OS
+                # CentOS(Test: CentOS 6.5, CentOS 7.1)
                 result = run('cat /etc/centos-release')
                 if result.return_code == 0:
-                    re_search = re.search('(.*) .*release ([0-9.]+) ', result)
-                    node['os'] = '{0} {1}'.format(re_search.group(1), re_search.group(2))
+                    re_search = re.search('release ([0-9.]+) ', result)
+                    node['os'] = 'CentOS {0}'.format(re_search.group(1))
 
                 log.info(status.SUCCESS_CHECK_MSG)
                 result = {
