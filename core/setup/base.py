@@ -24,6 +24,8 @@ def setup(*args, **kwargs):
 
 
 def run_func(func_names=[], *args, **kwargs):
+    fabrun_filter = []
+    is_filter = False
     env.is_test = False
     env.is_help = False
     env.is_remote = False
@@ -37,6 +39,10 @@ def run_func(func_names=[], *args, **kwargs):
         elif args[0] == 'remote':
             env.is_remote = True
             args = args[1:]
+    if 'f' in kwargs:
+        fabrun_filter = kwargs['f'].split('+')
+        fabrun_filter = [re.compile(f) for f in fabrun_filter]
+        is_filter = True
 
     env.is_remote = False
     if env.is_remote:
@@ -77,6 +83,14 @@ def run_func(func_names=[], *args, **kwargs):
         for cluster_run in run['runs']:
             run_results = []
             script_name = cluster_run['fabscript']
+
+            if is_filter:
+                for f in fabrun_filter:
+                    if f.search(script_name):
+                        break
+                else:
+                    continue
+
             if env.is_check or env.is_manage:
                 # 二重実行を防ぐ
                 hosts = host_filter.get(script_name, [])
