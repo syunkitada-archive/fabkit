@@ -4,16 +4,17 @@ from fabkit import api, log, run, sudo
 
 
 class Package():
-    def __init__(self, package_name):
+    def __init__(self, package_name, path=None):
         self.package_name = package_name
+        self.path = path
 
-    def install(self, path=None, option=''):
+    def install(self, option=''):
         with api.warn_only():
             if run('which yum').return_code == 0:
                 result = run('rpm -q {0}'.format(self.package_name), warn_only=True)
                 if not result.return_code == 0:
-                    if path:
-                        result = sudo('yum install {0} -y {1}'.format(path, option))
+                    if self.path:
+                        result = sudo('yum install {0} -y {1}'.format(self.path, option))
                     else:
                         result = sudo('yum install {0} -y {1}'.format(self.package_name, option))
                     if result.return_code != 0:

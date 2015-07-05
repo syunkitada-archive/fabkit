@@ -17,8 +17,11 @@ def node(*options):
         with open(conf.NODE_META_PICKLE) as f:
             node_meta = pickle.load(f)
         recent_clusters = node_meta['recent_clusters']
+        if len(recent_clusters) == 0:
+            print 'There are no recent clusters'
+            exit(0)
 
-        if len(options) > 1:
+        if len_options > 1:
             index = int(options[1])
         else:
             index = 0
