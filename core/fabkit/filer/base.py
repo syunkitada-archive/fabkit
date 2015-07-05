@@ -82,7 +82,8 @@ def template(target, mode='644', owner='root:root', data={},
     timestamp = int(time.time())
     tmp_path = 'templates/{0}_{1}'.format(target, timestamp)
     tmp_path = os.path.join(conf.REMOTE_STORAGE_DIR, tmp_path)
-    local_tmp_file = os.path.join(conf.TMP_DIR, env.host, tmp_path)
+    # local_tmp_file = os.path.join(conf.TMP_DIR, env.host, tmp_path)
+    local_tmp_file = conf.TMP_DIR + '/' + env.host + '/' + tmp_path
 
     local_tmp_dir = local_tmp_file.rsplit('/', 1)[0]
     mkdir(local_tmp_dir, is_local=True)
