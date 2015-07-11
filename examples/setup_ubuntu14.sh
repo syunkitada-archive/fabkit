@@ -1,18 +1,19 @@
 #!/bin/sh -x
 
-pushd /tmp
+cd /tmp
 
-sudo yum install wget gcc gcc-gfortran python-devel libevent-devel libxml2-devel libxslt-devel libffi-devel openssl-devel blas-devel lapack-devel atlas-devel -y
+sudo apt-get install wget gcc expect python-dev libevent-dev libxml2-dev libxslt-dev libffi-dev libssl-dev -y
 
 wget https://www.python.org/ftp/python/2.7.9/Python-2.7.9.tgz
 tar xvf Python-2.7.9.tgz
-cd Python-2.7.9
+cd -
+cd /tmp/Python-2.7.9
 ./configure --prefix=/opt/fabkit
 make
 sudo make altinstall
 wget https://bootstrap.pypa.io/ez_setup.py -O - | sudo /opt/fabkit/bin/python2.7
 
-popd
+cd -
 
 sudo /opt/fabkit/bin/easy_install pip
 sudo /opt/fabkit/bin/pip install -r ../requirements.txt
