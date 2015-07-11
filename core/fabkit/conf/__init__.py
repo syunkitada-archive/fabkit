@@ -62,7 +62,7 @@ def init(fabfile_dir=None, repo_dir=None, test_repo_dir=None):
     global LOGGER_LEVEL, LOGGER_FORMATTER, LOGGER_CONSOLE_LEVEL, LOGGER_CONSOLE_FORMATTER
     global STDOUT_LOG_FILE, ALL_LOG_FILE, ERROR_LOG_FILE
     global LOGGER_MAX_BYTES, LOGGER_BACKUP_COUNT, NODE_LOGGER_MAX_BYTES, NODE_LOGGER_BACKUP_COUNT
-    global WEB_LOG_LENGTH
+    global WEB_LOG_LENGTH, WEB_PORT, WEB_IS_HTTPS
     global USER, PASSWORD
 
     if fabfile_dir:
@@ -158,3 +158,5 @@ def init(fabfile_dir=None, repo_dir=None, test_repo_dir=None):
     # WEB settings
     #
     WEB_LOG_LENGTH = CONFIG.getint('web', 'log_length')
+    WEB_PORT = CONFIG.getint('web', 'port')
+    WEB_IS_HTTPS = CONFIG.getboolean('web', 'is_https')
