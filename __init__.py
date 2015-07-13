@@ -28,5 +28,6 @@ util.git_clone_required_fablib()
 from node import node  # noqa
 from setup import setup, manage, check  # noqa
 from databag import databag  # noqa
+from runserver import runserver  # noqa
 from doc import doc  # noqa
 from testtools import test  # noqa

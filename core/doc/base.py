@@ -4,6 +4,7 @@ from databag import databag
 from testtools import test
 from node import node
 from setup import setup, check, manage
+from runserver import runserver
 from fabkit import api, conf
 from jinja2 import Template
 import os
@@ -18,6 +19,7 @@ def doc(option):
         dump_doc(manage)
         dump_doc(node)
         dump_doc(setup)
+        dump_doc(runserver)
         dump_doc(test)
     elif option == 'check':
         print_doc(check)
@@ -31,6 +33,8 @@ def doc(option):
         print_doc(node)
     elif option == 'setup':
         print_doc(setup)
+    elif option == 'runserver':
+        print_doc(runserver)
     elif option == 'test':
         print_doc(test)
 
