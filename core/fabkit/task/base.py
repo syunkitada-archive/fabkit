@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from functools import wraps
-from fabkit import env, filer, conf, status
+from fabkit import env, filer, conf, status, log
 from check_util import check_basic
 
 
@@ -26,7 +26,19 @@ def task(function=None, is_bootstrap=True):
                     filer.mkdir(conf.REMOTE_TMP_DIR, owner='{0}:root'.format(env.user),
                                 mode='770')
 
-            result = func()
+            try:
+                result = func()
+            except Exception as e:
+                log.error('Exception: {0}\n{1}'.format(type(e), e.message))
+                result = {
+                    'task_status': status.FAILED
+                }
+            except:
+                log.error('Exception: Unknown')
+                result = {
+                    'task_status': status.FAILED
+                }
+
             if result is None:
                 result = {}
 
