@@ -8,6 +8,7 @@ status code is 0 or 3-digit number.
 
 # common
 SUCCESS = 0
+FAILED = 500
 
 # node status
 REGISTERED = 100
