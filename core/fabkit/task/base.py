@@ -18,6 +18,7 @@ def task(function=None, is_bootstrap=True):
                 if not bootstrap_status == status.SUCCESS:
                     result = check_basic()
                     if result['task_status'] != status.SUCCESS:
+                        result['node'] = env.node
                         return result
 
                     filer.mkdir(conf.REMOTE_DIR, owner='{0}:root'.format(env.user), mode='770')
