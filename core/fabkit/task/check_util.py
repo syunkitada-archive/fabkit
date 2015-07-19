@@ -6,64 +6,100 @@ from fabkit import api, env, run, cmd, status, log
 
 
 if platform.platform().find('CYGWIN') >= 0:
-    RE_IP = re.compile('.+\[(.+)\].+')
-    cmd_ping = 'ping {0} -n 1 -w 2'
+    # Because it can not be used cygwin of ping, use the ping of windows.
+    # % ping 192.168.11.43
+    # ping: socket: Operation not permitted
+    # Use PING of Windows
+    cmd_ping = 'PING {0} -n 1 -w 2'
 else:
-    RE_IP = re.compile('PING .+ \((.+)\) .+\(.+\) bytes')
     cmd_ping = 'ping {0} -c 1 -W 2'
 
 
 def check_basic():
-    ip = 'failed'
-    ssh = 'failed'
-    uptime = ''
-    result = {
-        'msg': status.FAILED_CHECK_MSG,
-        'task_status': status.FAILED_CHECK,
+    if env.is_test:
+        return {
+            'msg': status.SUCCESS_CHECK_MSG,
+            'task_status': status.SUCCESS,
+        }
+
+    # Check ping
+    result = cmd(cmd_ping.format(env.host))
+    if result[0] != 0:
+        log.warning(status.FAILED_CHECK_PING_MSG)
+        return {
+            'msg': status.FAILED_CHECK_PING_MSG,
+            'task_status': status.FAILED_CHECK_PING,
+        }
+
+    # Set IP
+    if not set_ip():
+        log.warning(status.FAILED_CHECK_SSH_MSG)
+        return {
+            'msg': status.FAILED_CHECK_SSH_MSG,
+            'task_status': status.FAILED_CHECK_SSH,
+        }
+
+    if not set_os():
+        log.warning(status.FAILED_CHECK_OS_MSG)
+        return {
+            'msg': status.FAILED_CHECK_OS_MSG,
+            'task_status': status.FAILED_CHECK_OS,
+        }
+
+    log.info(status.SUCCESS_CHECK_MSG)
+    return {
+        'msg': status.SUCCESS_CHECK_MSG,
+        'task_status': status.SUCCESS,
     }
 
+
+def set_ip():
     with api.warn_only():
-        node = env.node
-        if env.is_test:
-            ip = '127.0.0.1'
-            uptime = '12:00:00 up 5 days, 12:00,  1 user,  load average: 0.00, 0.00, 0.00'
-            ssh = 'success'
-            result = {
-                'msg': status.SUCCESS_CHECK_MSG,
-                'task_status': status.SUCCESS,
+        result = run('ip r')
+        if result.return_code == 0:
+            devs = re.findall(
+                '([0-9./]+) +dev +([a-zA-Z0-9]+) +proto +kernel.+ src +([0-9.]+)', result)
+            default = re.findall(
+                'default +via +([0-9.]+) +dev +([a-zA-Z0-9]+)', result)
+            ips = {
+                'default': {
+                    'ip': default[0][0],
+                    'dev': default[0][1],
+                }
             }
+            for dev in devs:
+                ip_data = {
+                    'subnet': dev[0],
+                    'dev': dev[1],
+                    'ip': dev[2],
+                }
+                ips[dev[0]] = ip_data
+                ips[dev[1]] = ip_data
+                ips[dev[0].split('.')[0]] = ip_data
+
+            env.node['ip'] = ips
+
+            return True
+
         else:
-            result = cmd(cmd_ping.format(env.host))
-            if result[0] == 0:
-                ip = RE_IP.findall(result[1])[0]
-                uptime = run('uptime')
-                ssh = 'success'
+            return False
 
-                # Check OS
+
+def set_os():
+    with api.warn_only():
+        result = run('cat /etc/os-release')
+        if result.return_code == 0:
+            # CentOS(Test: Ubuntu 14.10)
+            re_search = re.search('PRETTY_NAME="(.+)"', result)
+            env.node['os'] = re_search.group(1)
+        else:
+            result = run('cat /etc/centos-release')
+            if result.return_code == 0:
                 # CentOS(Test: CentOS 6.5, CentOS 7.1)
-                result = run('cat /etc/centos-release')
-                if result.return_code == 0:
-                    re_search = re.search('release ([0-9.]+) ', result)
-                    node['os'] = 'CentOS {0}'.format(re_search.group(1))
+                re_search = re.search('release ([0-9.]+) ', result)
+                env.node['os'] = 'CentOS {0}'.format(re_search.group(1))
 
-                log.info(status.SUCCESS_CHECK_MSG)
-                result = {
-                    'msg': status.SUCCESS_CHECK_MSG,
-                    'task_status': status.SUCCESS,
-                }
-            else:
-                log.warning(status.FAILED_CHECK_PING_MSG)
-                result = {
-                    'msg': status.FAILED_CHECK_PING_MSG,
-                    'task_status': status.FAILED_CHECK_PING,
-                }
-
-        node.update({
-            'ip': ip,
-            'ssh': ssh,
-            'uptime': uptime,
-        })
-
-        result['node'] = node
-
-        return result
+    if 'os' in env.node:
+        return True
+    else:
+        return False
