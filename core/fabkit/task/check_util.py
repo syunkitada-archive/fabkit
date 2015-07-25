@@ -98,7 +98,7 @@ def set_os():
             env.node['os'] = os
             if re_ubuntu.match(os):
                 env.node['package_manager'] = 'apt'
-                env.node['service_manager'] = 'systemctl'
+                env.node['service_manager'] = 'initd'
         else:
             result = run('cat /etc/centos-release')
             if result.return_code == 0:
@@ -108,7 +108,7 @@ def set_os():
                 env.node['os'] = os
                 env.node['package_manager'] = 'yum'
                 if re_centos7.match(os):
-                    env.node['service_manager'] = 'systemctl'
+                    env.node['service_manager'] = 'systemd'
                 else:
                     env.node['service_manager'] = 'initd'
             else:
