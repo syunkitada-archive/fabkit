@@ -24,6 +24,8 @@ env.forward_agent = True
 if os.path.isfile(os.path.expanduser(env.ssh_config_path)):
     env.use_ssh_config = True
 env.warn_only = False
+# env.shell = '/bin/bash -l -c'  default
+env.shell = '/bin/bash -c'
 env.colorize_errors = True
 env.is_test = False
 env.is_setup = False

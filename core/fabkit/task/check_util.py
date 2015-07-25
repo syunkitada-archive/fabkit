@@ -5,6 +5,9 @@ import platform
 from fabkit import api, env, run, cmd, status, log
 
 
+re_ubuntu = re.compile('Ubuntu')
+re_centos7 = re.compile('CentOS 7.*')
+
 if platform.platform().find('CYGWIN') >= 0:
     # Because it can not be used cygwin of ping, use the ping of windows.
     # % ping 192.168.11.43
@@ -91,13 +94,27 @@ def set_os():
         if result.return_code == 0:
             # CentOS(Test: Ubuntu 14.10)
             re_search = re.search('PRETTY_NAME="(.+)"', result)
-            env.node['os'] = re_search.group(1)
+            os = re_search.group(1)
+            env.node['os'] = os
+            if re_ubuntu.match(os):
+                env.node['package_manager'] = 'apt'
+                env.node['service_manager'] = 'systemctl'
         else:
             result = run('cat /etc/centos-release')
             if result.return_code == 0:
                 # CentOS(Test: CentOS 6.5, CentOS 7.1)
                 re_search = re.search('release ([0-9.]+) ', result)
-                env.node['os'] = 'CentOS {0}'.format(re_search.group(1))
+                os = 'CentOS {0}'.format(re_search.group(1))
+                env.node['os'] = os
+                env.node['package_manager'] = 'yum'
+                if re_centos7.match(os):
+                    env.node['service_manager'] = 'systemctl'
+                else:
+                    env.node['service_manager'] = 'initd'
+            else:
+                if run('which yum').return_code == 0:
+                    env.node['package_manager'] = 'yum'
+                env.node['service_manager'] = 'initd'
 
     if 'os' in env.node:
         return True
