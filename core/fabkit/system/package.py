@@ -18,8 +18,8 @@ class Package():
     def install(self, option=''):
         with api.warn_only():
             if env.node['package_manager'] == 'yum':
-                result = run('rpm -q {0}'.format(self.package_name), warn_only=True)
-                if not result.return_code == 0:
+                self.result = run('rpm -q {0}'.format(self.package_name), warn_only=True)
+                if not self.result.return_code == 0:
                     if self.path:
                         self.result = sudo('yum install {0} -y {1}'.format(self.path, option))
                     else:
@@ -27,8 +27,8 @@ class Package():
                             self.package_name, option))
 
             elif env.node['package_manager'] == 'apt':
-                result = run('dpkg -l {0}'.format(self.package_name), warn_only=True)
-                if not result.return_code == 0:
+                self.result = run('dpkg -l {0}'.format(self.package_name), warn_only=True)
+                if not self.result.return_code == 0:
                     if self.path:
                         self.result = sudo('apt-get install {0} -y {1}'.format(self.path, option))
                     else:
@@ -37,6 +37,7 @@ class Package():
             else:
                 self.unsupport()
 
+        print self.result
         if self.result.return_code != 0:
             msg = 'Failed install {0}.'.format(self.package_name)
             log.error(msg)
