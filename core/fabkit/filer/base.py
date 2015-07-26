@@ -112,8 +112,8 @@ def template(target, mode='644', owner='root:root', data={},
             sudo('cp -af {0} {1}'.format(tmp_path, target))
             is_updated = True
 
-    sudo('chmod {0} {1}'.format(mode, target)
-         + ' && chown {0} {1}'.format(owner, target))
+    sudo('sh -c "chmod {0} {1}'.format(mode, target)
+         + ' && chown {0} {1}"'.format(owner, target))
 
     return is_updated
 

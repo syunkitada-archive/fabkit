@@ -6,6 +6,7 @@ from fabkit import api, env, run, cmd, status, log
 
 
 re_ubuntu = re.compile('Ubuntu')
+re_centos = re.compile('CentOS')
 re_centos7 = re.compile('CentOS 7.*')
 
 if platform.platform().find('CYGWIN') >= 0:
@@ -80,6 +81,8 @@ def set_ip():
                 ips[dev[1]] = ip_data
                 ips[dev[0].split('.')[0]] = ip_data
 
+            ips['default_dev'] = ips[ips['default']['dev']]
+
             env.node['ip'] = ips
 
             return True
@@ -92,25 +95,25 @@ def set_os():
     with api.warn_only():
         result = run('cat /etc/os-release')
         if result.return_code == 0:
-            # CentOS(Test: Ubuntu 14.10)
+            # CentOS(Test: Ubuntu 14.10, Centos Linux 7 (Core))
             re_search = re.search('PRETTY_NAME="(.+)"', result)
             os = re_search.group(1)
             env.node['os'] = os
             if re_ubuntu.match(os):
                 env.node['package_manager'] = 'apt'
                 env.node['service_manager'] = 'initd'
+            if re_centos.match(os):
+                env.node['package_manager'] = 'yum'
+                env.node['service_manager'] = 'systemd'
         else:
             result = run('cat /etc/centos-release')
             if result.return_code == 0:
-                # CentOS(Test: CentOS 6.5, CentOS 7.1)
+                # CentOS(Test: CentOS 6.5)
                 re_search = re.search('release ([0-9.]+) ', result)
                 os = 'CentOS {0}'.format(re_search.group(1))
                 env.node['os'] = os
                 env.node['package_manager'] = 'yum'
-                if re_centos7.match(os):
-                    env.node['service_manager'] = 'systemd'
-                else:
-                    env.node['service_manager'] = 'initd'
+                env.node['service_manager'] = 'initd'
             else:
                 if run('which yum').return_code == 0:
                     env.node['package_manager'] = 'yum'
