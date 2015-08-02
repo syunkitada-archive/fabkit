@@ -38,10 +38,11 @@ def __get_src_file(target, src_dirname, src_target=None, src_file=None):
 
         for src in srcs_dirs:
             for root, dirs, files in os.walk(src):
-                for file in files:
-                    if file == src_target:
-                        src_file = os.path.join(root, src_target)
-                        return src_file
+                src_file = os.path.join(root, src_target)
+                if os.path.exists(src_file):
+                    return src_file
+
+        raise('src_file does not found.')
     else:
         return src_file
 

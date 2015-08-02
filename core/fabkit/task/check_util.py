@@ -62,9 +62,10 @@ def set_ip():
         result = run('ip r')
         if result.return_code == 0:
             devs = re.findall(
-                '([0-9./]+) +dev +([a-zA-Z0-9]+) +proto +kernel.+ src +([0-9.]+)', result)
+                '([0-9./]+) +dev +([a-zA-Z0-9\-]+) +proto +kernel +scope +link +src +([0-9.]+)',
+                result)
             default = re.findall(
-                'default +via +([0-9.]+) +dev +([a-zA-Z0-9]+)', result)
+                'default +via +([0-9.]+) +dev +([a-zA-Z0-9\-]+) +proto +static', result)
             ips = {
                 'default': {
                     'ip': default[0][0],
