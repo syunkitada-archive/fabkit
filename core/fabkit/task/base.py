@@ -1,5 +1,7 @@
 # coding: utf-8
 
+import sys
+import traceback
 from functools import wraps
 from fabkit import env, filer, conf, status, log
 from check_util import check_basic
@@ -29,13 +31,10 @@ def task(function=None, is_bootstrap=True):
 
             try:
                 result = func()
-            except Exception as e:
-                log.error('Exception: {0}\n{1}'.format(type(e), e.message))
-                result = {
-                    'task_status': status.FAILED
-                }
             except:
-                log.error('Exception: Unknown')
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                msg = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                log.error(''.join(msg))
                 result = {
                     'task_status': status.FAILED
                 }

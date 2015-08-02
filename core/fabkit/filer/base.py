@@ -38,10 +38,11 @@ def __get_src_file(target, src_dirname, src_target=None, src_file=None):
 
         for src in srcs_dirs:
             for root, dirs, files in os.walk(src):
-                for file in files:
-                    if file == src_target:
-                        src_file = os.path.join(root, src_target)
-                        return src_file
+                src_file = os.path.join(root, src_target)
+                if os.path.exists(src_file):
+                    return src_file
+
+        raise('src_file does not found.')
     else:
         return src_file
 
@@ -112,8 +113,8 @@ def template(target, mode='644', owner='root:root', data={},
             sudo('cp -af {0} {1}'.format(tmp_path, target))
             is_updated = True
 
-    sudo('chmod {0} {1}'.format(mode, target)
-         + ' && chown {0} {1}'.format(owner, target))
+    sudo('sh -c "chmod {0} {1}'.format(mode, target)
+         + ' && chown {0} {1}"'.format(owner, target))
 
     return is_updated
 
