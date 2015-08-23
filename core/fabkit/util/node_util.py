@@ -7,10 +7,34 @@ import re
 from fabkit import conf, env, status, log
 from host_util import get_expanded_hosts
 from data_util import decode_data
-from types import ListType
+from types import ListType, StringType
 
 
 RE_UPTIME = re.compile('^.*up (.+),.*user.*$')
+
+
+def include_cluster(cluster_name):
+    data = {}
+    cluster_dir = os.path.join(conf.NODE_DIR, cluster_name)
+    for root, dirs, files in os.walk(cluster_dir):
+        # load cluster data from yaml files
+        for file in files:
+            if file.find(conf.YAML_EXTENSION) > -1:
+                with open(os.path.join(root, file), 'r') as f:
+                    load_data = yaml.load(f)
+
+                    include_list = load_data.get('include', [])
+                    if type(include_list) is ListType:
+                        for cluster in include_list:
+                            data.update(include_cluster(cluster))
+                    elif type(include_list) is StringType:
+                        data.update(include_cluster(include_list))
+
+                    data.update(load_data)
+
+        break
+
+    return data
 
 
 def load_runs(query, find_depth=1):
@@ -60,12 +84,8 @@ def load_runs(query, find_depth=1):
                 'fabscript_map': {},
             },
         }
-        # load cluster data from yaml files
-        for file in files:
-            if file.find(conf.YAML_EXTENSION) > -1:
-                with open(os.path.join(root, file), 'r') as f:
-                    data = yaml.load(f)
-                    cluster.update(data)
+
+        cluster.update(include_cluster(cluster_name))
 
         # node_map is definition of nodes in cluster
         cluster_node_map = cluster.get('node_map', {})
