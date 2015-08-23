@@ -5,7 +5,7 @@ import yaml
 import os
 import json
 from markdown import markdown
-from appconf import settings
+from web_conf import settings
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 

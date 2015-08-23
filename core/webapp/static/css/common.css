@@ -55,6 +55,8 @@ footer {
     margin: 0px;
 }
 .sidebar-wrapper {
+    top: 55px;
+    bottom: 0px;
     border: 1px solid rgba(0, 0, 0, 0.2);
     border-radius: 3px;
     position: fixed;

@@ -1,5 +1,13 @@
 # Webapp
 
+``` bash
+# create database
+./manage.py migrate
+./manage.py syncdb
+
+# start test server
+./manage.py runserver
+```
 
 ``` bash
 # Install Node.js
@@ -10,7 +18,4 @@ $ npm install
 
 # start grunt
 $ grunt
-
-# start test server
-$ ./manage runserver
 ```

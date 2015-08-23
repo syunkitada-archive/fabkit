@@ -1,8 +1,8 @@
 from django.conf.urls import patterns, url
-from apps.home import views
+from web_apps.node import views
 
 urlpatterns = patterns(
     '',
-    url(r'^test/$', views.test, name='test'),
+    url(r'^(?P<cluster>.+)/$', views.index, name='index'),
     url(r'^$', views.index, name='index'),
 )
