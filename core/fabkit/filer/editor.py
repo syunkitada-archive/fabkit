@@ -27,6 +27,8 @@ class Editor():
 
                     if result != txt:
                         sudo('sed -i "{0}a {1}" {2}'.format(start, txt, self.file_path))
+        else:
+            sudo('grep "{0}" {1} || echo "{0}" >> {1}'.format(txt, self.file_path))
 
         return self
 

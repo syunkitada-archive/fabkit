@@ -35,7 +35,12 @@ def decode_data(data, origin_data=None):
                         for tmp_key in tmp_keys:
                             if tmp_key.isdigit():
                                 tmp_key = int(tmp_key)
-                            tmp_data = tmp_data[tmp_key]
+                            try:
+                                tmp_data = tmp_data[tmp_key]
+                            except KeyError:
+                                raise DecodeException(
+                                    'KeyError: {0} of {1} is not found in follow data.\n{2}'.format(
+                                        tmp_key, data, tmp_data))
 
                         tmp_data = decode_data(tmp_data, origin_data)
                         if type(tmp_data) is StringType:
@@ -63,3 +68,7 @@ def decode_data(data, origin_data=None):
             return result
 
     return data
+
+
+class DecodeException(Exception):
+    pass
