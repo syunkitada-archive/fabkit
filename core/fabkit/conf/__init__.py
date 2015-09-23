@@ -26,6 +26,8 @@ if os.path.isfile(os.path.expanduser(env.ssh_config_path)):
 env.warn_only = False
 env.shell = '/bin/bash -l -c'  # default
 # env.shell = '/bin/bash -c'
+# env.sudo_prefix = "sudo -S -p '%(sudo_prompt)s' " % env  # default
+env.sudo_prefix = "sudo -SE -p '%(sudo_prompt)s' "
 env.colorize_errors = True
 env.is_test = False
 env.is_setup = False
@@ -66,6 +68,7 @@ def init(fabfile_dir=None, repo_dir=None, test_repo_dir=None):
     global LOGGER_MAX_BYTES, LOGGER_BACKUP_COUNT, NODE_LOGGER_MAX_BYTES, NODE_LOGGER_BACKUP_COUNT
     global WEB_PORT, WEB_IS_HTTPS
     global USER, PASSWORD
+    global DICT_MERGE_STYLE
 
     if fabfile_dir:
         FABFILE_DIR = fabfile_dir
@@ -98,6 +101,7 @@ def init(fabfile_dir=None, repo_dir=None, test_repo_dir=None):
 
     # read common settings
     api.env.pool_size = CONFIG.get('common', 'parallel_pool_size')
+    DICT_MERGE_STYLE = CONFIG.get('common', 'dict_merge_style')
 
     #
     # LOCAL settings

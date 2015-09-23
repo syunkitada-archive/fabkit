@@ -81,7 +81,7 @@ def node(*options):
                     if platform.system().find('CYGWIN') == 0:
                         env.password = getpass.getpass()
                     else:
-                        sudo('hostname')
+                        sudo('hostname', shell=False)
 
                 util.decode_cluster_map()
                 util.dump_status()
