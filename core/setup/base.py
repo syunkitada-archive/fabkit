@@ -105,6 +105,7 @@ def run_func(func_names=[], *args, **kwargs):
             hosts = []
             for host in cluster_run['hosts']:
                 env.node_map[host] = env.node_map.get(host, {
+                    'host': host,
                     'bootstrap_status': -1,
                 })
                 if env.node_map[host]['bootstrap_status'] != status.FAILED_CHECK:
