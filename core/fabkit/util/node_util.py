@@ -4,6 +4,7 @@ import os
 import yaml
 import pickle
 import re
+from copy import deepcopy
 from fabkit import conf, env, status, log
 from host_util import get_expanded_hosts
 from data_util import decode_data
@@ -11,6 +12,27 @@ from types import ListType, StringType
 
 
 RE_UPTIME = re.compile('^.*up (.+),.*user.*$')
+
+
+def dict_merge(src_dict, data):
+    if conf.DICT_MERGE_STYLE == 'nested':
+        return nested_merge(src_dict, data)
+    if conf.DICT_MERGE_STYLE == 'update':
+        src_dict.update(data)
+        return src_dict
+
+
+def nested_merge(src_dict, data):
+    if not isinstance(data, dict):
+        return data
+
+    result = deepcopy(src_dict)
+    for k, v in data.iteritems():
+        if k in result and isinstance(result[k], dict):
+            result[k] = nested_merge(result[k], v)
+        else:
+            result[k] = deepcopy(v)
+    return result
 
 
 def include_cluster(cluster_name):
@@ -26,11 +48,11 @@ def include_cluster(cluster_name):
                     include_list = load_data.get('include', [])
                     if type(include_list) is ListType:
                         for cluster in include_list:
-                            data.update(include_cluster(cluster))
+                            data = dict_merge(data, include_cluster(cluster))
                     elif type(include_list) is StringType:
-                        data.update(include_cluster(include_list))
+                        data = dict_merge(data, include_cluster(include_list))
 
-                    data.update(load_data)
+                    data = dict_merge(data, load_data)
 
         break
 
@@ -53,7 +75,6 @@ def load_runs(query, find_depth=1):
     if len(splited_query) > 1 and splited_query[1]:
         host_pattern = splited_query[1]
         if host_pattern.find('!') == 0:
-            print 'DEBU'
             is_contain_candidates = False
             host_pattern = host_pattern[1:]
         candidates = [re.compile(c.replace('*', '.*')) for c in get_expanded_hosts(host_pattern)]

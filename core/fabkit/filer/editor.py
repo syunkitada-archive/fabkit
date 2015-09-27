@@ -56,6 +56,14 @@ class Editor():
     def s(self, *args, **kwargs):
         return self.substitute(*args, **kwargs)
 
-    def substitute(self, target, txt, start=None, end=None):
-        # TODO sed s
-        return self
+    def substitute(self, pattern, txt, option='', start=None, end=None):
+        if start:
+            if end:
+                sudo('sed -i "{0},{1}s/{2}/{3}/{4}" {5}'.format(
+                    start, end, pattern, txt, option, self.file_path))
+            else:
+                sudo('sed -i "{0}s/{1}/{2}/{3}" {4}'.format(
+                    start, pattern, txt, option, self.file_path))
+        else:
+            sudo('sed -i "s/{0}/{1}/{2}" {3}'.format(
+                pattern, txt, option, self.file_path))
