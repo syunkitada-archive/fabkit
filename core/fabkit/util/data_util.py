@@ -10,13 +10,16 @@ def decode_cluster_map():
         env.cluster_map[cluster_name] = decode_data(data)
 
 
-def decode_data(data, origin_data=None):
+def decode_data(data, origin_data=None, parent_key=None):
     if not origin_data:
         origin_data = data
 
     if type(data) is DictType:
         for key, value in data.items():
-            data[key] = decode_data(value, origin_data)
+            if parent_key:
+                data[key] = decode_data(value, origin_data, '{0}.{1}'.format(parent_key, key))
+            else:
+                data[key] = decode_data(value, origin_data, key)
 
     if type(data) is ListType:
         data = [decode_data(value, origin_data) for value in data]
@@ -60,6 +63,11 @@ def decode_data(data, origin_data=None):
 
                         hosts = result[1].split('\n')
                         return hosts
+                    elif key.find('require ') == 0:
+                        print '{0} is require value.'.format(parent_key)
+                        print key[8:]
+                        print
+                        exit(0)
                     else:
                         result += databag.get(key) + splited_key[1]
                 else:
