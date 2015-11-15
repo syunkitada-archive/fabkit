@@ -48,7 +48,7 @@ def runserver(*args, **kwargs):
 
     import eventlet
     import eventlet.wsgi
-    from appconf.wsgi import application
+    from web_conf.wsgi import application
 
     # server_sock = eventlet.listen(('0.0.0.0', 8080))
     # eventlet.wsgi.server(server_sock, application)
