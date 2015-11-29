@@ -1,0 +1,257 @@
+CHANGES
+=======
+
+* fixed STATIC_ROOT
+* fiexed import path
+* update
+* add host to node data
+* support substitute by Editor
+* support nester merge vars
+* updated
+* support include cluster
+* delete node_modules
+* revert webapp
+* updated for django1.8
+* fixed sidebar
+* mod check_util
+* updated
+* updated
+* fixed Package
+* updated
+* updated
+* updated check_util
+* fixed task exception
+* add group option to user add
+* add setup_ubuntu14.sh
+* add runserver
+* Organize examples
+* fixed scp
+* fixed node
+* support fabrun filter
+* updated
+* support fablib required fablib
+* fixed node view
+* supported negative host matching
+* modified decode_data
+* added print node option
+* save recent results
+* added webapp/README.md
+* fixed scp
+* fixed None result
+* fixed ping
+* updated
+* fixed git_clone_required_fablib()
+* add requirements-dev.txt
+* fixed conf module
+* fixed task module
+* support command hosts
+* fixed task decorator
+
+0.0.1
+-----
+
+* fixed filer
+* fixed filer
+* fixed load __fabscript.yml
+* updated
+* updated node html
+* add pygments css
+* fixed readme view
+* updated datamap
+* update requirements
+* modified links
+* update views
+* fixed setup remote
+* updated logger
+* refactoring
+* refactoring scp
+* fixed manage
+* Update README.md
+* Update README.md
+* Update README.md
+* updated
+* refactoring
+* updated docs
+* updated docs
+* updated docs
+* updated
+* updated
+* updated relation map
+* update datamap
+* modified status view
+* add datama;
+* fixed terminal.py
+* updated
+* updated
+* updated
+* updated filer
+* updated
+* updated
+* updated
+* updated
+* updated
+* refactoring
+* updated node
+* updated
+* updated
+* updated
+* updated
+* updated
+* updated
+* updated
+* updated
+* updated
+* support recurcive node
+* updated
+* updated
+* updated
+* updated
+* updated
+* updated
+* updated
+* updated
+* updated
+* updated
+* updated
+* refactoring
+* refactoring
+* add editor
+* updated
+* updated sync
+* updated sync
+* fix sync
+* updated
+* updated
+* updated
+* update examples
+* update sync
+* updated
+* add sync
+* updated views
+* updated
+* updated
+* updated
+* Update LICENCE
+* Update LICENCE
+* support httpd setup for centos
+* updated
+* updated
+* updated
+* updated
+* update node task
+* updated
+* updated
+* update node:create
+* fix log view
+* update logs
+* updated
+* add cluster
+* show status color
+* update result graph view
+* updated graph view
+* updated
+* updated
+* updated views
+* add d3js
+* updated
+* updated
+* add manage task
+* change django version to 1.6 from 1.7
+* updated django contents
+* updated django contents
+* updated .gitignore
+* updated webapp
+* updated
+* updated
+* updated apis
+* support databag
+* updated
+* updated
+* add django
+* updated
+* updated
+* updated
+* updated
+* updated
+* updated
+* support cygwin
+* updated
+* updated
+* updated
+* updated
+* updated
+* updated
+* support node subdir
+* updated
+* add filer lib
+* updated
+* updated
+* updated
+* updated
+* add package and service
+* updated
+* updated
+* updated
+* updated
+* updated
+* updated
+* Update README.md
+* updated
+* updated
+* updated
+* updated
+* updated
+* updated
+* updated
+* Update README.md
+* updated
+* delete role task
+* add LogTask in api
+* arrangement documents
+* modified create_dir
+* modified dump_json
+* updated
+* enable get nodes from chef-server
+* updated check node
+* delete chef-repo/nodes/*.json for test
+* fixed test
+* fixed check fablib
+* add check option to node task
+* output to tee command
+* add fab_run_list
+* updated
+* updated
+* updated
+* updated
+* set roledefs in node task
+* Update GETTING_STARTED.md
+* Update README.md
+* Create TODO.md
+* add chefric
+* updated
+* Update TUTORIAL.md
+* Update GETTING_STARTED.md
+* add TUTORIAL.md
+* Update GETTING_STARTED.md
+* Update GETTING_STARTED.md
+* Update GETTING_STARTED.md
+* add fabfile.ini
+* mv docs
+* Update README.md
+* add Getting Started
+* Update README.md
+* Update README.md
+* fixed test_cook
+* remove trash
+* add password api
+* Update README.md
+* updated
+* updated
+* Update README.md
+* updated
+* added check task
+* updated
+* updated
+* updated
+* Update README.md
+* initial commit

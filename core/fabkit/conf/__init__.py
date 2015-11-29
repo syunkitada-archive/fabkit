@@ -4,6 +4,7 @@ import os
 import sys
 import ConfigParser
 import logging
+import config  # noqa
 from fabkit import api, env
 from constant import (  # noqa
     INIFILE_NAME,
