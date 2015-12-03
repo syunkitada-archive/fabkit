@@ -1,3 +1,11 @@
+*.DS_Store
+*.egg*
+*.log
+*.mo
 *.pyc
+*.swo
+*.swp
+*.sqlite
+*.sqlite3
 *.stackdump
-db.sqlite3
+.tox
