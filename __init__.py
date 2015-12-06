@@ -32,3 +32,4 @@ from databag import databag  # noqa
 from runserver import runserver  # noqa
 from doc import doc  # noqa
 from testtools import test  # noqa
+from util import genconfig  # noqa
