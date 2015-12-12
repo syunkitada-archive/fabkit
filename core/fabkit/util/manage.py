@@ -3,8 +3,11 @@
 import os
 import commands
 from fabkit import conf, api
+from oslo_config import cfg
 import pickle
 import ConfigParser
+
+CONF = cfg.CONF
 
 
 # create directory, if directory not exists
@@ -49,13 +52,13 @@ def git_clone(fablib_name, git_repo):
 
 
 def create_required_dirs():
-    create_dir(conf.STORAGE_DIR)
-    create_dir(conf.DATABAG_DIR)
-    create_dir(conf.LOG_DIR)
-    create_dir(conf.TMP_DIR)
-    create_dir(conf.NODE_DIR)
-    create_dir(conf.FABSCRIPT_MODULE_DIR, True)
-    create_dir(conf.FABLIB_MODULE_DIR, True)
+    create_dir(CONF._storage_dir)
+    create_dir(CONF._databag_dir)
+    create_dir(CONF._tmp_dir)
+    # create_dir(conf.LOG_DIR)
+    create_dir(CONF._node_dir)
+    create_dir(CONF._fabscript_module_dir, True)
+    create_dir(CONF._fablib_module_dir, True)
 
     if not os.path.exists(conf.NODE_META_PICKLE):
         node_meta = {

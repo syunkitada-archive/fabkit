@@ -84,6 +84,8 @@ def init(fabfile_dir=None, repo_dir=None, test_repo_dir=None):
             sys.path.append(TEST_REPO_DIR)
         REPO_DIR = TEST_REPO_DIR
 
+    INIFILE = os.path.join(REPO_DIR, INIFILE_NAME)
+
     # complement to absolute path from path relative to the fabrepo
     def complement_path(path, is_check_dir=False):
         if path == '':
@@ -94,8 +96,6 @@ def init(fabfile_dir=None, repo_dir=None, test_repo_dir=None):
             return os.path.expanduser(path)
 
         return os.path.join(REPO_DIR, path)
-
-    INIFILE = os.path.join(REPO_DIR, INIFILE_NAME)
 
     CONFIG = ConfigParser.SafeConfigParser()
     CONFIG.read(INIFILE)

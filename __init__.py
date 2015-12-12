@@ -19,10 +19,13 @@ sys.path.extend([
 
 # initialize config
 from fabkit import conf, util
+from fabkit.conf import conf_base
+conf_base.init(FABFILE_DIR, REPO_DIR)
+
 conf.init(FABFILE_DIR, REPO_DIR, TEST_REPO_DIR)
 conf.config.init(REPO_DIR, TEST_REPO_DIR)
 util.create_required_dirs()
-util.git_clone_required_fablib()
+# XXX util.git_clone_required_fablib()
 
 
 # register fabric tasks
