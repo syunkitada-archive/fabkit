@@ -25,7 +25,7 @@ conf_base.init(FABFILE_DIR, REPO_DIR)
 conf.init(FABFILE_DIR, REPO_DIR, TEST_REPO_DIR)
 conf.config.init(REPO_DIR, TEST_REPO_DIR)
 util.create_required_dirs()
-# XXX util.git_clone_required_fablib()
+util.git_clone_required_fablib()
 
 
 # register fabric tasks

@@ -41,8 +41,11 @@ default_opts = [
     cfg.StrOpt('fablib_module',
                default='fablib',
                help='fablib_module is module including library of user or vendor for fabscript.'
-                    'This module must be placed in the repository.')
-
+                    'This module must be placed in the repository.'),
+    cfg.DictOpt('fablib',
+                default={},
+                help='fablib_module is module including library of user or vendor for fabscript.'
+                     'This module must be placed in the repository.'),
 ]
 
 
@@ -72,5 +75,6 @@ def init(fabfile_dir=None, repo_dir=None):
     CONF._node_dir = complement_path(CONF.node_dir)
     CONF._fabscript_module_dir = complement_path(CONF.fabscript_module)
     CONF._fablib_module_dir = complement_path(CONF.fablib_module)
+    CONF._node_meta_pickle = os.path.join(CONF._node_dir, 'meta.pickle')
 
     log.setup(CONF, 'fabkit')
