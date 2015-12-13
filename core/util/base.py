@@ -4,15 +4,24 @@ import itertools
 from fabkit import api
 from oslo_config import generator
 from oslo_log import _options
-from fabkit.conf import conf_base
+from fabkit.conf import conf_base, conf_fabric
 
 
 list_opts = [
     ('DEFAULT',
      itertools.chain(
          conf_base.default_opts,
+         conf_fabric.default_opts,
          _options.common_cli_opts,
          _options.logging_cli_opts,
+     )),
+    ('logger',
+     itertools.chain(
+         conf_base.logger_opts,
+     )),
+    ('node_logger',
+     itertools.chain(
+         conf_base.node_logger_opts,
      )),
 ]
 

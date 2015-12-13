@@ -109,8 +109,10 @@ def template(dest, mode='644', owner='root:root', data={},
     mkdir(tmp_dir, mode='770', owner='{0}:root'.format(env.user))
 
     template = j2_env.get_template(src_file)
-    with open(local_tmp_file, 'w') as exf:
-        exf.write(template.render(**template_data).encode('utf-8'))
+
+    if not env.is_test:
+        with open(local_tmp_file, 'w') as exf:
+            exf.write(template.render(**template_data).encode('utf-8'))
 
     scp(local_tmp_file, tmp_path)
 
