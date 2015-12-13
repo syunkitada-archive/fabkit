@@ -1,15 +1,17 @@
 # coding: utf-8
 
-from fabkit import api, conf, local
+from fabkit import api, local
 import os
+from oslo_config import cfg
+
+CONF = cfg.CONF
 
 
 @api.task
 @api.hosts('localhost')
 def runserver(*args, **kwargs):
     len_args = len(args)
-    pidfile = os.path.join(conf.STORAGE_DIR, 'fabkit.pid')
-    certdir = os.path.join(conf.STORAGE_DIR, 'cert')
+    certdir = os.path.join(CONF._storage_dir, 'cert')
     certfile = os.path.join(certdir, 'server.crt')
     csrfile = os.path.join(certdir, 'server.csr')
     keyfile_tmp = os.path.join(certdir, 'server.key.tmp')
@@ -52,8 +54,8 @@ def runserver(*args, **kwargs):
 
     # server_sock = eventlet.listen(('0.0.0.0', 8080))
     # eventlet.wsgi.server(server_sock, application)
-    port = int(kwargs.get('port', conf.WEB_PORT))
-    is_https = bool(kwargs.get('is_https', conf.WEB_IS_HTTPS))
+    port = int(kwargs.get('port', CONF.web.port))
+    is_https = bool(kwargs.get('is_https', CONF.web.is_https))
 
     server_sock = eventlet.listen(('', port))
 
