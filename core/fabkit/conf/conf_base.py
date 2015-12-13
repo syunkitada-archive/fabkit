@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import os
+import logging
 from oslo_config import cfg
 from oslo_log import log
 
@@ -28,11 +29,8 @@ default_opts = [
     cfg.StrOpt('databag_dir',
                default='databag',
                help='databag dir'),
-    cfg.StrOpt('tmp_dir',
-               default='tmp',
-               help='tmp dir'),
     cfg.StrOpt('node_dir',
-               default='node',
+               default='nodes',
                help='node dir'),
     cfg.StrOpt('fabscript_module',
                default='fabscript',
@@ -49,7 +47,40 @@ default_opts = [
 ]
 
 
+logger_opts = [
+    cfg.StrOpt('level',
+               default='info',
+               help='log level(debug, info, warning, error, critical)'),
+    cfg.StrOpt('format',
+               default='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+               help='format of log message'),
+    cfg.StrOpt('console_level',
+               default='info',
+               help='log level(debug, info, warning, error, critical) for console output'),
+    cfg.StrOpt('console_format',
+               default='[%(name)s] %(levelname)s: %(message)s',
+               help='format of log message for console output'),
+    cfg.IntOpt('max_bytes',
+               default=20000,
+               help='max bytes of log file (all.log, error.log)'),
+    cfg.IntOpt('backup_count',
+               default=2,
+               help='backup count of log file (all.log, error.log)'),
+]
+
+node_logger_opts = [
+    cfg.IntOpt('max_bytes',
+               default=10000,
+               help='max bytes of node log file ([hostname].log)'),
+    cfg.IntOpt('backup_count',
+               default=0,
+               help='backup count of node log file ([hostname].log)'),
+]
+
+
 CONF.register_opts(default_opts)
+CONF.register_opts(logger_opts, group='logger')
+CONF.register_opts(node_logger_opts, group='node_logger')
 
 
 def complement_path(path):
@@ -71,10 +102,20 @@ def init(fabfile_dir=None, repo_dir=None):
     CONF._repo_dir = repo_dir
     CONF._storage_dir = complement_path(CONF.storage_dir)
     CONF._databag_dir = complement_path(CONF.databag_dir)
-    CONF._tmp_dir = os.path.join(CONF._storage_dir, CONF.tmp_dir)
+    CONF._tmp_dir = os.path.join(CONF._storage_dir, 'tmp')
+    CONF._log_dir = os.path.join(CONF._storage_dir, 'log')
     CONF._node_dir = complement_path(CONF.node_dir)
     CONF._fabscript_module_dir = complement_path(CONF.fabscript_module)
     CONF._fablib_module_dir = complement_path(CONF.fablib_module)
     CONF._node_meta_pickle = os.path.join(CONF._node_dir, 'meta.pickle')
+    CONF._all_log_file_name = ALL_LOG_FILE_NAME
+    CONF._error_log_file_name = ERROR_LOG_FILE_NAME
+    CONF._stdout_log_file_name = STDOUT_LOG_FILE_NAME
 
+    print '\n\nDEBUG'
+    print CONF.logger.level
     log.setup(CONF, 'fabkit')
+
+    print dir(CONF.logger)
+    CONF._logger_formatter = logging.Formatter(fmt=CONF.logger.format)
+    CONF._logger_console_formatter = logging.Formatter(fmt=CONF.logger.console_format)

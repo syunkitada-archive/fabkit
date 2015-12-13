@@ -3,7 +3,10 @@
 import re
 import os
 import yaml
-from fabkit import conf, cmd
+from fabkit import cmd
+from oslo_config import cfg
+
+CONF = cfg.CONF
 
 
 def set(key_path, value):
@@ -48,19 +51,19 @@ def __get_key_file(key_path):
         return
 
     data_file = splited_key[0] + '.yaml'
-    data_file = os.path.join(conf.DATABAG_DIR, data_file)
+    data_file = os.path.join(CONF._databag_dir, data_file)
     key = splited_key[1]
     return key, data_file
 
 
 def print_list(key=None):
     if key:
-        path = os.path.join(conf.DATABAG_DIR, key)
+        path = os.path.join(CONF._databag_dir, key)
     else:
-        path = conf.DATABAG_DIR
+        path = CONF._databag_dir
 
     output = cmd('find {0}'.format(path))
-    RE_DATABAG_YAML = re.compile('{0}/(.*).yaml'.format(conf.DATABAG_DIR))
+    RE_DATABAG_YAML = re.compile('{0}/(.*).yaml'.format(CONF._databag_dir))
     bags = RE_DATABAG_YAML.findall(output[1])
     if len(bags) == 0:
         print 'Databag was not found.'
