@@ -3,7 +3,10 @@
 import commands
 import re
 import os
-from fabkit import api, log, conf
+from fabkit import api, log
+from oslo_config import cfg
+
+CONF = cfg.CONF
 
 
 def cmd(cmd):
@@ -172,6 +175,7 @@ def set_pass(key, password, host=None):
         host = api.env.host
     if host != 'localhost':
         path = __get_remote_secret_file(host)
+        from transfer import scp
         scp(secret_file, path)
         run('chmod 600 {0}'.format(path))
 
@@ -198,7 +202,7 @@ def __get_remote_secret_file(host=None):
 def __get_local_secret_file(host=None):
     if not host:
         host = api.env.host
-    return os.path.join(conf.TMP_DIR, '.{0}.secret'.format(host))
+    return os.path.join(CONF._tmp_dir, '.{0}.secret'.format(host))
 
 
 def print_for_test(msg, host=None):
