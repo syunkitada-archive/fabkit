@@ -4,7 +4,9 @@ import re
 import os
 import commands
 from types import StringType
-from fabkit import conf
+from oslo_config import cfg
+
+CONF = cfg.CONF
 
 
 def get_expanded_hosts(host=None):
@@ -61,15 +63,15 @@ def get_available_hosts(host_pattern=None, find_depth=1):
 
     hosts = set()
     candidates = get_expanded_hosts(host_pattern)
-    RE_NODE_YAML = re.compile('{0}/(.*).yaml'.format(conf.NODE_DIR))
+    RE_NODE_YAML = re.compile('{0}/(.*).yaml'.format(CONF._node_dir))
     for candidate in candidates:
         candidate = candidate[0]
         splited_candidate = candidate.rsplit('/', 1)
         if len(splited_candidate) > 1:
-            node_dir = os.path.join(conf.NODE_DIR, splited_candidate[0])
+            node_dir = os.path.join(CONF._node_dir, splited_candidate[0])
             candidate = splited_candidate[1]
         else:
-            node_dir = conf.NODE_DIR
+            node_dir = CONF._node_dir
 
         cmd = 'find {0} -maxdepth {1} -name "{2}.yaml"'.format(node_dir, find_depth, candidate)
         host_jsons = commands.getoutput(cmd)

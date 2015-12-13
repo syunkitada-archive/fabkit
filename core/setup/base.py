@@ -1,10 +1,13 @@
 # coding: utf-8
 
-from fabkit import env, api, conf, status, log, util
+from fabkit import env, api, status, log, util
 import re
 from types import DictType
 import inspect
 from remote import run_remote
+from oslo_config import cfg
+
+CONF = cfg.CONF
 
 
 @api.task
@@ -145,7 +148,7 @@ def run_func(func_names=[], *args, **kwargs):
                 if not is_require:
                     break
 
-            script = '.'.join([conf.FABSCRIPT_MODULE, script_name.replace('/', '.')])
+            script = '.'.join([CONF.fabscript_module, script_name.replace('/', '.')])
 
             # importlibは、2.7以上じゃないと使えない
             # module = importlib.import_module(script)

@@ -44,6 +44,12 @@ default_opts = [
                 default={},
                 help='fablib_module is module including library of user or vendor for fabscript.'
                      'This module must be placed in the repository.'),
+    cfg.StrOpt('dict_merge_style',
+               default='nested',
+               help='Merge style of cluster vars. (nested or update)'),
+    cfg.IntOpt('max_recent_clusters',
+               default=3,
+               help='Max number of clusters save.'),
 ]
 
 
@@ -111,6 +117,11 @@ def init(fabfile_dir=None, repo_dir=None):
     CONF._all_log_file_name = ALL_LOG_FILE_NAME
     CONF._error_log_file_name = ERROR_LOG_FILE_NAME
     CONF._stdout_log_file_name = STDOUT_LOG_FILE_NAME
+    CONF._fabscript_yaml = FABSCRIPT_YAML
+    CONF._yaml_extension = YAML_EXTENSION
+    CONF._cluster_yaml = CLUSTER_YAML
+    CONF._cluster_pickle = CLUSTER_PICKLE
+    CONF._datamap_dir = DATAMAP_DIR
 
     CONF._logger_formatter = logging.Formatter(fmt=CONF.logger.format)
     CONF._logger_console_formatter = logging.Formatter(fmt=CONF.logger.console_format)
