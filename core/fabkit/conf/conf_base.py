@@ -112,10 +112,7 @@ def init(fabfile_dir=None, repo_dir=None):
     CONF._error_log_file_name = ERROR_LOG_FILE_NAME
     CONF._stdout_log_file_name = STDOUT_LOG_FILE_NAME
 
-    print '\n\nDEBUG'
-    print CONF.logger.level
-    log.setup(CONF, 'fabkit')
-
-    print dir(CONF.logger)
     CONF._logger_formatter = logging.Formatter(fmt=CONF.logger.format)
     CONF._logger_console_formatter = logging.Formatter(fmt=CONF.logger.console_format)
+
+    log.setup(CONF, 'fabkit')

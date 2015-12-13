@@ -19,8 +19,9 @@ sys.path.extend([
 
 # initialize config
 from fabkit import conf, util
-from fabkit.conf import conf_base
+from fabkit.conf import conf_base, conf_fabric
 conf_base.init(FABFILE_DIR, REPO_DIR)
+conf_fabric.init()
 
 conf.init(FABFILE_DIR, REPO_DIR, TEST_REPO_DIR)
 conf.config.init(REPO_DIR, TEST_REPO_DIR)
