@@ -21,6 +21,26 @@ else:
 
 def check_basic():
     if env.is_test:
+        ip = {
+            'default': {
+                'ip': '192.168.1.1',
+                'dev': 'eth0',
+            },
+            'eth0': {
+                'ip': '127.0.0.1',
+                'dev': 'eth0',
+            },
+            'default_dev': {
+                'ip': '127.0.0.1',
+                'dev': 'eth0',
+            },
+        }
+        env.node['ip'] = ip
+
+        env.node['os'] = 'CentOS 7'
+        env.node['package_manager'] = 'yum'
+        env.node['service_manager'] = 'systemd'
+
         return {
             'msg': status.SUCCESS_CHECK_MSG,
             'task_status': status.SUCCESS,

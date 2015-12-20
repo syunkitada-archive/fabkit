@@ -3,8 +3,11 @@
 import sys
 import traceback
 from functools import wraps
-from fabkit import env, filer, conf, status, log
+from fabkit import env, filer, status, log
 from check_util import check_basic
+from oslo_config import cfg
+
+CONF = cfg.CONF
 
 
 def task(function=None, is_bootstrap=True):
@@ -23,10 +26,10 @@ def task(function=None, is_bootstrap=True):
                         result['node'] = env.node
                         return result
 
-                    filer.mkdir(conf.REMOTE_DIR, owner='{0}:root'.format(env.user), mode='770')
-                    filer.mkdir(conf.REMOTE_STORAGE_DIR, owner='{0}:root'.format(env.user),
+                    filer.mkdir(CONF._remote_dir, owner='{0}:root'.format(env.user), mode='770')
+                    filer.mkdir(CONF._remote_storage_dir, owner='{0}:root'.format(env.user),
                                 mode='770')
-                    filer.mkdir(conf.REMOTE_TMP_DIR, owner='{0}:root'.format(env.user),
+                    filer.mkdir(CONF._remote_tmp_dir, owner='{0}:root'.format(env.user),
                                 mode='770')
 
             try:

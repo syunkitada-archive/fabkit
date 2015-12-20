@@ -5,19 +5,20 @@ import yaml
 import pickle
 import re
 from copy import deepcopy
-from fabkit import conf, env, status, log
+from fabkit import env, status, log
 from host_util import get_expanded_hosts
 from data_util import decode_data
 from types import ListType, StringType
+from oslo_config import cfg
 
-
+CONF = cfg.CONF
 RE_UPTIME = re.compile('^.*up (.+),.*user.*$')
 
 
 def dict_merge(src_dict, data):
-    if conf.DICT_MERGE_STYLE == 'nested':
+    if CONF.dict_merge_style == 'nested':
         return nested_merge(src_dict, data)
-    if conf.DICT_MERGE_STYLE == 'update':
+    if CONF.dict_merge_style == 'update':
         src_dict.update(data)
         return src_dict
 
@@ -37,11 +38,11 @@ def nested_merge(src_dict, data):
 
 def include_cluster(cluster_name):
     data = {}
-    cluster_dir = os.path.join(conf.NODE_DIR, cluster_name)
+    cluster_dir = os.path.join(CONF._node_dir, cluster_name)
     for root, dirs, files in os.walk(cluster_dir):
         # load cluster data from yaml files
         for file in files:
-            if file.find(conf.YAML_EXTENSION) > -1:
+            if file.find(CONF._yaml_extension) > -1:
                 with open(os.path.join(root, file), 'r') as f:
                     load_data = yaml.load(f)
 
@@ -82,17 +83,17 @@ def load_runs(query, find_depth=1):
         host_pattern = ''
         candidates = None
 
-    cluster_dir = os.path.join(conf.NODE_DIR, cluster_name)
+    cluster_dir = os.path.join(CONF._node_dir, cluster_name)
 
     # load cluster data from node dir
     runs = []
     depth = 1
-    for root, dirs, files in os.walk(conf.NODE_DIR):
+    for root, dirs, files in os.walk(CONF._node_dir):
         if root.find(cluster_dir) == -1:
             continue
 
         # load cluster
-        cluster_name = root.split(conf.NODE_DIR)[1]
+        cluster_name = root.split(CONF._node_dir)[1]
         if cluster_name.find('/') == 0:
             cluster_name = cluster_name[1:]
 
@@ -156,8 +157,8 @@ def load_runs(query, find_depth=1):
                         'require': {},
                         'required': [],
                     }
-                    fabscript_file = os.path.join(conf.FABSCRIPT_MODULE_DIR,
-                                                  fabscript_cluster, conf.FABSCRIPT_YAML)
+                    fabscript_file = os.path.join(CONF._fabscript_module_dir,
+                                                  fabscript_cluster, CONF._fabscript_yaml)
                     if os.path.exists(fabscript_file):
                         with open(fabscript_file, 'r') as f:
                             tmp_data = yaml.load(f)
@@ -276,8 +277,8 @@ def load_runs(query, find_depth=1):
 
 
 def dump_status():
-    if os.path.exists(conf.NODE_META_PICKLE):
-        with open(conf.NODE_META_PICKLE) as f:
+    if os.path.exists(CONF._node_meta_pickle):
+        with open(CONF._node_meta_pickle) as f:
             node_meta = pickle.load(f)
     else:
         node_meta = {
@@ -290,8 +291,8 @@ def dump_status():
         node_status_map = data['__status'].pop('node_map')
         data['__status']['node_map'] = node_status_map
 
-        status_yaml = os.path.join(conf.NODE_DIR, cluster_name, conf.CLUSTER_YAML)
-        status_pickle = os.path.join(conf.NODE_DIR, cluster_name, conf.CLUSTER_PICKLE)
+        status_yaml = os.path.join(CONF._node_dir, cluster_name, CONF._cluster_yaml)
+        status_pickle = os.path.join(CONF._node_dir, cluster_name, CONF._cluster_pickle)
         status_data = {'__status': data['__status']}
         with open(status_yaml, 'w') as f:
             f.write(yaml.dump(status_data))
@@ -303,18 +304,18 @@ def dump_status():
             del(recent_clusters[cluster_index])
         except ValueError:
             last_index = len(recent_clusters) - 1
-            max_index = conf.MAX_RECENT_CLUSTERS - 1
+            max_index = CONF.max_recent_clusters - 1
             if last_index == max_index:
                 del(recent_clusters[last_index])
         recent_clusters.insert(0, cluster_name)
 
     node_meta['recent_clusters'] = recent_clusters
-    with open(conf.NODE_META_PICKLE, 'w') as f:
+    with open(CONF._node_meta_pickle, 'w') as f:
         pickle.dump(node_meta, f)
 
 
 def dump_datamap(data_map):
-    datamap_dir = os.path.join(conf.NODE_DIR, env.cluster['name'], conf.DATAMAP_DIR)
+    datamap_dir = os.path.join(CONF._node_dir, env.cluster['name'], CONF._datamap_dir)
     if not os.path.exists(datamap_dir):
         os.mkdir(datamap_dir)
 

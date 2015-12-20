@@ -3,10 +3,12 @@
 import os
 import logging
 from logging.handlers import RotatingFileHandler
-from fabkit import conf, env, api
+from fabkit import env, api
+from oslo_config import cfg
 
 
 loggers = {}
+CONF = cfg.CONF
 
 
 def get_logger(host=None):
@@ -23,13 +25,13 @@ def get_logger(host=None):
         logger = loggers[host]
     else:
         logger = logging.getLogger(host)
-        logger.setLevel(conf.LOGGER_LEVEL)
-        log_file = os.path.join(conf.LOG_DIR, '{0}.log'.format(host))
+        logger.setLevel(CONF.logger.level.upper())
+        log_file = os.path.join(CONF._log_dir, '{0}.log'.format(host))
 
         handler = RotatingFileHandler(log_file,
-                                      'a', conf.NODE_LOGGER_MAX_BYTES,
-                                      conf.NODE_LOGGER_BACKUP_COUNT)
-        handler.setFormatter(conf.LOGGER_FORMATTER)
+                                      'a', CONF.node_logger.max_bytes,
+                                      CONF.node_logger.backup_count)
+        handler.setFormatter(CONF._logger_formatter)
         logger.addHandler(handler)
         loggers.update({host: logger})
 

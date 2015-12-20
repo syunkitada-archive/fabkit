@@ -3,10 +3,12 @@
 import time
 import os
 import inspect
-from fabkit import api, env, local, sudo, scp, conf, log
+from fabkit import api, env, local, sudo, scp, log
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
+from oslo_config import cfg
 
 
+CONF = cfg.CONF
 j2_env = Environment(
     loader=FileSystemLoader('/', encoding='utf-8'),
     undefined=StrictUndefined)
@@ -16,7 +18,7 @@ def create_src_file(dest, src_str):
     if dest[0] == '/':
         dest = dest[1:]
 
-    local_tmp_file = os.path.join(conf.TMP_DIR, env.host, 'src_files', dest)
+    local_tmp_file = os.path.join(CONF._tmp_dir, env.host, 'src_files', dest)
 
     if not os.path.exists(local_tmp_file):
         os.makedirs(os.path.dirname(local_tmp_file))
@@ -33,7 +35,8 @@ def __get_src_file(dest, src_dirname, src=None, src_file=None):
         srcs_dirs = []
         for frame in stack:
             file = frame[1]
-            if file.find(conf.FABLIB_MODULE_DIR) == 0 or file.find(conf.FABSCRIPT_MODULE_DIR) == 0:
+            if file.find(CONF._fablib_module_dir) == 0 \
+                    or file.find(CONF._fabscript_module_dir) == 0:
                 srcs_dir = os.path.join(os.path.dirname(frame[1]), src_dirname)
                 if os.path.exists(srcs_dir):
                     srcs_dirs.insert(0, srcs_dir)
@@ -95,9 +98,9 @@ def template(dest, mode='644', owner='root:root', data={},
 
     timestamp = int(time.time())
     tmp_path = 'templates/{0}_{1}'.format(dest, timestamp)
-    tmp_path = os.path.join(conf.REMOTE_STORAGE_DIR, tmp_path)
+    tmp_path = os.path.join(CONF._remote_storage_dir, tmp_path)
     # local_tmp_file = os.path.join(conf.TMP_DIR, env.host, tmp_path)
-    local_tmp_file = conf.TMP_DIR + '/' + env.host + '/' + tmp_path
+    local_tmp_file = CONF._tmp_dir + '/' + env.host + '/' + tmp_path
 
     local_tmp_dir = local_tmp_file.rsplit('/', 1)[0]
     mkdir(local_tmp_dir, is_local=True)
@@ -106,8 +109,10 @@ def template(dest, mode='644', owner='root:root', data={},
     mkdir(tmp_dir, mode='770', owner='{0}:root'.format(env.user))
 
     template = j2_env.get_template(src_file)
-    with open(local_tmp_file, 'w') as exf:
-        exf.write(template.render(**template_data).encode('utf-8'))
+
+    if not env.is_test:
+        with open(local_tmp_file, 'w') as exf:
+            exf.write(template.render(**template_data).encode('utf-8'))
 
     scp(local_tmp_file, tmp_path)
 

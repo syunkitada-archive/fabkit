@@ -5,16 +5,18 @@ import yaml
 import os
 import json
 from markdown import markdown
-from web_conf import settings
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from oslo_config import cfg
+
+CONF = cfg.CONF
 
 
 @login_required
 def index(request, cluster=None):
     node_clusters = []
-    for root, dirs, files in os.walk(settings.NODE_DIR):
-        cluster_name = root.split(settings.NODE_DIR)
+    for root, dirs, files in os.walk(CONF._node_dir):
+        cluster_name = root.split(CONF._node_dir)
         cluster_yaml = os.path.join(root, '__cluster.yml')
         if os.path.exists(cluster_yaml):
             cluster_name = cluster_name[1][1:]
@@ -27,7 +29,7 @@ def index(request, cluster=None):
     datamap = {}
     readme_html = ''
 
-    with open(settings.NODE_META_PICKLE) as f:
+    with open(CONF._node_meta_pickle) as f:
         node_meta = pickle.load(f)
 
     recent_clusters = node_meta['recent_clusters']
@@ -46,7 +48,7 @@ def index(request, cluster=None):
             index = int(splited_cluster[1])
         cluster = recent_clusters[index]
 
-    cluster_dir = os.path.join(settings.NODE_DIR, cluster)
+    cluster_dir = os.path.join(CONF._node_dir, cluster)
     cluster_yaml = os.path.join(cluster_dir, '__cluster.yml')
     cluster_pickle = os.path.join(cluster_dir, '__cluster.pickle')
     datamap_dir = os.path.join(cluster_dir, 'datamap')
@@ -81,7 +83,7 @@ def index(request, cluster=None):
         fabscript_cluster = splited_name[0]
         script = splited_name[1]
         fabscript_yaml = os.path.join(
-            settings.FABSCRIPT_MODULE, fabscript_cluster, '__fabscript.yml')
+            CONF.fabscript_module, fabscript_cluster, '__fabscript.yml')
         if os.path.exists(fabscript_yaml):
             with open(fabscript_yaml, 'r') as f:
                 data = yaml.load(f)

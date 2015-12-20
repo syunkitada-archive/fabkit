@@ -114,14 +114,27 @@ STATICFILES_DIRS = (
 
 LOGIN_URL = '/user/login/'
 
-import ConfigParser
-REPO_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.join(BASE_DIR))))
-INIFILE = os.path.join(REPO_DIR, 'fabfile.ini')
 
-CONFIG = ConfigParser.SafeConfigParser()
-CONFIG.read(INIFILE)
-NODE_DIR = os.path.join(REPO_DIR, CONFIG.get('common', 'node_dir'))
-NODE_META_PICKLE = os.path.join(NODE_DIR, 'meta.pickle')
-MAX_RECENT_CLUSTERS = CONFIG.getint('common', 'max_recent_clusters')
-FABSCRIPT_MODULE = os.path.join(REPO_DIR, CONFIG.get('common', 'fabscript_module'))
-MY_HOST = CONFIG.get('web', 'my_host')
+# import sys
+# WEBAPP_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# FABFILE_DIR = os.path.dirname(os.path.dirname(os.path.join(BASE_DIR)))
+# CORE_DIR = os.path.join(FABFILE_DIR, 'core')
+# REPO_DIR = os.path.dirname(FABFILE_DIR)
+# sys.path.extend([
+#     WEBAPP_DIR,
+#     CORE_DIR,
+# ])
+
+# from fabkit.conf import conf_base, conf_web  # noqa
+# conf_base.init(FABFILE_DIR, REPO_DIR)
+
+# REPO_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.join(BASE_DIR))))
+# INIFILE = os.path.join(REPO_DIR, 'fabfile.ini')
+
+# CONFIG = ConfigParser.SafeConfigParser()
+# CONFIG.read(INIFILE)
+# NODE_DIR = os.path.join(REPO_DIR, CONFIG.get('common', 'node_dir'))
+# NODE_META_PICKLE = os.path.join(NODE_DIR, 'meta.pickle')
+# MAX_RECENT_CLUSTERS = CONFIG.getint('common', 'max_recent_clusters')
+# FABSCRIPT_MODULE = os.path.join(REPO_DIR, CONFIG.get('common', 'fabscript_module'))
+# MY_HOST = CONFIG.get('web', 'my_host')
