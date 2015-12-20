@@ -1,10 +1,11 @@
 # coding: utf-8
 
+import os
 import itertools
 from fabkit import api
-from oslo_config import generator
+from oslo_config import generator, cfg
 from oslo_log import _options
-from fabkit.conf import conf_base, conf_fabric
+from fabkit.conf import conf_base, conf_fabric, conf_web
 
 
 list_opts = [
@@ -23,15 +24,23 @@ list_opts = [
      itertools.chain(
          conf_base.node_logger_opts,
      )),
+    ('web',
+     itertools.chain(
+         conf_web.web_opts,
+     )),
 ]
 
 output_file = ''
 wrap_width = 70
 
+CONF = cfg.CONF
+
 
 @api.task
-def genconfig():
-    formatter = generator._OptFormatter(wrap_width=wrap_width)
+def genconfig(conf_file='fabfile.ini.sample'):
+    conf_file_path = os.path.join(CONF._repo_dir, conf_file)
+    output_file = open(conf_file_path, 'w')
+    formatter = generator._OptFormatter(output_file=output_file, wrap_width=wrap_width)
 
     formatter.write("#\n# fabfile.ini\n#\n")
     for section, opts in list_opts:

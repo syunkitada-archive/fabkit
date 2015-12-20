@@ -103,7 +103,11 @@ def complement_path(path):
 def init(fabfile_dir=None, repo_dir=None):
     INIFILE = os.path.join(repo_dir, INIFILE_NAME)
     log.register_options(CONF)
-    CONF([], default_config_files=[INIFILE])
+    if os.path.exists(INIFILE):
+        CONF([], default_config_files=[INIFILE])
+    else:
+        CONF([])
+
     CONF._fabfile_dir = fabfile_dir
     CONF._repo_dir = repo_dir
     CONF._storage_dir = complement_path(CONF.storage_dir)
