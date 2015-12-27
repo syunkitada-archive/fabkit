@@ -6,6 +6,9 @@ import pickle
 import os
 import yaml
 from fabkit import api, env, util, sudo, conf
+from oslo_config import cfg
+
+CONF = cfg.CONF
 
 
 @api.task
@@ -14,12 +17,12 @@ def node(*options):
     len_options = len(options)
 
     if len_options == 0 or options[0] in ['recent', 'r', 'error', 'e']:
-        with open(conf.NODE_META_PICKLE) as f:
+        with open(CONF._node_meta_pickle) as f:
             node_meta = pickle.load(f)
         recent_clusters = node_meta['recent_clusters']
         if len(recent_clusters) == 0:
             print 'There are no recent clusters'
-            exit(0)
+            return 0
 
         if len_options > 1:
             index = int(options[1])
@@ -46,7 +49,7 @@ def node(*options):
             is_only_error = False
 
         util.print_cluster(cluster, node_cluster, is_only_error)
-        return
+        return 0
 
     else:
         query = options[0]

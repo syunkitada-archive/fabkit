@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import os
+import sys
 import unittest
 from fabkit import api, util
 from oslo_config import cfg
@@ -13,15 +14,21 @@ CONF = cfg.CONF
 @api.hosts('localhost')
 def test(pattern=None):
     FABTEST_DIR = os.path.dirname(os.path.abspath(__file__))
+    sys.path.remove(CONF._repo_dir)
     CONF._repo_dir = os.path.join(FABTEST_DIR, 'test-repo')
     CONF._storage_dir = os.path.join(CONF._repo_dir, 'storage')
     CONF._databag_dir = os.path.join(CONF._repo_dir, 'databag')
     CONF._tmp_dir = os.path.join(CONF._storage_dir, 'tmp')
     CONF._log_dir = os.path.join(CONF._storage_dir, 'log')
     CONF._node_dir = os.path.join(CONF._repo_dir, 'nodes')
+    CONF._node_meta_pickle = os.path.join(CONF._node_dir, 'meta.pickle')
     CONF._fabscript_module_dir = os.path.join(CONF._repo_dir, 'fabscript')
     CONF._fablib_module_dir = os.path.join(CONF._repo_dir, 'fablib')
-    CONF._node_meta_pickle = os.path.join(CONF._node_dir, 'meta.pickle')
+
+    sys.path.extend([
+        CONF._repo_dir,
+    ])
+
     CONF.fablib = {}
 
     util.create_required_dirs()

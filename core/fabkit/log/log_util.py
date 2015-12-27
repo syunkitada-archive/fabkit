@@ -8,6 +8,7 @@ from logging.handlers import RotatingFileHandler
 from oslo_config import cfg
 
 CONF = cfg.CONF
+tee = None
 
 
 def init_logger(cluster_name):
@@ -34,7 +35,9 @@ def init_logger(cluster_name):
     root_logger.addHandler(error_file_rotaiting_handler)
 
     # tee
-    sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
-    tee = subprocess.Popen(["tee", stdout_log_file], stdin=subprocess.PIPE)
-    os.dup2(tee.stdin.fileno(), sys.stdout.fileno())
-    os.dup2(tee.stdin.fileno(), sys.stderr.fileno())
+    global tee
+    if tee is None:
+        sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
+        tee = subprocess.Popen(["tee", stdout_log_file], stdin=subprocess.PIPE)
+        os.dup2(tee.stdin.fileno(), sys.stdout.fileno())
+        os.dup2(tee.stdin.fileno(), sys.stderr.fileno())

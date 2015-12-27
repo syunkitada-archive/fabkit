@@ -4,6 +4,7 @@ import os
 import logging
 from oslo_config import cfg
 from oslo_log import log
+from utils import complement_path
 
 from constant import (  # noqa
     INIFILE_NAME,
@@ -87,17 +88,6 @@ node_logger_opts = [
 CONF.register_opts(default_opts)
 CONF.register_opts(logger_opts, group='logger')
 CONF.register_opts(node_logger_opts, group='node_logger')
-
-
-def complement_path(path):
-    if path == '':
-        return None
-    if path.find('/') == 0:
-        return path
-    elif path.find('~') == 0:
-        return os.path.expanduser(path)
-
-    return os.path.join(CONF._repo_dir, path)
 
 
 def init(repo_dir=None):
