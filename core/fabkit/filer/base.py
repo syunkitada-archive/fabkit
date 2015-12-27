@@ -59,22 +59,20 @@ def __get_src_file(dest, src_dirname, src=None, src_file=None):
         return src_file
 
 
-def file(dest, mode='644', owner='root:root', src_file=None, src_str=None):
+def file(dest, mode='644', owner='root:root', src=None, src_file=None, src_str=None,
+         override=False):
     if src_str:
-        src_file = create_src_file(dest, src_str)
+        src = create_src_file(dest, src_str)
 
     is_updated = False
     with api.warn_only():
-        if exists(dest):
+        if exists(dest) and not override:
             log.info('file "{0}" exists'.format(dest))
         else:
-            tmp_dest = dest
-
             if not src_file:
-                src_file = __get_src_file(tmp_dest, src_dirname='files')
+                src_file = __get_src_file(dest, src_dirname='files', src=src)
 
             scp(src_file, dest)
-            sudo('cp -arf {0} {1}'.format(src_file, dest))
             is_updated = True
 
     sudo('chmod -R {0} {1}'.format(mode, dest)
@@ -83,7 +81,7 @@ def file(dest, mode='644', owner='root:root', src_file=None, src_str=None):
 
 
 def template(dest, mode='644', owner='root:root', data={},
-             src=None, src_file=None, src_str=None):
+             src=None, src_file=None, src_str=None, insert_eol_crlf=True):
     template_data = {}
     template_data.update(data)
     template_data['node'] = env.node
@@ -113,6 +111,8 @@ def template(dest, mode='644', owner='root:root', data={},
     if not env.is_test:
         with open(local_tmp_file, 'w') as exf:
             exf.write(template.render(**template_data).encode('utf-8'))
+            if insert_eol_crlf:
+                exf.write('\n')
 
     scp(local_tmp_file, tmp_path)
 

@@ -1,0 +1,7 @@
+__status:
+  fabscript_map:
+    test_filer/base: {status: 0, task_status: 100}
+  node_map:
+    localhost:
+      fabscript_map:
+        test_filer/base: {check_msg: '', check_status: -1, msg: '', status: 0, task_status: 500}

@@ -5,7 +5,7 @@ import getpass
 import pickle
 import os
 import yaml
-from fabkit import api, env, util, sudo, conf
+from fabkit import api, env, util, sudo
 from oslo_config import cfg
 
 CONF = cfg.CONF
@@ -30,7 +30,7 @@ def node(*options):
             index = 0
         cluster = recent_clusters[index]
 
-        cluster_dir = os.path.join(conf.NODE_DIR, cluster)
+        cluster_dir = os.path.join(CONF._node_dir, cluster)
         cluster_yaml = os.path.join(cluster_dir, '__cluster.yml')
         cluster_pickle = os.path.join(cluster_dir, '__cluster.pickle')
 
@@ -43,7 +43,7 @@ def node(*options):
             with open(cluster_pickle, 'w') as f:
                 pickle.dump(node_cluster, f)
 
-        if options[0] in ['error', 'e']:
+        if len_options > 0 and options[0] in ['error', 'e']:
             is_only_error = True
         else:
             is_only_error = False
