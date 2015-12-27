@@ -11,3 +11,6 @@ $ tox -eflake8
 
 
 ## Testing Guidelines
+``` bash
+$ tox
+```

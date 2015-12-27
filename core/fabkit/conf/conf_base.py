@@ -100,7 +100,7 @@ def complement_path(path):
     return os.path.join(CONF._repo_dir, path)
 
 
-def init(fabfile_dir=None, repo_dir=None):
+def init(repo_dir=None):
     INIFILE = os.path.join(repo_dir, INIFILE_NAME)
     log.register_options(CONF)
     if os.path.exists(INIFILE):
@@ -108,7 +108,6 @@ def init(fabfile_dir=None, repo_dir=None):
     else:
         CONF([])
 
-    CONF._fabfile_dir = fabfile_dir
     CONF._repo_dir = repo_dir
     CONF._storage_dir = complement_path(CONF.storage_dir)
     CONF._databag_dir = complement_path(CONF.databag_dir)
@@ -118,6 +117,7 @@ def init(fabfile_dir=None, repo_dir=None):
     CONF._fabscript_module_dir = complement_path(CONF.fabscript_module)
     CONF._fablib_module_dir = complement_path(CONF.fablib_module)
     CONF._node_meta_pickle = os.path.join(CONF._node_dir, 'meta.pickle')
+
     CONF._all_log_file_name = ALL_LOG_FILE_NAME
     CONF._error_log_file_name = ERROR_LOG_FILE_NAME
     CONF._stdout_log_file_name = STDOUT_LOG_FILE_NAME
