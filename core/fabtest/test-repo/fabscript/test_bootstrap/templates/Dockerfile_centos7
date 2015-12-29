@@ -1,0 +1,14 @@
+FROM centos:7
+
+# Install
+RUN yum update -y
+RUN yum install -y sudo passwd openssh-server
+
+RUN /usr/bin/ssh-keygen -t dsa -f /etc/ssh/ssh_host_dsa_key -C '' -N ''
+RUN /usr/bin/ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -C '' -N ''
+
+RUN useradd fabric
+RUN gpasswd --add fabric wheel
+RUN echo 'fabric:fabric' |chpasswd
+
+EXPOSE 22

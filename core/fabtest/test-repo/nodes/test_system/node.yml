@@ -3,5 +3,4 @@ node_map:
     hosts:
       - localhost
     fabruns:
-      - test_bootstrap/base
-      - test_filer/base
+      - test_system/base

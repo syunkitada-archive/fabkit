@@ -1,0 +1,16 @@
+FROM ubuntu:14.04
+
+# Install
+RUN apt-get update -y
+RUN apt-get install -y sudo passwd openssh-server
+
+# fixed 'fatal: Missing privilege separation directory: /var/run/sshd'
+RUN mkdir /var/run/sshd
+
+RUN useradd fabric -d /home/fabric
+RUN gpasswd --add fabric sudo
+RUN mkdir /home/fabric
+RUN chown fabric:fabric /home/fabric
+RUN echo 'fabric:fabric' |chpasswd
+
+EXPOSE 22
