@@ -1,6 +1,10 @@
+env:
+  port: 40022
+
 node_map:
-  base:
+  centos7:
     hosts:
       - localhost
     fabruns:
+      - test_filer/base
       - test_system/base

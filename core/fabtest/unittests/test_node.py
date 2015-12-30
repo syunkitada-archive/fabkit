@@ -14,8 +14,3 @@ class TestUtilNode(unittest.TestCase):
         node()
         node('r')
         node('e')
-
-    def test_filer(self):
-        node('test_filer/')
-        setup()
-        manage('hello')

@@ -22,15 +22,6 @@ env.is_setup = False
 env.is_check = False
 env.is_manage = False
 env.is_datamap = False
-env.cmd_history = []  # for debug
-env.last_runs = []
-
-env.node = {}
-env.node_map = {}
-env.fabscript = {}
-env.fabscript_map = {}
-env.cluster = {}
-env.cluster_map = {}
 
 
 default_opts = [

@@ -55,19 +55,19 @@ def check_basic():
             'task_status': status.FAILED_CHECK_PING,
         }
 
+    if not set_os():
+        log.warning(status.FAILED_CHECK_OS_MSG)
+        return {
+            'msg': status.FAILED_CHECK_OS_MSG,
+            'task_status': status.FAILED_CHECK_OS,
+        }
+
     # Set IP
     if not set_ip():
         log.warning(status.FAILED_CHECK_SSH_MSG)
         return {
             'msg': status.FAILED_CHECK_SSH_MSG,
             'task_status': status.FAILED_CHECK_SSH,
-        }
-
-    if not set_os():
-        log.warning(status.FAILED_CHECK_OS_MSG)
-        return {
-            'msg': status.FAILED_CHECK_OS_MSG,
-            'task_status': status.FAILED_CHECK_OS,
         }
 
     log.info(status.SUCCESS_CHECK_MSG)
@@ -80,6 +80,7 @@ def check_basic():
 def set_ip():
     with api.warn_only():
         result = run('ip r')
+
         if result.return_code == 0:
             devs = re.findall(
                 '([0-9./]+) +dev +([a-zA-Z0-9\-]+) +proto +kernel +scope +link +src +([0-9.]+)',
@@ -126,6 +127,7 @@ def set_os():
             if re_centos.match(os):
                 env.node['package_manager'] = 'yum'
                 env.node['service_manager'] = 'systemd'
+                env.path += ':/sbin'
         else:
             result = run('cat /etc/centos-release')
             if result.return_code == 0:
@@ -135,10 +137,14 @@ def set_os():
                 env.node['os'] = os
                 env.node['package_manager'] = 'yum'
                 env.node['service_manager'] = 'initd'
+                env.path += ':/sbin'
             else:
                 if run('which yum').return_code == 0:
                     env.node['package_manager'] = 'yum'
                 env.node['service_manager'] = 'initd'
+                env.path += ':/sbin'
+
+        run('env')
 
     if 'os' in env.node:
         return True

@@ -16,6 +16,16 @@ CONF = cfg.CONF
 def node(*options):
     len_options = len(options)
 
+    # init env
+    env.cmd_history = []  # for debug
+    env.last_runs = []
+    env.node = {}
+    env.node_map = {}
+    env.fabscript = {}
+    env.fabscript_map = {}
+    env.cluster = {}
+    env.cluster_map = {}
+
     if len_options == 0 or options[0] in ['recent', 'r', 'error', 'e']:
         with open(CONF._node_meta_pickle) as f:
             node_meta = pickle.load(f)

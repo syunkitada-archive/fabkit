@@ -4,4 +4,3 @@ node_map:
       - localhost
     fabruns:
       - test_bootstrap/base
-      - test_filer/base

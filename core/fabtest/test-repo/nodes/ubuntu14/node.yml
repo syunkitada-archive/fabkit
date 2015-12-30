@@ -1,0 +1,10 @@
+env:
+  port: 40122
+
+node_map:
+  ubuntu14:
+    hosts:
+      - localhost
+    fabruns:
+      - test_filer/base
+      - test_system/base
