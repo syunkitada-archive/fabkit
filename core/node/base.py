@@ -44,6 +44,7 @@ def node(*options):
         cluster_yaml = os.path.join(cluster_dir, '__cluster.yml')
         cluster_pickle = os.path.join(cluster_dir, '__cluster.pickle')
 
+        node_cluster = None
         if os.path.exists(cluster_pickle):
             with open(cluster_pickle) as f:
                 node_cluster = pickle.load(f)

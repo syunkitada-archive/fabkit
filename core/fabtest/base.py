@@ -56,6 +56,9 @@ def test(target=None, t=None, cluster='.*', c=None, fabrun='.*', f=None,
         suites = unittest.TestLoader().discover(CONF._unittests_dir,
                                                 pattern='test_{0}*'.format(target))
 
+    alltests = unittest.TestSuite(suites)
+    result = unittest.TextTestRunner(verbosity=2).run(alltests)
+
     if target is None or target == 'fab':
         if bootstrap:
             node('bootstrap/')
@@ -70,10 +73,7 @@ def test(target=None, t=None, cluster='.*', c=None, fabrun='.*', f=None,
                 node(cluster)
                 setup(f=fabrun)
 
-    # alltests = unittest.TestSuite(suites)
-    # result = unittest.TextTestRunner(verbosity=2).run(alltests)
-
-    # exit(len(result.errors) + len(result.failures))
+    exit(len(result.errors) + len(result.failures))
 
 
 def bootstrap():
