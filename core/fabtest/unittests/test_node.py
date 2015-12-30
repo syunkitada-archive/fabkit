@@ -7,10 +7,6 @@ from setup import setup, manage  # noqa
 
 class TestUtilNode(unittest.TestCase):
     def test_node(self):
-        self.assertEqual(
-            'hello', 'hello'
-        )
-
         node()
         node('r')
         node('e')
