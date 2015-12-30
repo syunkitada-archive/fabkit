@@ -5,7 +5,10 @@ import getpass
 import pickle
 import os
 import yaml
-from fabkit import api, env, util, sudo, conf
+from fabkit import api, env, util, sudo
+from oslo_config import cfg
+
+CONF = cfg.CONF
 
 
 @api.task
@@ -13,13 +16,23 @@ from fabkit import api, env, util, sudo, conf
 def node(*options):
     len_options = len(options)
 
+    # init env
+    env.cmd_history = []  # for debug
+    env.last_runs = []
+    env.node = {}
+    env.node_map = {}
+    env.fabscript = {}
+    env.fabscript_map = {}
+    env.cluster = {}
+    env.cluster_map = {}
+
     if len_options == 0 or options[0] in ['recent', 'r', 'error', 'e']:
-        with open(conf.NODE_META_PICKLE) as f:
+        with open(CONF._node_meta_pickle) as f:
             node_meta = pickle.load(f)
         recent_clusters = node_meta['recent_clusters']
         if len(recent_clusters) == 0:
             print 'There are no recent clusters'
-            exit(0)
+            return 0
 
         if len_options > 1:
             index = int(options[1])
@@ -27,7 +40,7 @@ def node(*options):
             index = 0
         cluster = recent_clusters[index]
 
-        cluster_dir = os.path.join(conf.NODE_DIR, cluster)
+        cluster_dir = os.path.join(CONF._node_dir, cluster)
         cluster_yaml = os.path.join(cluster_dir, '__cluster.yml')
         cluster_pickle = os.path.join(cluster_dir, '__cluster.pickle')
 
@@ -40,13 +53,13 @@ def node(*options):
             with open(cluster_pickle, 'w') as f:
                 pickle.dump(node_cluster, f)
 
-        if options[0] in ['error', 'e']:
+        if len_options > 0 and options[0] in ['error', 'e']:
             is_only_error = True
         else:
             is_only_error = False
 
         util.print_cluster(cluster, node_cluster, is_only_error)
-        return
+        return 0
 
     else:
         query = options[0]

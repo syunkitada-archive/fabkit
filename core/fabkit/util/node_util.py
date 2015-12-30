@@ -167,6 +167,7 @@ def load_runs(query, find_depth=1):
                     tmp_fabscript_map[fabscript] = fabscript_data
 
                 tmp_fabscript_map[fabscript]['hosts'].extend(tmp_hosts)
+                tmp_fabscript_map[fabscript]['env'] = cluster_node.get('env', {})
 
         # tmp_fabscript_map を解析して、スクリプトの実行順序を組み立てる
         # 実行順序はcluster_runsに配列として格納する

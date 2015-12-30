@@ -1,0 +1,7 @@
+[run]
+cover_pylib = False
+
+[report]
+omit = 
+  /usr/*
+  .tox/*

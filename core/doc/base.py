@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from databag import databag
-from testtools import test
+from fabtest import test
 from node import node
 from setup import setup, check, manage
 from runserver import runserver

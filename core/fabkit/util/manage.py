@@ -54,7 +54,6 @@ def create_required_dirs():
     create_dir(CONF._storage_dir)
     create_dir(CONF._databag_dir)
     create_dir(CONF._tmp_dir)
-    # create_dir(conf.LOG_DIR)
     create_dir(CONF._node_dir)
     create_dir(CONF._fabscript_module_dir, True)
     create_dir(CONF._fablib_module_dir, True)

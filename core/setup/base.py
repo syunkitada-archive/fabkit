@@ -21,7 +21,6 @@ def check(*args, **kwargs):
 
 
 @api.task
-@api.runs_once
 def setup(*args, **kwargs):
     run_func(['^setup.*'], *args, **kwargs)
 
@@ -119,10 +118,12 @@ def run_func(func_names=[], *args, **kwargs):
             env.cluster = env.cluster_map[run['cluster']]
 
             # override env
-            if 'env' in env.cluster:
-                cluster_env = env.cluster['env']
-                for key, value in cluster_env.items():
-                    setattr(env, key, value)
+            override_env = env.cluster.get('env', {})
+            override_env.update(cluster_run.get('env', {}))
+            default_env = {}
+            for key, value in override_env.items():
+                default_env[key] = getattr(env, key, None)
+                setattr(env, key, value)
 
             env.cluster_status = env.cluster['__status']
             env.node_status_map = env.cluster_status['node_map']
@@ -299,6 +300,11 @@ def run_func(func_names=[], *args, **kwargs):
             elif env.is_manage:
                 env.cluster['__status']['fabscript_map'][script_name]['task_status'] = status.SUCCESS   # noqa
                 util.dump_status()
+
+            # reset env
+            for key, value in default_env.items():
+                if value is not None:
+                    setattr(env, key, value)
 
         # end for cluster_run in run['runs']:
     # end for run in env.runs:

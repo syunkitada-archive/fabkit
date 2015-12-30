@@ -1,0 +1,6 @@
+node_map:
+  base:
+    hosts:
+      - localhost
+    fabruns:
+      - test_bootstrap/base
