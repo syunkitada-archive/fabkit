@@ -17,7 +17,7 @@ def runserver(*args, **kwargs):
     keyfile_tmp = os.path.join(certdir, 'server.key.tmp')
     keyfile = os.path.join(certdir, 'server.key')
 
-    if len_args == 1 and args[0] == 'create_cert':
+    if len_args > 0 and 'create_cert' in args:
         if not os.path.exists(certdir):
             os.mkdir(certdir)
 

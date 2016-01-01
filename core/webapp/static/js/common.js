@@ -1,8 +1,6 @@
 (function() {
-  var WARNING_STATUS_THRESHOLD, bind_shown_tab_event, datamap_tabs, fabscripts, filter, graph_links, graph_nodes, init, mode, node_cluster, node_clusters, render_all, render_datamap, render_force_panel, render_node_cluster, render_node_clusters, render_partition_panel, render_table_panel, render_user, users,
+  var WARNING_STATUS_THRESHOLD, bind_shown_tab_event, datamap_tabs, fabscripts, filter, graph_links, graph_nodes, mode, node_cluster, node_clusters, render_all, render_datamap, render_force_panel, render_node_cluster, render_node_clusters, render_partition_panel, render_table_panel, render_user, users,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
-
-  window.fabkit = {};
 
   users = [];
 
@@ -25,6 +23,16 @@
   };
 
   WARNING_STATUS_THRESHOLD = 10000;
+
+  apps.log = function(msg) {
+    if (apps.debug) {
+      if (typeof msg === 'string') {
+        return console.log(msg);
+      } else {
+        return console.dir(msg);
+      }
+    }
+  };
 
   filter = function() {
     var is_match, query, td, tds, tr, trs, _i, _j, _len, _len1;
@@ -50,7 +58,7 @@
     }
   };
 
-  fabkit.remove_data = function(url) {
+  apps.remove_data = function(url) {
     var target_html, tr, trs, _i, _len;
     target_html = '';
     trs = $('tbody > tr');
@@ -667,7 +675,8 @@
     return $('[data-toggle=popover]').popover();
   };
 
-  init = function() {
+  apps.init = function() {
+    apps.log('called init');
     $('#search-input').on('change', filter).on('keyup', filter);
     $('#all-checkbox').on('change', function() {
       var is_checked, tr, trs, _i, _len;
@@ -698,9 +707,8 @@
       node_cluster = JSON.parse(node_cluster.html());
     }
     render_all();
+    apps.init_chat();
   };
-
-  init();
 
   if ($.support.pjax) {
     $(document).pjax('.pjax', '#pjax-container');
@@ -713,7 +721,7 @@
       } else {
         $('a[href="/' + pathname[1] + '/"]').parent().addClass('active');
       }
-      init();
+      apps.init();
     });
   }
 

@@ -29,5 +29,6 @@ urlpatterns = patterns(
     url(r'^admin/', include(admin.site.urls)),
     url(r'^node/', include('web_apps.node.urls', namespace='node')),
     url(r'^user/', include('web_apps.user.urls', namespace='user')),
+    url(r'^chat/', include('web_apps.chat.urls', namespace='chat')),
     url(r'^', include('web_apps.home.urls', namespace='home')),
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
