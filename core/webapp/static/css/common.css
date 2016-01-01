@@ -279,3 +279,17 @@ table.tablesorter .headerSortDown {
 table.tablesorter .headerSortDown, table.tablesorter .headerSortUp {
     background-color: #eee;
 }
+
+
+/*
+ * Chat
+ * --------------------------------------------------
+ */
+.chat-icon {
+    width: 64px;
+}
+
+.chat-icon > span {
+    font-size: 40px;
+    color: #999;
+}

@@ -17,7 +17,7 @@ filter = ->
     return
 
 
-fabkit.remove_data = (url) ->
+apps.remove_data = (url) ->
     target_html = ''
     trs = $('tbody > tr')
     for tr in trs

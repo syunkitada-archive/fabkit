@@ -11,21 +11,45 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-import os
 
+import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+from oslo_config import cfg
+CONF = cfg.CONF
+
+if not hasattr(CONF, 'web'):
+    # loaded from $ manage.py
+    import sys
+    CORE_DIR = os.path.dirname(BASE_DIR)
+    FABFILE_DIR = os.path.dirname(CORE_DIR)
+    REPO_DIR = os.path.dirname(FABFILE_DIR)
+    sys.path.extend([
+        CORE_DIR,
+    ])
+
+    from fabkit.conf import conf_base, conf_web  # noqa
+    conf_base.init(REPO_DIR)
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/1.8/howto/static-files/
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static_root')
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'static'),
+)
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'e^#&p%z+4+e13#g8h#bk-6l0h)mj6i#u34)xk3cn1dv0g)@m^f'
+SECRET_KEY = CONF.web.secret_key
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [CONF.web.hostname]
 
 
 # Application definition
@@ -40,6 +64,7 @@ INSTALLED_APPS = (
     'web_apps.home',
     'web_apps.user',
     'web_apps.node',
+    'web_apps.chat',
     'web_lib',
 )
 
@@ -92,9 +117,9 @@ DATABASES = {
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
-LANGUAGE_CODE = 'ja'
+LANGUAGE_CODE = CONF.web.language_code
 
-TIME_ZONE = 'Asia/Tokyo'
+TIME_ZONE = CONF.web.time_zone
 
 USE_I18N = True
 
@@ -102,39 +127,4 @@ USE_L10N = True
 
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.8/howto/static-files/
-
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-STATICFILES_DIRS = (
-    STATIC_ROOT,
-)
-
 LOGIN_URL = '/user/login/'
-
-
-# import sys
-# WEBAPP_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# FABFILE_DIR = os.path.dirname(os.path.dirname(os.path.join(BASE_DIR)))
-# CORE_DIR = os.path.join(FABFILE_DIR, 'core')
-# REPO_DIR = os.path.dirname(FABFILE_DIR)
-# sys.path.extend([
-#     WEBAPP_DIR,
-#     CORE_DIR,
-# ])
-
-# from fabkit.conf import conf_base, conf_web  # noqa
-# conf_base.init(FABFILE_DIR, REPO_DIR)
-
-# REPO_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.join(BASE_DIR))))
-# INIFILE = os.path.join(REPO_DIR, 'fabfile.ini')
-
-# CONFIG = ConfigParser.SafeConfigParser()
-# CONFIG.read(INIFILE)
-# NODE_DIR = os.path.join(REPO_DIR, CONFIG.get('common', 'node_dir'))
-# NODE_META_PICKLE = os.path.join(NODE_DIR, 'meta.pickle')
-# MAX_RECENT_CLUSTERS = CONFIG.getint('common', 'max_recent_clusters')
-# FABSCRIPT_MODULE = os.path.join(REPO_DIR, CONFIG.get('common', 'fabscript_module'))
-# MY_HOST = CONFIG.get('web', 'my_host')

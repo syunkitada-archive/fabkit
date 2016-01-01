@@ -1,6 +1,3 @@
-# global namespace
-window.fabkit = {}
-
 users = []
 node_cluster = {}
 node_clusters = []

@@ -4,6 +4,7 @@ import pickle
 import yaml
 import os
 import json
+from web_apps.chat.utils import get_comments
 from markdown import markdown
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
@@ -76,7 +77,6 @@ def index(request, cluster=None):
             readme_html = markdown(f.read(), extensions=['gfm'])
 
     node_cluster['datamap'] = datamap
-    print node_cluster
     fabscript_map = node_cluster['__status']['fabscript_map']
     for fabscript_name, fabscript in fabscript_map.items():
         splited_name = fabscript_name.rsplit('/', 1)
@@ -94,11 +94,13 @@ def index(request, cluster=None):
     node_cluster = json.dumps(node_cluster)
 
     context = {
-        'title': 'Node List',
+        'cluster': cluster,
+        'title': 'Node List: {0}'.format(cluster),
         'node_clusters': node_clusters,
         'node_cluster': node_cluster,
         'datamap': datamap,
         'readme_html': readme_html,
+        'comments': get_comments(cluster),
     }
 
     if request.META.get('HTTP_X_PJAX'):

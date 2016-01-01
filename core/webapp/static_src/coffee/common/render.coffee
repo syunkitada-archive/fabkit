@@ -37,8 +37,9 @@ render_all = ->
 
     $('[data-toggle=popover]').popover()
 
+apps.init = ->
+    apps.log 'called init'
 
-init = ->
     $('#search-input').on('change', filter)
                       .on('keyup', filter)
 
@@ -69,9 +70,9 @@ init = ->
 
     render_all()
 
-    return
+    apps.init_chat()
 
-init()
+    return
 
 if $.support.pjax
     $(document).pjax('.pjax', '#pjax-container')
@@ -82,7 +83,7 @@ if $.support.pjax
             $('a[href="/"]').parent().addClass('active')
         else
             $('a[href="/' + pathname[1] + '/"]').parent().addClass('active')
-        init()
+        apps.init()
         return)
 
 $(window).on('hashchange', ->

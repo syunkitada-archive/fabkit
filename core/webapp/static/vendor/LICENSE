@@ -1,0 +1,9 @@
+bootstrap-3.3.1-dist/: MIT: http://getbootstrap.com/getting-started/#license-faqs
+defaulticon/: CC 3.0: src is 404, defaulticon/License.txt
+tablesorter/: MIT: https://github.com/christianbach/tablesorter/blob/master/LICENSE
+
+js/
+    markdown.min.js: MIT: https://github.com/evilstreak/markdown-js/blob/master/README.md#license
+    jquery-2.1.1.min.js: MIT: https://jquery.org/license/
+    jquery-pjax: MIT: https://github.com/defunkt/jquery-pjax/blob/master/LICENSE
+    d3.min.js: BSD: https://github.com/mbostock/d3/blob/master/LICENSE

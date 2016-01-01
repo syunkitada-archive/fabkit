@@ -39,7 +39,7 @@
             </div>
             <div class="col-xs-6">
                 {% if user.is_superuser %}
-                    <input class="btn btn-default pull-right" type="button" value="Remove" onclick="fabkit.remove_data('{% url 'user:remove' %}')">
+                    <input class="btn btn-default pull-right" type="button" value="Remove" onclick="apps.remove_data('{% url 'user:remove' %}')">
                 {% endif %}
             </div>
         </div>
