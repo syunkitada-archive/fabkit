@@ -1,5 +1,5 @@
 env:
-  port: 40122
+  port: 32022
 
 node_map:
   ubuntu14:

@@ -12,28 +12,12 @@ test_opts = [
     cfg.StrOpt('password',
                default='fabric',
                help='password for test'),
+    cfg.MultiStrOpt('clusters',
+                    default=[
+                        'centos7/',
+                        'ubuntu14/',
+                    ],
+                    help='clusters for test'),
 ]
 
 CONF.register_opts(test_opts, group='test')
-
-
-def init():
-    CONF.test._dockers = [
-        {
-            'name': 'centos7',
-            'dockerfile': 'Dockerfile_centos7',
-            'sudo_group': 'wheel',
-            'port': 40022,
-        },
-        {
-            'name': 'ubuntu14',
-            'dockerfile': 'Dockerfile_ubuntu14',
-            'sudo_group': 'sudo',
-            'port': 40122,
-        },
-    ]
-
-    CONF.test._clusters = [
-        'centos7/',
-        'ubuntu14/',
-    ]

@@ -16,16 +16,34 @@ CONF = cfg.CONF
 @api.task
 @api.hosts('localhost')
 def test(target=None, t=None, cluster='.*', c=None, fabrun='.*', f=None,
-         bootstrap=True, b=None):
+         bootstrap=True, b=None, fablib=None, l=None):
     target = t if t is not None else target
     cluster = c if c is not None else cluster
+    re_cluster = re.compile(cluster)
     fabrun = f if f is not None else fabrun
     bootstrap = (not b == 'false') if b is not None else bootstrap
-    re_cluster = re.compile(cluster)
+    fablib = l if l is not None else fablib
+
+    sys.path.remove(CONF._repo_dir)
 
     FABTEST_DIR = os.path.dirname(os.path.abspath(__file__))
-    sys.path.remove(CONF._repo_dir)
-    CONF._repo_dir = os.path.join(FABTEST_DIR, 'test-repo')
+    if fablib is not None:
+        fablib_dir = os.path.join(CONF._fablib_module_dir, fablib)
+        CONF._repo_dir = os.path.join(fablib_dir, 'test-repo')
+    else:
+        CONF._repo_dir = os.path.join(FABTEST_DIR, 'test-repo')
+
+    EX_CONF = cfg.ConfigOpts()
+    conf_file = os.path.join(CONF._repo_dir, 'fabfile.ini')
+    if os.path.exists(conf_file):
+        EX_CONF([], default_config_files=[conf_file])
+    else:
+        EX_CONF([])
+
+    from fabkit.conf import conf_base, conf_fabric, conf_web, conf_test  # noqa
+    EX_CONF.register_opts(conf_base.default_opts)
+    EX_CONF.register_opts(conf_test.test_opts, group="test")
+
     CONF._storage_dir = os.path.join(CONF._repo_dir, 'storage')
     CONF._databag_dir = os.path.join(CONF._repo_dir, 'databag')
     CONF._tmp_dir = os.path.join(CONF._storage_dir, 'tmp')
@@ -42,22 +60,13 @@ def test(target=None, t=None, cluster='.*', c=None, fabrun='.*', f=None,
         CONF._repo_dir,
     ])
 
-    CONF.fablib = {}
+    CONF.fablib = EX_CONF.fablib
+    CONF.test.clusters = EX_CONF.test.clusters
 
     util.create_required_dirs()
     util.git_clone_required_fablib()
 
     CONF._unittests_dir = os.path.join(FABTEST_DIR, 'unittests')
-
-    if target is None:
-        suites = unittest.TestLoader().discover(CONF._unittests_dir,
-                                                pattern='test_*')
-    else:
-        suites = unittest.TestLoader().discover(CONF._unittests_dir,
-                                                pattern='test_{0}*'.format(target))
-
-    alltests = unittest.TestSuite(suites)
-    result = unittest.TextTestRunner(verbosity=2).run(alltests)
 
     if target is None or target == 'fab':
         if bootstrap:
@@ -68,14 +77,20 @@ def test(target=None, t=None, cluster='.*', c=None, fabrun='.*', f=None,
         env.password = CONF.test.password
         env.disable_known_hosts = True
 
-        for cluster in CONF.test._clusters:
+        for cluster in CONF.test.clusters:
             if re_cluster.search(cluster):
                 node(cluster)
                 setup(f=fabrun)
 
-    exit(len(result.errors) + len(result.failures))
+    if fablib is None:
+        if target is None:
+            suites = unittest.TestLoader().discover(CONF._unittests_dir,
+                                                    pattern='test_*')
+        else:
+            suites = unittest.TestLoader().discover(CONF._unittests_dir,
+                                                    pattern='test_{0}*'.format(target))
 
+        alltests = unittest.TestSuite(suites)
+        result = unittest.TextTestRunner(verbosity=2).run(alltests)
 
-def bootstrap():
-    node('test_bootstrap/')
-    setup()
+        exit(len(result.errors) + len(result.failures))
