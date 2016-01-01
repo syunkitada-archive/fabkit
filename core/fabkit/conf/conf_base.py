@@ -19,7 +19,6 @@ from constant import (  # noqa
     DATAMAP_DIR,
 )
 
-
 CONF = cfg.CONF
 
 default_opts = [

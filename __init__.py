@@ -20,7 +20,6 @@ from fabkit import util
 from fabkit.conf import conf_base, conf_fabric, conf_web, conf_test  # noqa
 conf_base.init(REPO_DIR)
 conf_fabric.init()
-conf_test.init()
 
 util.create_required_dirs()
 util.git_clone_required_fablib()
