@@ -123,10 +123,12 @@ def set_os():
             env.node['os'] = os
             if re_ubuntu.match(os):
                 env.node['package_manager'] = 'apt'
-                env.node['service_manager'] = 'initd'
+                env.node['service_manager'] = 'service'
+                env.node['init_manager'] = 'update-rc.d'
             if re_centos.match(os):
                 env.node['package_manager'] = 'yum'
                 env.node['service_manager'] = 'systemd'
+                env.node['init_manager'] = 'systemd'
                 env.path += ':/sbin'
         else:
             result = run('cat /etc/centos-release')
@@ -136,12 +138,14 @@ def set_os():
                 os = 'CentOS {0}'.format(re_search.group(1))
                 env.node['os'] = os
                 env.node['package_manager'] = 'yum'
-                env.node['service_manager'] = 'initd'
+                env.node['service_manager'] = 'service'
+                env.node['init_manager'] = 'chkconfig'
                 env.path += ':/sbin'
             else:
                 if run('which yum').return_code == 0:
                     env.node['package_manager'] = 'yum'
-                env.node['service_manager'] = 'initd'
+                env.node['service_manager'] = 'service'
+                env.node['init_manager'] = 'chkconfig'
                 env.path += ':/sbin'
 
         run('env')

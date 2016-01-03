@@ -5,7 +5,7 @@ import itertools
 from fabkit import api
 from oslo_config import generator, cfg
 from oslo_log import _options
-from fabkit.conf import conf_base, conf_fabric, conf_web
+from fabkit.conf import conf_base, conf_fabric, conf_web, conf_test
 
 
 list_opts = [
@@ -27,6 +27,10 @@ list_opts = [
     ('web',
      itertools.chain(
          conf_web.web_opts,
+     )),
+    ('test',
+     itertools.chain(
+         conf_test.test_opts,
      )),
 ]
 

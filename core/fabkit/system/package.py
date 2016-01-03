@@ -27,7 +27,8 @@ class Package():
                             self.package_name, option))
 
             elif env.node['package_manager'] == 'apt':
-                self.result = run('dpkg -l {0}'.format(self.package_name), warn_only=True)
+                self.result = run('dpkg -l {0} | grep "^ii "'.format(self.package_name),
+                                  warn_only=True)
                 if not self.result.return_code == 0:
                     if self.path:
                         self.result = sudo('apt-get install {0} -y {1}'.format(self.path, option))
