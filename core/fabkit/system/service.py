@@ -18,7 +18,7 @@ class Service():
             service_manager = env.node['service_manager']
             if service_manager == 'systemd':
                 self.result = sudo('systemctl {0} {1}'.format(option, self.name), **kwargs)
-            elif service_manager == 'initd':
+            elif service_manager == 'service':
                 self.result = sudo('/etc/init.d/{1} {0}'.format(option, self.name), **kwargs)
             elif service_manager == 'upstart':
                 self.result = sudo('initctl {0} {1}'.format(option, self.name), **kwargs)
@@ -43,11 +43,13 @@ class Service():
 
     def enable(self, **kwargs):
         with api.warn_only():
-            service_manager = env.node['service_manager']
-            if service_manager == 'systemd':
+            init_manager = env.node['init_manager']
+            if init_manager == 'systemd':
                 self.result = sudo('systemctl enable {0}'.format(self.name), **kwargs)
-            elif service_manager == 'initd':
+            elif init_manager == 'chkconfig':
                 self.result = sudo('chkconfig {0} on'.format(self.name), **kwargs)
+            elif init_manager == 'update-rc.d':
+                self.result = sudo('update-rc.d {0} defaults'.format(self.name), **kwargs)
             else:
                 self.unsupport()
 
@@ -55,11 +57,13 @@ class Service():
 
     def disable(self, **kwargs):
         with api.warn_only():
-            service_manager = env.node['service_manager']
-            if service_manager == 'systemd':
+            init_manager = env.node['init_manager']
+            if init_manager == 'systemd':
                 self.result = sudo('systemctl disable {0}'.format(self.name), **kwargs)
-            elif service_manager == 'initd':
+            elif init_manager == 'chkconfig':
                 self.result = sudo('chkconfig {0} off'.format(self.name), **kwargs)
+            elif init_manager == 'update-rc.d':
+                self.result = sudo('update-rc.d -f {0} remove'.format(self.name), **kwargs)
             else:
                 self.unsupport()
 

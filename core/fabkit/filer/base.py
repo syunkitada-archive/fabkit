@@ -3,7 +3,7 @@
 import time
 import os
 import inspect
-from fabkit import api, env, local, sudo, scp, log
+from fabkit import api, env, local, run, sudo, scp, log
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from oslo_config import cfg
 
@@ -136,12 +136,14 @@ def template(dest, mode='644', owner='root:root', data={},
     return is_updated
 
 
-def mkdir(dest, is_local=False, owner='root:root', mode='775'):
+def mkdir(dest, is_local=False, owner='root:root', mode='775', use_sudo=True):
     cmd_mkdir = 't={0} && mkdir -p $t'.format(dest)
     if is_local:
         local(cmd_mkdir)
-    else:
+    elif use_sudo:
         sudo('{0} && chmod {1} $t && chown {2} $t'.format(cmd_mkdir, mode, owner))
+    else:
+        run('{0} $t'.format(cmd_mkdir, mode, owner))
 
 
 def touch(dest, is_local=False, owner='root:root', mode='775'):

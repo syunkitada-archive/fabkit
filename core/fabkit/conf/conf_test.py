@@ -12,12 +12,12 @@ test_opts = [
     cfg.StrOpt('password',
                default='fabric',
                help='password for test'),
-    cfg.MultiStrOpt('clusters',
-                    default=[
-                        'centos7/',
-                        'ubuntu14/',
-                    ],
-                    help='clusters for test'),
+    cfg.ListOpt('clusters',
+                default=[
+                    'centos7/',
+                    'ubuntu14/',
+                ],
+                help='clusters for test'),
 ]
 
 CONF.register_opts(test_opts, group='test')

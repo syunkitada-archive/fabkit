@@ -53,9 +53,6 @@ def test(target=None, t=None, cluster='.*', c=None, fabrun='.*', f=None,
     CONF._fabscript_module_dir = os.path.join(CONF._repo_dir, 'fabscript')
     CONF._fablib_module_dir = os.path.join(CONF._repo_dir, 'fablib')
 
-    CONF.user = CONF.test.user
-    CONF.password = CONF.test.password
-
     sys.path.extend([
         CONF._repo_dir,
     ])
@@ -73,8 +70,10 @@ def test(target=None, t=None, cluster='.*', c=None, fabrun='.*', f=None,
             node('bootstrap/')
             setup()
 
-        env.user = CONF.test.user
-        env.password = CONF.test.password
+        CONF.user = CONF.test.user
+        CONF.password = CONF.test.password
+        conf_fabric.init()
+
         env.disable_known_hosts = True
 
         for cluster in CONF.test.clusters:

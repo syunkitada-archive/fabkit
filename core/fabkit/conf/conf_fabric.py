@@ -44,10 +44,6 @@ CONF.register_opts(default_opts)
 
 
 def init():
-    CONF._remote_dir = os.path.join('/home', env.user, CONF.remote_dir)
-    CONF._remote_storage_dir = os.path.join(CONF._remote_dir, 'storage')
-    CONF._remote_tmp_dir = os.path.join(CONF._remote_storage_dir, 'tmp')
-
     if CONF.user is not None:
         env.user = CONF.user
 
@@ -59,3 +55,7 @@ def init():
         if os.path.exists(password_file):
             with open(password_file, 'r') as f:
                 env.password = f.read()
+
+    CONF._remote_dir = os.path.join('/home', env.user, CONF.remote_dir)
+    CONF._remote_storage_dir = os.path.join(CONF._remote_dir, 'storage')
+    CONF._remote_tmp_dir = os.path.join(CONF._remote_storage_dir, 'tmp')
