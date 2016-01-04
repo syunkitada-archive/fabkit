@@ -47,7 +47,14 @@ def index(request, cluster=None):
             index = 0
         else:
             index = int(splited_cluster[1])
-        cluster = recent_clusters[index]
+        if len(recent_clusters) > 0:
+            cluster = recent_clusters[index]
+        else:
+            context = {
+                'cluster': None,
+                'title': 'Node List: No Data',
+            }
+            return render(request, 'node/index.html', context)
 
     cluster_dir = os.path.join(CONF._node_dir, cluster)
     cluster_yaml = os.path.join(cluster_dir, '__cluster.yml')
