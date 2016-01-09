@@ -10,3 +10,4 @@
 *.stackdump
 .coverage
 .tox
+node_modules
