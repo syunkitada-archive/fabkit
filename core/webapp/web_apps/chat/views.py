@@ -34,7 +34,6 @@ def node_api(request):
         user = User.objects.get(id=user_id)
 
         data = json.loads(request.POST.get('data'))
-        print data
         cluster = data.get('cluster')
         text = data.get('text')
 
@@ -43,17 +42,14 @@ def node_api(request):
         else:
             comment = Comments.objects.create(user=user, cluster=cluster, text=text)
 
-        # Once comment has been created post it to the chat channel
-        r = redis.StrictRedis(host='localhost', port=6379, db=0)
         data = json.dumps({
             'user': user.username,
             'text': text,
             'created_at': str(comment.created_at),
             'updated_at': str(comment.created_at),
         })
-        r.publish('chat', data)
 
-        return HttpResponse("Everything worked :)")
+        return HttpResponse(data)
 
     except Exception, e:
         return HttpResponseServerError(str(e))
