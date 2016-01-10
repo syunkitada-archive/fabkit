@@ -2,7 +2,7 @@ render_all = ->
     if mode.current == mode.USER
         render_user()
     else if mode.current == mode.NODE
-        render_node_clusters()
+        render_node_clusters(node_clusters)
         render_node_cluster()
 
         $('#node-table').tablesorter({
@@ -67,6 +67,10 @@ apps.init = ->
     if node_cluster.length > 0
         mode.current = mode.NODE
         node_cluster = JSON.parse(node_cluster.html())
+
+    if location.pathname.indexOf('/chat/') == 0
+        mode.current = mode.CHAT
+        render_node_clusters(room_clusters)
 
     render_all()
 

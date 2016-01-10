@@ -1,7 +1,10 @@
-socket = io.connect(chat_connection)
+socket = io(chat_connection + '/chat')
 
 socket.on 'connect', ()->
     apps.log "connected: #{chat_connection}"
+    socket.emit 'join_to_room', cluster, (data)->
+        apps.log "joined #{cluster}"
+        apps.log data
 
 chat_comment = null
 
@@ -26,12 +29,29 @@ socket.on 'message', (message)->
 
     chat_comment.focus()
 
+socket.on 'update_room', (data)->
+    room = JSON.parse(data)
+    console.log room
+
+room_clusters = []
+socket.on 'update_userrooms', (data)->
+    userrooms = JSON.parse(data)
+    for room, roomdata of userrooms
+        if room == 'all'
+            continue
+        room_clusters.push room
+
+    room_clusters.sort()
+    room_clusters.splice(0, 0, 'all')
+
+    if mode.current == mode.CHAT
+        render_node_clusters(room_clusters)
+
 apps.init_chat = ()->
     apps.log('called init_chat')
     chat_comment = $('#chat-comment')
 
     $('#chat-comment-submit').on 'click', (event)->
-
         msg = JSON.stringify({
             "cluster": cluster,
             "text": chat_comment.val(),
@@ -42,6 +62,17 @@ apps.init_chat = ()->
                 apps.log(data)
 
         $(chat_comment).val('')
+
+    $('#chat-leave-room').on 'click', (event)->
+        that = this
+        console.log that
+        apps.log 'clicked leave-room'
+        socket.emit 'leave_from_room', cluster, (data)->
+            console.log data
+            location.href = that.href
+
+        return false
+
 
     for text in $('.chat-text')
         $(text).html(markdown.toHTML($(text).text()))

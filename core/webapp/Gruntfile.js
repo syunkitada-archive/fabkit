@@ -11,6 +11,7 @@ module.exports = function(grunt) {
                         'static_src/coffee/common/base.coffee',
                         'static_src/coffee/common/logger.coffee',
                         'static_src/coffee/common/filter.coffee',
+                        'static_src/coffee/common/chat.coffee',
                         'static_src/coffee/common/render_partition.coffee',
                         'static_src/coffee/common/render_force.coffee',
                         'static_src/coffee/common/render_datamap.coffee',
@@ -19,9 +20,6 @@ module.exports = function(grunt) {
                         'static_src/coffee/common/render_node.coffee',
                         'static_src/coffee/common/render.coffee',
                     ],
-                    'static/js/chat.js': [
-                        'static_src/coffee/chat/base.coffee',
-                    ]
                 }
             }
         },
