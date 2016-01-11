@@ -27,6 +27,10 @@ web_opts = [
     cfg.StrOpt('time_zone',
                default='Asia/Tokyo',
                help='TIME_ZONE of Django'),
+    cfg.ListOpt('nodes',
+                default=[],
+                help='nodes of Nodejs.\n'
+                'nodes = http://localhost:4000, http://localhost:4001'),
 ]
 
 CONF.register_opts(web_opts, group='web')

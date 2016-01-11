@@ -13,7 +13,7 @@ module.exports = {
             socket.is_login = false
 
             query = socket.handshake.query
-            if query and query.secret == config.secret
+            if query and query.secret_key == config.secret_key
                 node_regexp = new RegExp(query.node)
                 for node in config.nodes
                     if node.match(config.node_regexp)
@@ -73,7 +73,7 @@ module.exports = {
         for node in config.nodes
             logger.all.info "connect to: #{node}"
             client_io = require('socket.io-client')
-            node_socket = client_io.connect(node + '/pipeline', {query: "secret=#{config.secret}&node=#{config.my_node_pattern}"})
+            node_socket = client_io.connect(node + '/pipeline', {query: "secret_key=#{config.secret_key}&node=#{config.my_node_pattern}"})
             node_socket.on 'connect', ()->
                 logger.all.info "conneced"
 
