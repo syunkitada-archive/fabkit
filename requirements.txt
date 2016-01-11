@@ -2,10 +2,6 @@ fabric==1.10.1
 pyyaml==3.11
 jinja2==2.7.3
 django==1.8.4
-markdown==2.6.1
-py-gfm==0.1.0
-pygments==2.0.2
 eventlet==0.17.4
 oslo.config==2.7.0
 oslo.log==2.1.0
-redis==2.10.5

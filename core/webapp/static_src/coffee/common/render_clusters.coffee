@@ -1,9 +1,17 @@
-render_node_clusters = ->
-    paths = location.pathname.split('node/')
-    page = 'node'
-    cluster_path = paths[1].slice(0, -1)
-    if cluster_path == ''
-        cluster_path = 'recent'
+render_node_clusters = (clusters)->
+    if mode.current == mode.NODE
+        paths = location.pathname.split('node/')
+        page = 'node'
+        cluster_path = paths[1].slice(0, -1)
+        if cluster_path == ''
+            cluster_path = 'recent'
+
+    else if mode.current == mode.CHAT
+        paths = location.pathname.split('chat/')
+        page = 'chat'
+        cluster_path = paths[1].slice(0, -1)
+        if cluster_path == ''
+            cluster_path = 'all'
 
     clusters_html = $("""<div class="panel-group" id="accordion">
             </div>""")
@@ -70,6 +78,6 @@ render_node_clusters = ->
             if tmp_clusters.length > 0
                 expand_clusters(collapse_body, tmp_clusters, tmp_root_cluster)
 
-    expand_clusters(clusters_html, node_clusters, null)
+    expand_clusters(clusters_html, clusters, null)
 
     $('#sidebar').html(clusters_html)

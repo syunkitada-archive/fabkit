@@ -8,6 +8,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, UserCreationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.sessions.models import Session
+from django.views.decorators.csrf import csrf_exempt
 
 
 @login_required
@@ -91,6 +93,20 @@ def create(request):
             print form.errors
 
         return redirect('user:index')
+
+
+@csrf_exempt
+def node_get(request):
+    # Get User from sessionid
+    session = Session.objects.get(session_key=request.POST.get('sessionid'))
+    user_id = session.get_decoded().get('_auth_user_id')
+    user = User.objects.get(id=user_id)
+
+    data = json.dumps({
+        'user': user.username,
+    })
+
+    return HttpResponse(data)
 
 
 @login_required

@@ -81,7 +81,7 @@ def index(request, cluster=None):
     readme = os.path.join(cluster_dir, 'README.md')
     if os.path.exists(readme):
         with open(readme) as f:
-            readme_html = markdown(f.read(), extensions=['gfm'])
+            readme_html = f.read()
 
     node_cluster['datamap'] = datamap
     fabscript_map = node_cluster['__status']['fabscript_map']

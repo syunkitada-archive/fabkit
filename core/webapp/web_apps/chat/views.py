@@ -8,19 +8,21 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.sessions.models import Session
 from django.contrib.auth.decorators import login_required
 
-import redis
 import json
 
 
 @login_required
-def index(request, cluster=None):
+def index(request, cluster='all'):
     comments = get_comments(cluster)
-    print comments
 
     context = {
+        'title': 'Chat: ' + cluster,
         'comments': comments,
         'cluster': cluster,
     }
+
+    if request.META.get('HTTP_X_PJAX'):
+        return render(request, 'chat/content.html', context)
 
     return render(request, 'chat/index.html', context)
 
@@ -32,9 +34,9 @@ def node_api(request):
         session = Session.objects.get(session_key=request.POST.get('sessionid'))
         user_id = session.get_decoded().get('_auth_user_id')
         user = User.objects.get(id=user_id)
+        print 'DEBUG'
 
         data = json.loads(request.POST.get('data'))
-        print data
         cluster = data.get('cluster')
         text = data.get('text')
 
@@ -43,17 +45,14 @@ def node_api(request):
         else:
             comment = Comments.objects.create(user=user, cluster=cluster, text=text)
 
-        # Once comment has been created post it to the chat channel
-        r = redis.StrictRedis(host='localhost', port=6379, db=0)
         data = json.dumps({
             'user': user.username,
             'text': text,
             'created_at': str(comment.created_at),
             'updated_at': str(comment.created_at),
         })
-        r.publish('chat', data)
 
-        return HttpResponse("Everything worked :)")
+        return HttpResponse(data)
 
     except Exception, e:
         return HttpResponseServerError(str(e))

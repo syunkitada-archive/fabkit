@@ -1,5 +1,11 @@
 {% extends 'common/content.html' %}
 
+{% block page_title %}
+  <h2 class="page-header">{{ title }}
+      <a id="chat-leave-room" class="pjax btn btn-default pull-right" href="{% url 'chat:index' %}"><span class="glyphicon glyphicon-log-out"></span> 退出</a>
+  </h2>
+{% endblock %}
+
 {% block main_content %}
   {% include "chat/room.html" %}
 {% endblock %}
