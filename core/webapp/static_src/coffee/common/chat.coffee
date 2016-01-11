@@ -12,7 +12,8 @@ socket.on 'message', (message)->
     data = JSON.parse(message)
     apps.log data
 
-    text = data.text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    # text = data.text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    text = data.text
     $('#chat-comments').prepend("""
       <tr>
         <td class="chat-icon">
@@ -22,7 +23,7 @@ socket.on 'message', (message)->
           <span>#{data.user}</span>
           <span class="pull-right">#{data.created_at}</span>
           <br>
-          #{markdown.toHTML(text)}
+          #{marked(text)}
         </td>
       </tr>
       """)
@@ -34,7 +35,9 @@ socket.on 'update_room', (data)->
     console.log room
 
 room_clusters = []
-socket.on 'update_userrooms', (data)->
+socket.on 'update_user_rooms', (data)->
+    apps.log 'on update_user_rooms'
+    apps.log data
     userrooms = JSON.parse(data)
     for room, roomdata of userrooms
         if room == 'all'
@@ -46,6 +49,10 @@ socket.on 'update_userrooms', (data)->
 
     if mode.current == mode.CHAT
         render_node_clusters(room_clusters)
+
+socket.on 'update_room_users', (data)->
+    apps.log 'on update_room_users'
+    apps.log data
 
 apps.init_chat = ()->
     apps.log('called init_chat')
@@ -75,4 +82,4 @@ apps.init_chat = ()->
 
 
     for text in $('.chat-text')
-        $(text).html(markdown.toHTML($(text).text()))
+        $(text).html(marked($(text).text()))

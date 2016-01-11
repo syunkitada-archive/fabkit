@@ -15,3 +15,17 @@ mode = {
 }
 
 WARNING_STATUS_THRESHOLD = 10000
+
+
+marked.setOptions {
+    gfm: true,
+    tables: true,
+    breaks: false,
+    pedantic: false,
+    sanitize: true,
+    smartLists: true,
+    smartypants: false,
+    langPrefix: 'language-',
+}
+
+hljs.initHighlightingOnLoad()

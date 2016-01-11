@@ -1,8 +1,11 @@
 # coding: utf-8
 
 from types import DictType, ListType, StringType, IntType
-from fabkit import databag, env, conf
+from fabkit import databag, env
+from oslo_config import cfg
 import commands
+
+CONF = cfg.CONF
 
 
 def decode_cluster_map():
@@ -54,7 +57,7 @@ def decode_data(data, origin_data=None, parent_key=None):
                             return tmp_data
                     elif key.find('!-') == 0:
                         tmp_key = key[2:]
-                        host_cmd = 'cd {0} && {1}'.format(conf.NODE_DIR, tmp_key)
+                        host_cmd = 'cd {0} && {1}'.format(CONF._node_dir, tmp_key)
                         result = commands.getstatusoutput(host_cmd)
                         if result[0] != 0:
                             print 'Failed cmd({0}): {1}'.format(result[0], host_cmd)

@@ -25,6 +25,19 @@
 
   WARNING_STATUS_THRESHOLD = 10000;
 
+  marked.setOptions({
+    gfm: true,
+    tables: true,
+    breaks: false,
+    pedantic: false,
+    sanitize: true,
+    smartLists: true,
+    smartypants: false,
+    langPrefix: 'language-'
+  });
+
+  hljs.initHighlightingOnLoad();
+
   apps.log = function(msg) {
     if (apps.debug) {
       if (typeof msg === 'string') {
@@ -174,8 +187,8 @@
     var data, text;
     data = JSON.parse(message);
     apps.log(data);
-    text = data.text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    $('#chat-comments').prepend("<tr>\n  <td class=\"chat-icon\">\n    <span class=\"glyphicon glyphicon-user\"></span>\n  </td>\n  <td>\n    <span>" + data.user + "</span>\n    <span class=\"pull-right\">" + data.created_at + "</span>\n    <br>\n    " + (markdown.toHTML(text)) + "\n  </td>\n</tr>");
+    text = data.text;
+    $('#chat-comments').prepend("<tr>\n  <td class=\"chat-icon\">\n    <span class=\"glyphicon glyphicon-user\"></span>\n  </td>\n  <td>\n    <span>" + data.user + "</span>\n    <span class=\"pull-right\">" + data.created_at + "</span>\n    <br>\n    " + (marked(text)) + "\n  </td>\n</tr>");
     return chat_comment.focus();
   });
 
@@ -187,8 +200,10 @@
 
   room_clusters = [];
 
-  socket.on('update_userrooms', function(data) {
+  socket.on('update_user_rooms', function(data) {
     var room, roomdata, userrooms;
+    apps.log('on update_user_rooms');
+    apps.log(data);
     userrooms = JSON.parse(data);
     for (room in userrooms) {
       roomdata = userrooms[room];
@@ -202,6 +217,11 @@
     if (mode.current === mode.CHAT) {
       return render_node_clusters(room_clusters);
     }
+  });
+
+  socket.on('update_room_users', function(data) {
+    apps.log('on update_room_users');
+    return apps.log(data);
   });
 
   apps.init_chat = function() {
@@ -236,7 +256,7 @@
     _results = [];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       text = _ref[_i];
-      _results.push($(text).html(markdown.toHTML($(text).text())));
+      _results.push($(text).html(marked($(text).text())));
     }
     return _results;
   };
@@ -587,6 +607,8 @@
 
   render_node_cluster = function() {
     var all_node_length, danger_node_length, data, fabscript, fabscript_map, fabscript_node_map, fabscript_status_map, host, i, index, is_danger, is_warning, links, name, node, node_class, node_map, nodes, nodes_tbody_html, require, result, result_html, script, status, success_node_length, sum_status, target, tmp_fabscript, warning_node_length, _i, _len, _ref, _ref1;
+    console.log('Test');
+    $('#markdown').html(marked($('#markdown').text()));
     fabscript_node_map = {};
     node_map = node_cluster.__status.node_map;
     fabscript_map = node_cluster.__status.fabscript_map;

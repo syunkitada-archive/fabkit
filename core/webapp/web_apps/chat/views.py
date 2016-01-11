@@ -14,7 +14,6 @@ import json
 @login_required
 def index(request, cluster='all'):
     comments = get_comments(cluster)
-    print comments
 
     context = {
         'title': 'Chat: ' + cluster,

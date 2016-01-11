@@ -1,4 +1,7 @@
 render_node_cluster = ->
+    console.log 'Test'
+    $('#markdown').html(marked($('#markdown').text()))
+
     fabscript_node_map = {}
 
     node_map = node_cluster.__status.node_map
