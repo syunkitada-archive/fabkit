@@ -3,6 +3,8 @@
 from fabkit import api, local
 import os
 from oslo_config import cfg
+from oslo_service import service
+from service import FabService
 
 CONF = cfg.CONF
 
@@ -46,24 +48,9 @@ def runserver(*args, **kwargs):
         else:
             print '{0} is already exists.'.format(keyfile)
 
-        exit(0)
+        return
 
-    import eventlet
-    import eventlet.wsgi
-    from web_conf.wsgi import application
-
-    # server_sock = eventlet.listen(('0.0.0.0', 8080))
-    # eventlet.wsgi.server(server_sock, application)
-    port = int(kwargs.get('port', CONF.web.port))
-    is_https = bool(kwargs.get('is_https', CONF.web.is_https))
-
-    server_sock = eventlet.listen(('', port))
-
-    if is_https:
-        eventlet.wsgi.server(eventlet.wrap_ssl(server_sock,
-                                               certfile=certfile,
-                                               keyfile=keyfile,
-                                               server_side=True),
-                             application)
-    else:
-        eventlet.wsgi.server(server_sock, application)
+    launcher = service.ProcessLauncher(CONF)
+    fabservice = FabService()
+    launcher.launch_service(fabservice)
+    launcher.wait()
