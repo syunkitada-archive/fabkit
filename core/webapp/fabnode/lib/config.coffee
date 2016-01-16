@@ -12,18 +12,14 @@ hostname = 'localhost' if hostname is undefined
 port = config_ini.web.port
 port = 8080 if port is undefined
 
-secret = config_ini.DEFAULT.secret
-secret = 'changeme' if secret is undefined
+secret_key = config_ini.DEFAULT.secret_key
+secret_key = 'changeme' if secret_key is undefined
 
 node_port = config_ini.web.node_port
 node_port = 4000 if node_port is undefined
 
 nodes = config_ini.web.nodes
-nodes = [] if nodes is undefined
-nodes = [
-    'http://192.168.11.50:4000',
-    'http://192.168.11.50:4001',
-]
+nodes = ["http://#{hostname}:#{node_port}"] if nodes is undefined
 
 my_node_pattern = ".*://#{hostname}:#{node_port}$"
 my_node_regexp = new RegExp(my_node_pattern)
@@ -32,7 +28,7 @@ module.exports = {
     debug: debug,
     hostname: hostname,
     port: port,
-    secret: secret,
+    secret_key: secret_key,
     nodes: nodes,
     node_port: node_port,
     my_node_pattern: my_node_pattern,
