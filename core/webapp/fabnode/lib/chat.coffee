@@ -63,45 +63,7 @@ module.exports = {
                     fn()
 
                 socket.on 'send_message', (message)->
-                    logger.all.info "chat: on send_message: user=#{user.user}, message=#{message}"
-
-                    webapi.request socket, '/chat/node_api', {
-                            data: message,
-                        }
-                        , (data)->
-                            that.publish_pipeline(room, 'message', data)
-
-                            logger.all.info "chat: emit to #{room}: #{data}"
-
-                            data = JSON.parse(data)
-                            text = data.text
-                            if text.indexOf('!') == 0
-                                text = text.slice(1)
-                                logger.all.debug "chat: exec: #{text}"
-                                if text.indexOf('fab ') == 0
-                                    exec text, (err, stdout, stderr)->
-                                        if err
-                                            logger.error.error "chat: exec: stderr: #{stderr}"
-                                            text = stderr
-                                        else
-                                            logger.all.debug "chat: exec: stdout #{stdout}"
-                                            text = stdout
-
-                                        data = {
-                                            "text": "``` bash\n#{text}\n```",
-                                            "user": "fabric",
-                                            "created_at": "2016-01-11 09:27:06.253494+00:00",
-                                            "updated_at": "2016-01-11 09:27:06.253494+00:00",
-                                        }
-                                        data = JSON.stringify(data)
-                                        that.publish_pipeline(room, 'message', data)
-
-                                else
-                                    exec 'fab -l', (err, stdout, stderr)->
-                                        logger.all.debug "chat: exec #{stdout}"
-
-                        , (e)->
-                            logger.error.error "problem with request: #{e.message}"
+                    that.send_message(socket, message)
 
                 socket.once 'disconnect', ->
                     logger.all.debug "chat: socket: disconnect"
@@ -121,6 +83,44 @@ module.exports = {
                 context.dump()
 
         logger.all.debug 'chat: initialized'
+
+    send_message: (socket, message)->
+        that = this
+        msg = JSON.parse(message)
+        room = msg['cluster']
+        user = context.user_map[socket.id]
+        logger.all.info "chat: on send_message: user=#{user.user}, message=#{message}"
+
+        webapi.request socket, '/chat/node_api', {
+                data: message,
+            }
+            , (data)->
+                that.publish_pipeline(room, 'message', data)
+
+                logger.all.info "chat: emit to #{room}: #{data}"
+
+                data = JSON.parse(data)
+                text = data.text
+                if text.indexOf('! ') == 0
+                    text = text.replace('! ', 'fab ')
+                    logger.all.debug "chat: exec: #{text}"
+
+                    exec text, (err, stdout, stderr)->
+                        if err
+                            logger.error.error "chat: exec: stderr: #{stderr}"
+                            text = stderr
+                        else
+                            logger.all.debug "chat: exec: stdout #{stdout}"
+                            text = stdout
+
+                        msg['text'] = "``` bash\n#{text}\n```"
+                        data = JSON.stringify(msg)
+                        that.send_message(socket, data)
+
+
+            , (e)->
+                logger.error.error "problem with request: #{e.message}"
+
 
     publish_pipeline: (room, event_name, data)->
         logger.all.debug "chat: publish_pipeline: room=#{room}, event_name=#{event_name}"
