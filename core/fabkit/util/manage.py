@@ -3,11 +3,13 @@
 import os
 import commands
 from fabkit import api
+from fabkit.conf import conf_base
 from oslo_config import cfg
 import pickle
-import ConfigParser
 
 CONF = cfg.CONF
+all_fablib_map = {}
+requresive_fablib_map = {}
 
 
 # create directory, if directory not exists
@@ -29,8 +31,35 @@ def git_clone_required_fablib():
     for fablib_name, git_repo in CONF.fablib.items():
         git_clone(fablib_name, git_repo)
 
+    for fablib_name, git_repo in requresive_fablib_map.items():
+        git_clone_requresive(fablib_name, git_repo)
+
+    for fablib_name, git_repo in all_fablib_map.items():
+        git_pull(fablib_name, git_repo)
+
 
 def git_clone(fablib_name, git_repo):
+    fablib = os.path.join(CONF._fablib_module_dir, fablib_name)
+    fabfile_ini = os.path.join(fablib, 'test-repo', 'fabfile.ini')
+
+    if not os.path.exists(fablib):
+        cmd_gitclone = 'git clone {0} {1}'.format(git_repo, fablib)
+        print cmd_gitclone
+        (status, output) = commands.getstatusoutput(cmd_gitclone)
+        print output
+        if status != 0:
+            exit(0)
+
+    if os.path.exists(fabfile_ini):
+        EX_CONF = cfg.ConfigOpts()
+        EX_CONF([], default_config_files=[fabfile_ini])
+        EX_CONF.register_opts(conf_base.default_opts)
+        for fablib_name, git_repo in EX_CONF.fablib.items():
+            all_fablib_map[fablib_name] = git_repo
+            requresive_fablib_map[fablib_name] = git_repo
+
+
+def git_clone_requresive(fablib_name, git_repo):
     fablib = os.path.join(CONF._fablib_module_dir, fablib_name)
     if not os.path.exists(fablib):
         cmd_gitclone = 'git clone {0} {1}'.format(git_repo, fablib)
@@ -40,14 +69,25 @@ def git_clone(fablib_name, git_repo):
         if status != 0:
             exit(0)
 
+    fabfile_ini = os.path.join(fablib, 'test-repo', 'fabfile.ini')
+    if os.path.exists(fabfile_ini):
+        EX_CONF = cfg.ConfigOpts()
+        EX_CONF([], default_config_files=[fabfile_ini])
+        EX_CONF.register_opts(conf_base.default_opts)
+        for fablib_name, git_repo in EX_CONF.fablib.items():
+            all_fablib_map[fablib_name] = git_repo
+            git_clone_requresive(fablib_name, git_repo)
+
+
+def git_pull(fablib_name, git_repo):
+    fablib = os.path.join(CONF._fablib_module_dir, fablib_name)
     if os.path.exists(fablib):
-        config = ConfigParser.SafeConfigParser()
-        fablib_ini = os.path.join(fablib, 'fablib.ini')
-        if os.path.exists(fablib_ini):
-            config.read(fablib_ini)
-            for require_fablib_name in config.options('fablib'):
-                git_repo = config.get('fablib', require_fablib_name)
-                git_clone(require_fablib_name, git_repo)
+        cmd_gitclone = 'cd {0} && git pull'.format(fablib)
+        print cmd_gitclone
+        (status, output) = commands.getstatusoutput(cmd_gitclone)
+        print output
+        if status != 0:
+            exit(0)
 
 
 def create_required_dirs():

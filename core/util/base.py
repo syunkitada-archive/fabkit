@@ -2,7 +2,7 @@
 
 import os
 import itertools
-from fabkit import api
+from fabkit import api, util
 from oslo_config import generator, cfg
 from oslo_log import _options
 from fabkit.conf import conf_base, conf_fabric, conf_web, conf_test
@@ -53,3 +53,8 @@ def genconfig(conf_file='fabfile.ini.sample'):
         for opt in opts:
             formatter.write("\n")
             formatter.format(opt)
+
+
+@api.task
+def sync_fablib():
+    util.git_clone_required_fablib()
