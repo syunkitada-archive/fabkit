@@ -3,7 +3,7 @@
 from base import runserver  # noqa
 
 runserver.__doc__ = """
-Run web server.
+Run fab server. this is not implement.
 
 ## Args
 * [cluster_path/pattern],[find_depth]
@@ -16,10 +16,5 @@ Run web server.
 
 # Run server
 % fab runserver
-[localhost] Executing task 'runserver'
-(4148) wsgi starting up on http://0.0.0.0:8080/
-
-# If you after login also run server
-% nohup fab runserver &
 ```
 """

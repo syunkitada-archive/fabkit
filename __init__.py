@@ -22,7 +22,7 @@ conf_base.init(REPO_DIR)
 conf_fabric.init()
 
 util.create_required_dirs()
-util.git_clone_required_fablib()
+# util.git_clone_required_fablib()
 
 
 # register fabric tasks
@@ -33,3 +33,4 @@ from runserver import runserver  # noqa
 from fabtest import test  # noqa
 from doc import doc  # noqa
 from util import genconfig  # noqa
+from util import sync_fablib  # noqa
