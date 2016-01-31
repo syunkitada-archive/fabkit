@@ -1,5 +1,5 @@
 (function() {
-  var WARNING_STATUS_THRESHOLD, bind_shown_tab_event, chat_comment, datamap_tabs, fabscripts, filter, graph_links, graph_nodes, mode, node_cluster, node_clusters, render_all, render_datamap, render_force_panel, render_node_cluster, render_node_clusters, render_partition_panel, render_table_panel, render_user, room_clusters, socket, users,
+  var WARNING_STATUS_THRESHOLD, bind_shown_tab_event, chat_comment, datamap_tabs, fabscripts, filter, graph_links, graph_nodes, mark_chat_text, mode, node_cluster, node_clusters, render_all, render_datamap, render_force_panel, render_node_cluster, render_node_clusters, render_partition_panel, render_table_panel, render_user, room_clusters, socket, users,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   users = [];
@@ -171,87 +171,8 @@
     });
   });
 
-  socket = io(chat_connection + '/chat');
-
-  socket.on('connect', function() {
-    apps.log("connected: " + chat_connection);
-    return socket.emit('join_to_room', cluster, function(data) {
-      apps.log("joined " + cluster);
-      return apps.log(data);
-    });
-  });
-
-  chat_comment = null;
-
-  socket.on('message', function(message) {
-    var data, text;
-    data = JSON.parse(message);
-    apps.log(data);
-    text = data.text;
-    $('#chat-comments').prepend("<tr>\n  <td class=\"chat-icon\">\n    <span class=\"glyphicon glyphicon-user\"></span>\n  </td>\n  <td>\n    <span>" + data.user + "</span>\n    <span class=\"pull-right\">" + data.created_at + "</span>\n    <br>\n    " + (marked(text)) + "\n  </td>\n</tr>");
-    return chat_comment.focus();
-  });
-
-  socket.on('update_room', function(data) {
-    var room;
-    room = JSON.parse(data);
-    return console.log(room);
-  });
-
-  room_clusters = [];
-
-  socket.on('update_user_rooms', function(data) {
-    var room, roomdata, userrooms;
-    apps.log('on update_user_rooms');
-    apps.log(data);
-    userrooms = JSON.parse(data);
-    for (room in userrooms) {
-      roomdata = userrooms[room];
-      if (room === 'all') {
-        continue;
-      }
-      room_clusters.push(room);
-    }
-    room_clusters.sort();
-    room_clusters.splice(0, 0, 'all');
-    if (mode.current === mode.CHAT) {
-      return render_node_clusters(room_clusters);
-    }
-  });
-
-  socket.on('update_room_users', function(data) {
-    apps.log('on update_room_users');
-    return apps.log(data);
-  });
-
-  apps.init_chat = function() {
+  mark_chat_text = function() {
     var text, _i, _len, _ref, _results;
-    apps.log('called init_chat');
-    chat_comment = $('#chat-comment');
-    $('#chat-comment-submit').on('click', function(event) {
-      var msg;
-      msg = JSON.stringify({
-        "cluster": cluster,
-        "text": chat_comment.val()
-      });
-      if (msg) {
-        socket.emit('send_message', msg, function(data) {
-          return apps.log(data);
-        });
-      }
-      return $(chat_comment).val('');
-    });
-    $('#chat-leave-room').on('click', function(event) {
-      var that;
-      that = this;
-      console.log(that);
-      apps.log('clicked leave-room');
-      socket.emit('leave_from_room', cluster, function(data) {
-        console.log(data);
-        return location.href = that.href;
-      });
-      return false;
-    });
     _ref = $('.chat-text');
     _results = [];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -260,6 +181,88 @@
     }
     return _results;
   };
+
+  if (typeof io !== "undefined" && io !== null) {
+    socket = io(chat_connection + '/chat');
+    socket.on('connect', function() {
+      apps.log("connected: " + chat_connection);
+      return socket.emit('join_to_room', cluster, function(data) {
+        apps.log("joined " + cluster);
+        return apps.log(data);
+      });
+    });
+    chat_comment = null;
+    socket.on('message', function(message) {
+      var data, text;
+      data = JSON.parse(message);
+      apps.log(data);
+      text = data.text;
+      $('#chat-comments').prepend("<tr>\n  <td class=\"chat-icon\">\n    <span class=\"glyphicon glyphicon-user\"></span>\n  </td>\n  <td>\n    <span>" + data.user + "</span>\n    <span class=\"pull-right\">" + data.created_at + "</span>\n    <br>\n    " + (marked(text)) + "\n  </td>\n</tr>");
+      return chat_comment.focus();
+    });
+    socket.on('update_room', function(data) {
+      var room;
+      room = JSON.parse(data);
+      return console.log(room);
+    });
+    room_clusters = [];
+    socket.on('update_user_rooms', function(data) {
+      var room, roomdata, userrooms;
+      apps.log('on update_user_rooms');
+      apps.log(data);
+      userrooms = JSON.parse(data);
+      for (room in userrooms) {
+        roomdata = userrooms[room];
+        if (room === 'all') {
+          continue;
+        }
+        room_clusters.push(room);
+      }
+      room_clusters.sort();
+      room_clusters.splice(0, 0, 'all');
+      if (mode.current === mode.CHAT) {
+        return render_node_clusters(room_clusters);
+      }
+    });
+    socket.on('update_room_users', function(data) {
+      apps.log('on update_room_users');
+      return apps.log(data);
+    });
+    apps.init_chat = function() {
+      apps.log('called init_chat');
+      chat_comment = $('#chat-comment');
+      $('#chat-comment-submit').on('click', function(event) {
+        var msg;
+        msg = JSON.stringify({
+          "cluster": cluster,
+          "text": chat_comment.val()
+        });
+        if (msg) {
+          socket.emit('send_message', msg, function(data) {
+            return apps.log(data);
+          });
+        }
+        return $(chat_comment).val('');
+      });
+      $('#chat-leave-room').on('click', function(event) {
+        var that;
+        that = this;
+        console.log(that);
+        apps.log('clicked leave-room');
+        socket.emit('leave_from_room', cluster, function(data) {
+          console.log(data);
+          return location.href = that.href;
+        });
+        return false;
+      });
+      return mark_chat_text();
+    };
+  } else {
+    apps.init_chat = function() {
+      $('#chat-room-error').html('<p class="msg-box bg-danger">Chat is not available.</p>');
+      return mark_chat_text();
+    };
+  }
 
   render_partition_panel = function(panel_id, map) {
     var $svg, click, g, h, id, kx, ky, partition, root, svg, transform, vis, w, x, y;
@@ -527,6 +530,9 @@
     clusters_html = $("<div class=\"panel-group\" id=\"accordion\">\n</div>");
     expand_clusters = function(html, clusters, root_cluster) {
       var active, cluster_name, collapse_body, collapse_body_id, collapse_head_id, collapse_id, collapse_panel_id, name, parent_id, show, splited_cluster, tmp_clusters, tmp_name, tmp_root_cluster, _i, _len, _results;
+      if (clusters == null) {
+        return;
+      }
       parent_id = html.prop('id');
       _results = [];
       for (_i = 0, _len = clusters.length; _i < _len; _i++) {
