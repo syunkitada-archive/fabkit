@@ -17,6 +17,9 @@ render_node_clusters = (clusters)->
             </div>""")
 
     expand_clusters = (html, clusters, root_cluster) ->
+        if not clusters?
+            return
+
         parent_id = html.prop('id')
 
         for cluster_name in clusters
