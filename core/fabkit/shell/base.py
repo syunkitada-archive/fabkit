@@ -3,22 +3,29 @@
 import commands
 import re
 import os
+import time
 from fabkit import api, log
 from oslo_config import cfg
 
 CONF = cfg.CONF
 
 
-def cmd(cmd):
-    log_cmd = 'cmd> ' + cmd
+def cmd(cmd_str, retry_ttl=0, retry_interval=3):
+    log_cmd = 'cmd> ' + cmd_str
     log.info(log_cmd)
     print_for_test(log_cmd)
 
     if api.env.is_test:
         api.env.cmd_history.append(log_cmd)
-        result = (0, cmd)
+        result = (0, cmd_str)
     else:
-        result = commands.getstatusoutput(cmd)
+        result = commands.getstatusoutput(cmd_str)
+        if result[0] != 0:
+            log.info('failed cmd: {0}, ttl: {1}, sleep: {2}'.format(
+                cmd_str, retry_ttl, retry_interval))
+            if retry_ttl > 0:
+                time.sleep(retry_interval)
+                cmd(cmd_str, retry_ttl - 1, retry_interval)
 
     result_msg = 'return> {0[0]}  out>\n{0[1]}'.format(result)
     log.info(result_msg)
@@ -27,7 +34,7 @@ def cmd(cmd):
     return result
 
 
-def run(cmd, **kwargs):
+def run(cmd, retry_ttl=0, retry_interval=3, **kwargs):
     log_cmd = 'run> ' + cmd
     api.env.cmd_history.append(log_cmd)
     log.debug(log_cmd)
@@ -45,7 +52,7 @@ def run(cmd, **kwargs):
     return result
 
 
-def sudo(cmd, **kwargs):
+def sudo(cmd, retry_ttl=0, retry_interval=3, **kwargs):
     log_cmd = 'sudo> ' + cmd
     api.env.cmd_history.append(log_cmd)
     log.debug(log_cmd)
@@ -63,7 +70,7 @@ def sudo(cmd, **kwargs):
     return result
 
 
-def local(cmd, **kwargs):
+def local(cmd, retry_ttl=0, retry_interval=3, **kwargs):
     log_cmd = 'local> ' + cmd
     api.env.cmd_history.append(log_cmd)
     log.info(log_cmd)

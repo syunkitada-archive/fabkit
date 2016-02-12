@@ -50,6 +50,9 @@ default_opts = [
     cfg.IntOpt('max_recent_clusters',
                default=3,
                help='Max number of clusters save.'),
+    cfg.IntOpt('retry_interval',
+               default=3,
+               help='Interval for retry.'),
 ]
 
 

@@ -1,8 +1,9 @@
 # coding: utf-8
 
 import os
+import re
 import commands
-from fabkit import api
+from fabkit import env
 from fabkit.conf import conf_base
 from oslo_config import cfg
 import pickle
@@ -10,6 +11,8 @@ import pickle
 CONF = cfg.CONF
 all_fablib_map = {}
 requresive_fablib_map = {}
+re_giturl = re.compile('.*\.git')
+re_lndir = re.compile('ln:.*')
 
 
 # create directory, if directory not exists
@@ -24,15 +27,23 @@ def create_dir(directory, is_create_init_py=False):
                 print '"{0} is created."'.format(init_py)
 
 
-def git_clone_required_fablib():
-    if api.env.is_test:
-        return
+def git_clone_required_fablib(is_test=False):
+    if is_test:
+        for fablib_name, src in CONF.test.fablib.items():
+            if re_giturl.match(src):
+                git_clone(fablib_name, src)
+            elif re_lndir.match(src):
+                create_link(fablib_name, src)
 
-    for fablib_name, git_repo in CONF.fablib.items():
-        git_clone(fablib_name, git_repo)
+    for fablib_name, src in CONF.fablib.items():
+        if re_giturl.match(src):
+            git_clone(fablib_name, src)
+        elif re_lndir.match(src):
+            create_link(fablib_name, src)
 
-    for fablib_name, git_repo in requresive_fablib_map.items():
-        git_clone_requresive(fablib_name, git_repo)
+    for fablib_name, src in requresive_fablib_map.items():
+        if re_giturl.match(src):
+            git_clone_requresive(fablib_name, src)
 
     for fablib_name, git_repo in all_fablib_map.items():
         git_pull(fablib_name, git_repo)
@@ -57,6 +68,14 @@ def git_clone(fablib_name, git_repo):
         for fablib_name, git_repo in EX_CONF.fablib.items():
             all_fablib_map[fablib_name] = git_repo
             requresive_fablib_map[fablib_name] = git_repo
+
+
+def create_link(fablib_name, src):
+    fablib = os.path.join(CONF._fablib_module_dir, fablib_name)
+    src = src[3:]
+    if not os.path.exists(fablib):
+        print 'create link {0}'.format(fablib)
+        os.symlink(src, fablib)
 
 
 def git_clone_requresive(fablib_name, git_repo):
