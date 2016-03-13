@@ -2,10 +2,12 @@
 
 import os
 import itertools
+import commands
 from fabkit import api, util
 from oslo_config import generator, cfg
 from oslo_log import _options
 from fabkit.conf import conf_base, conf_fabric, conf_web, conf_test
+from swiftclient.service import SwiftService, SwiftUploadObject
 
 
 list_opts = [
@@ -15,6 +17,10 @@ list_opts = [
          conf_fabric.default_opts,
          _options.common_cli_opts,
          _options.logging_cli_opts,
+     )),
+    ('keystone',
+     itertools.chain(
+         conf_base.keystone_opts,
      )),
     ('logger',
      itertools.chain(
@@ -58,3 +64,40 @@ def genconfig(conf_file='fabfile.ini.sample'):
 @api.task
 def sync_fablib():
     util.git_clone_required_fablib()
+
+
+@api.task
+def upload():
+    print dict(CONF.keystone)
+    container = 'fabkit'
+    with SwiftService(options=dict(CONF.keystone)) as swift:
+        status, output = commands.getstatusoutput(
+            'rm -rf /tmp/fabkit-repo && '
+            'cp -r {0} /tmp/fabkit-repo && '
+            'rm -rf /tmp/fabkit-repo/fabfile/core/webapp && '
+            'rm -rf /tmp/fabkit-repo/storage/tmp && '
+            'find /tmp/fabkit-repo -name .git | xargs rm -rf && '
+            'find /tmp/fabkit-repo -name .tox | xargs rm -rf && '
+            'find /tmp/fabkit-repo -name test-repo | xargs rm -rf && '
+            'find /tmp/fabkit-repo -name *.pyc | xargs rm -rf && '
+            'cd /tmp/ && tar cf fabkit-repo.tar.gz fabkit-repo'.format(CONF._repo_dir))
+
+        objs = [
+            SwiftUploadObject('/tmp/fabkit-repo.tar.gz', 'fabkit-repo.tar.gz')
+        ]
+
+        for r in swift.upload(container, objs):
+            print r
+
+
+@api.task
+def client():
+    container = 'fabkit'
+    with SwiftService(options=dict(CONF.keystone)) as swift:
+        options = {
+            'out_directory': '/opt/fabkit/var/',
+        }
+        for r in swift.download(container, ['fabkit-repo.tar.gz'], options=options):
+            print r
+
+    # TODO setup:local
