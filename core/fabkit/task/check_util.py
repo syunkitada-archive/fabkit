@@ -47,7 +47,7 @@ def check_basic():
         }
 
     # Check ping
-    result = cmd(cmd_ping.format(env.host))
+    result = cmd(cmd_ping.format(env.host), retry_ttl=2, retry_interval=1)
     if result[0] != 0:
         log.warning(status.FAILED_CHECK_PING_MSG)
         return {

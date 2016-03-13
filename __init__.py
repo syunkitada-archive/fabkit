@@ -32,5 +32,4 @@ from databag import databag  # noqa
 from runserver import runserver  # noqa
 from fabtest import test  # noqa
 from doc import doc  # noqa
-from util import genconfig  # noqa
-from util import sync_fablib  # noqa
+from util import genconfig, sync_fablib, upload, client  # noqa

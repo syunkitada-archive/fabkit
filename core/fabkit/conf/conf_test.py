@@ -18,6 +18,9 @@ test_opts = [
                     'ubuntu14/',
                 ],
                 help='clusters for test'),
+    cfg.DictOpt('fablib',
+                default={},
+                help='fablib for test'),
 ]
 
 CONF.register_opts(test_opts, group='test')

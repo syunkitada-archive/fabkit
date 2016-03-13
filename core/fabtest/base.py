@@ -58,10 +58,11 @@ def test(target=None, t=None, cluster='.*', c=None, fabrun='.*', f=None,
     ])
 
     CONF.fablib = EX_CONF.fablib
+    CONF.test.fablib = EX_CONF.test.fablib
     CONF.test.clusters = EX_CONF.test.clusters
 
     util.create_required_dirs()
-    util.git_clone_required_fablib()
+    util.git_clone_required_fablib(is_test=True)
 
     CONF._unittests_dir = os.path.join(FABTEST_DIR, 'unittests')
 
@@ -76,9 +77,11 @@ def test(target=None, t=None, cluster='.*', c=None, fabrun='.*', f=None,
 
         env.disable_known_hosts = True
 
+        env.tasks.append('node:{0}'.format(cluster))
+        env.tasks.append('setup')
         for cluster in CONF.test.clusters:
             if re_cluster.search(cluster):
-                node(cluster)
+                node(cluster, 'yes')
                 setup(f=fabrun)
 
     if fablib is None:

@@ -50,6 +50,9 @@ default_opts = [
     cfg.IntOpt('max_recent_clusters',
                default=3,
                help='Max number of clusters save.'),
+    cfg.IntOpt('retry_interval',
+               default=3,
+               help='Interval for retry.'),
 ]
 
 
@@ -83,8 +86,24 @@ node_logger_opts = [
                help='backup count of node log file ([hostname].log)'),
 ]
 
+keystone_opts = [
+    cfg.StrOpt('os_auth_url',
+               default='http://localhost:5000/v2.0',
+               help=''),
+    cfg.StrOpt('os_tenant_name',
+               default='myfabkit',
+               help=''),
+    cfg.StrOpt('os_username',
+               default='myfabkit',
+               help=''),
+    cfg.StrOpt('os_password',
+               default='mypassword',
+               help=''),
+]
+
 
 CONF.register_opts(default_opts)
+CONF.register_opts(keystone_opts, group='keystone')
 CONF.register_opts(logger_opts, group='logger')
 CONF.register_opts(node_logger_opts, group='node_logger')
 
