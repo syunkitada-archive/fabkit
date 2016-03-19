@@ -88,7 +88,7 @@ def local(cmd, retry_ttl=0, retry_interval=3, **kwargs):
     return result
 
 
-def expect(cmd, expects=[], timeout=10, is_local=False, use_sudo=False):
+def expect(cmd, expects=[], timeout=10, is_local=False, user=None):
     expect_cmd = ''
     for expect in expects:
         expect_cmd += '''
@@ -107,8 +107,8 @@ interact
     if is_local:
         return local(cmd)
     else:
-        if use_sudo:
-            return sudo(cmd)
+        if user is not None:
+            return sudo(cmd, user=user)
         else:
             return run(cmd)
 
