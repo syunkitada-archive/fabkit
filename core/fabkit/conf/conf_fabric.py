@@ -18,6 +18,7 @@ env.shell = '/bin/bash -c'
 env.sudo_prefix = "sudo -SE -p '%(sudo_prompt)s' "
 env.colorize_errors = True
 env.is_test = False
+env.is_local = False
 env.is_setup = False
 env.is_check = False
 env.is_manage = False

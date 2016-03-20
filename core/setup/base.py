@@ -177,10 +177,10 @@ def run_func(func_names=[], *args, **kwargs):
 
                     func = getattr(module, candidate)
 
+                    # taskデコレータの付いているものだけ実行する
                     if not hasattr(func, 'is_task') or not func.is_task:
                         continue
 
-                    # taskデコレータの付いているものだけ実行する
                     if env.is_help:
                         print 'Task: {0}'.format(func.__name__)
                         print func.__doc__

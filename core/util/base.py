@@ -18,6 +18,10 @@ list_opts = [
          _options.common_cli_opts,
          _options.logging_cli_opts,
      )),
+    ('client',
+     itertools.chain(
+         conf_base.client_opts,
+     )),
     ('keystone',
      itertools.chain(
          conf_base.keystone_opts,
@@ -100,4 +104,17 @@ def client():
         for r in swift.download(container, ['fabkit-repo.tar.gz'], options=options):
             print r
 
-    # TODO setup:local
+    status, output = commands.getstatusoutput(
+        'cd /opt/fabkit/var && rm -rf fabkit-repo && tar xf fabkit-repo.tar.gz')
+
+    status, output = commands.getstatusoutput(
+        'cp {0} /opt/fabkit/var/fabkit-repo'.format(CONF._inifile))
+
+    for cluster in CONF.client.clusters:
+        print cluster
+        node = os.path.join(cluster, CONF.client.host)
+        for task in CONF.client.task_patterns:
+            status, output = commands.getstatusoutput(
+                '/opt/fabkit/bin/fab -f /opt/fabkit/var/fabkit-repo/fabfile '
+                'node:{0},local manage:{1}'.format(node, task))
+            print output

@@ -31,7 +31,7 @@ def create_src_file(dest, src_str):
 
 def __get_src_file(dest, src_dirname, src=None, src_file=None):
     if not src_file:
-        stack = inspect.stack()[1:-11]
+        stack = inspect.stack()
         srcs_dirs = []
         for frame in stack:
             file = frame[1]
@@ -72,7 +72,10 @@ def file(dest, mode='644', owner='root:root', src=None, src_file=None, src_str=N
             if not src_file:
                 src_file = __get_src_file(dest, src_dirname='files', src=src)
 
-            scp(src_file, dest)
+            if env.is_local:
+                sudo('cp {0} {1}'.format(src_file, dest))
+            else:
+                scp(src_file, dest)
             is_updated = True
 
     sudo('chmod -R {0} {1}'.format(mode, dest)
@@ -103,32 +106,45 @@ def template(dest, mode='644', owner='root:root', data={},
     local_tmp_dir = local_tmp_file.rsplit('/', 1)[0]
     mkdir(local_tmp_dir, is_local=True)
 
-    tmp_dir = tmp_path.rsplit('/', 1)[0]
-    mkdir(tmp_dir, mode='770', owner='{0}:root'.format(env.user))
-
     template = j2_env.get_template(src_file)
-
     if not env.is_test:
         with open(local_tmp_file, 'w') as exf:
             exf.write(template.render(**template_data).encode('utf-8'))
             if insert_eol_crlf:
                 exf.write('\n')
 
-    scp(local_tmp_file, tmp_path)
+    if env.is_local:
+        with api.warn_only():
+            if exists(dest):
+                result = sudo('diff {0} {1}'.format(dest, local_tmp_file))
+                if result.return_code != 0:
+                    sudo('mv {0} {1}_old'.format(dest, local_tmp_file))
+                    sudo('cp -f {0} {1}'.format(local_tmp_file, dest))
+                    is_updated = True
+                else:
+                    log.info('No change')
+            else:
+                sudo('diff /dev/null {1}'.format(dest, local_tmp_file))
+                sudo('cp -f {0} {1}'.format(local_tmp_file, dest))
+                is_updated = True
+    else:
+        tmp_dir = tmp_path.rsplit('/', 1)[0]
+        mkdir(tmp_dir, mode='770', owner='{0}:root'.format(env.user))
+        scp(local_tmp_file, tmp_path)
 
-    with api.warn_only():
-        if exists(dest):
-            result = sudo('diff {0} {1}'.format(dest, tmp_path))
-            if result.return_code != 0:
-                sudo('mv {0} {1}_old'.format(dest, tmp_path))
+        with api.warn_only():
+            if exists(dest):
+                result = sudo('diff {0} {1}'.format(dest, tmp_path))
+                if result.return_code != 0:
+                    sudo('mv {0} {1}_old'.format(dest, tmp_path))
+                    sudo('cp -f {0} {1}'.format(tmp_path, dest))
+                    is_updated = True
+                else:
+                    log.info('No change')
+            else:
+                sudo('diff /dev/null {1}'.format(dest, tmp_path))
                 sudo('cp -f {0} {1}'.format(tmp_path, dest))
                 is_updated = True
-            else:
-                log.info('No change')
-        else:
-            sudo('diff /dev/null {1}'.format(dest, tmp_path))
-            sudo('cp -f {0} {1}'.format(tmp_path, dest))
-            is_updated = True
 
     sudo('sh -c "chmod {0} {1}'.format(mode, dest)
          + ' && chown {0} {1}"'.format(owner, dest))
