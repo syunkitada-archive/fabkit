@@ -89,16 +89,28 @@ node_logger_opts = [
 keystone_opts = [
     cfg.StrOpt('os_auth_url',
                default='http://localhost:5000/v2.0',
-               help=''),
+               help='os_auth_url'),
     cfg.StrOpt('os_tenant_name',
                default='myfabkit',
-               help=''),
+               help='os_tenant_name'),
     cfg.StrOpt('os_username',
                default='myfabkit',
-               help=''),
+               help='os_username'),
     cfg.StrOpt('os_password',
                default='mypassword',
-               help=''),
+               help='os_password'),
+]
+
+client_opts = [
+    cfg.StrOpt('host',
+               default=None,
+               help='host'),
+    cfg.ListOpt('clusters',
+                default=[],
+                help='clusters'),
+    cfg.ListOpt('task_patterns',
+                default=['local.*', 'check.*'],
+                help='task_patterns'),
 ]
 
 
@@ -106,6 +118,7 @@ CONF.register_opts(default_opts)
 CONF.register_opts(keystone_opts, group='keystone')
 CONF.register_opts(logger_opts, group='logger')
 CONF.register_opts(node_logger_opts, group='node_logger')
+CONF.register_opts(client_opts, group='client')
 
 
 def init(repo_dir=None):
@@ -116,6 +129,7 @@ def init(repo_dir=None):
     else:
         CONF([])
 
+    CONF._inifile = INIFILE
     CONF._repo_dir = repo_dir
     CONF._storage_dir = complement_path(CONF.storage_dir)
     CONF._databag_dir = complement_path(CONF.databag_dir)

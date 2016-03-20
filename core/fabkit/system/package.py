@@ -18,7 +18,7 @@ class Package():
     def install(self, option=''):
         with api.warn_only():
             if env.node['package_manager'] == 'yum':
-                self.result = run('rpm -q {0}'.format(self.package_name), warn_only=True)
+                self.result = run('rpm -q {0}'.format(self.package_name))
                 if not self.result.return_code == 0:
                     if self.path:
                         self.result = sudo('yum install {0} -y {1}'.format(self.path, option))
@@ -27,8 +27,7 @@ class Package():
                             self.package_name, option))
 
             elif env.node['package_manager'] == 'apt':
-                self.result = run('dpkg -l {0} | grep "^ii "'.format(self.package_name),
-                                  warn_only=True)
+                self.result = run('dpkg -l {0} | grep "^ii "'.format(self.package_name))
                 if not self.result.return_code == 0:
                     if self.path:
                         self.result = sudo('apt-get install {0} -y {1}'.format(self.path, option))

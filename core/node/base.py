@@ -72,6 +72,9 @@ def node(*options):
                 find_depth = int(option)
             elif option == 'yes':
                 is_yes = True
+            elif option == 'local':
+                is_yes = True
+                env.is_local = True
 
         for task in env.tasks:
             if task.find('setup') == 0:

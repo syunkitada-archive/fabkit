@@ -4,7 +4,7 @@ import commands
 import re
 import os
 import time
-from fabkit import api, log
+from fabkit import api, log, env
 from oslo_config import cfg
 
 CONF = cfg.CONF
@@ -43,7 +43,10 @@ def run(cmd, retry_ttl=0, retry_interval=3, **kwargs):
     if api.env.is_test:
         result = test_cmd(cmd)
     else:
-        result = api.run(cmd, **kwargs)
+        if env.is_local:
+            result = local(cmd, **kwargs)
+        else:
+            result = api.run(cmd, **kwargs)
 
     result_msg = 'return> {0}  out>\n{1}'.format(result.return_code, result)
     log.debug(result_msg)
@@ -61,7 +64,10 @@ def sudo(cmd, retry_ttl=0, retry_interval=3, **kwargs):
     if api.env.is_test:
         result = test_cmd(cmd)
     else:
-        result = api.sudo(cmd, **kwargs)
+        if env.is_local:
+            result = local(cmd, **kwargs)
+        else:
+            result = api.sudo(cmd, **kwargs)
 
     result_msg = 'return> {0}  out>\n{1}'.format(result.return_code, result)
     log.debug(result_msg)
@@ -70,7 +76,7 @@ def sudo(cmd, retry_ttl=0, retry_interval=3, **kwargs):
     return result
 
 
-def local(cmd, retry_ttl=0, retry_interval=3, **kwargs):
+def local(cmd, retry_ttl=0, retry_interval=3, capture=True, **kwargs):
     log_cmd = 'local> ' + cmd
     api.env.cmd_history.append(log_cmd)
     log.info(log_cmd)
@@ -79,7 +85,7 @@ def local(cmd, retry_ttl=0, retry_interval=3, **kwargs):
     if api.env.is_test:
         result = test_cmd(cmd)
     else:
-        result = api.local(cmd, **kwargs)
+        result = api.local(cmd, capture=capture, **kwargs)
 
     result_msg = 'return> {0}'.format(result.return_code)
     log.info(result_msg)
