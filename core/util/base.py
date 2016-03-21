@@ -5,6 +5,8 @@ import itertools
 import commands
 from fabkit import api, util
 from oslo_config import generator, cfg
+from oslo_messaging._drivers import amqp
+from oslo_messaging._drivers import impl_rabbit
 from oslo_log import _options
 from fabkit.conf import conf_base, conf_fabric, conf_web, conf_test
 from swiftclient.service import SwiftService, SwiftUploadObject, SwiftError
@@ -34,6 +36,8 @@ list_opts = [
      itertools.chain(
          conf_base.node_logger_opts,
      )),
+    ('oslo_messaging_rabbit', itertools.chain(
+        itertools.chain(amqp.amqp_opts, impl_rabbit.rabbit_opts))),
     ('web',
      itertools.chain(
          conf_web.web_opts,
