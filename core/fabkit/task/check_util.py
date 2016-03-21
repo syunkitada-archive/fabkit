@@ -86,7 +86,7 @@ def set_ip():
                 '([0-9./]+) +dev +([a-zA-Z0-9\-]+) +proto +kernel +scope +link +src +([0-9.]+)',
                 result)
             default = re.findall(
-                'default +via +([0-9.]+) +dev +([a-zA-Z0-9\-]+) +.+', result)
+                'default +via +([0-9.]+) +dev +([a-zA-Z0-9\-]+)', result)
 
             dev = default[0][1].split(' ')[0]
             ips = {

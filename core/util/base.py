@@ -7,7 +7,7 @@ from fabkit import api, util
 from oslo_config import generator, cfg
 from oslo_log import _options
 from fabkit.conf import conf_base, conf_fabric, conf_web, conf_test
-from swiftclient.service import SwiftService, SwiftUploadObject
+from swiftclient.service import SwiftService, SwiftUploadObject, SwiftError
 
 
 list_opts = [
@@ -75,23 +75,48 @@ def upload():
     print dict(CONF.keystone)
     container = 'fabkit'
     with SwiftService(options=dict(CONF.keystone)) as swift:
-        status, output = commands.getstatusoutput(
-            'rm -rf /tmp/fabkit-repo && '
-            'cp -r {0} /tmp/fabkit-repo && '
-            'rm -rf /tmp/fabkit-repo/fabfile/core/webapp && '
-            'rm -rf /tmp/fabkit-repo/storage/tmp && '
-            'find /tmp/fabkit-repo -name .git | xargs rm -rf && '
-            'find /tmp/fabkit-repo -name .tox | xargs rm -rf && '
-            'find /tmp/fabkit-repo -name test-repo | xargs rm -rf && '
-            'find /tmp/fabkit-repo -name *.pyc | xargs rm -rf && '
-            'cd /tmp/ && tar cf fabkit-repo.tar.gz fabkit-repo'.format(CONF._repo_dir))
+        try:
+            status, output = commands.getstatusoutput(
+                'rm -rf /tmp/fabkit-repo && '
+                'cp -r {0} /tmp/fabkit-repo && '
+                'rm -rf /tmp/fabkit-repo/fabfile/core/webapp && '
+                'rm -rf /tmp/fabkit-repo/storage/tmp && '
+                'find /tmp/fabkit-repo -name .git | xargs rm -rf && '
+                'find /tmp/fabkit-repo -name .tox | xargs rm -rf && '
+                'find /tmp/fabkit-repo -name test-repo | xargs rm -rf && '
+                'find /tmp/fabkit-repo -name *.pyc | xargs rm -rf && '
+                'cd /tmp/ && tar cf fabkit-repo.tar.gz fabkit-repo'.format(CONF._repo_dir))
 
-        objs = [
-            SwiftUploadObject('/tmp/fabkit-repo.tar.gz', 'fabkit-repo.tar.gz')
-        ]
+            objs = [
+                SwiftUploadObject('/tmp/fabkit-repo.tar.gz', 'fabkit-repo.tar.gz')
+            ]
 
-        for r in swift.upload(container, objs):
-            print r
+            for r in swift.upload(container, objs):
+                if r['success']:
+                    if 'object' in r:
+                        print(r['object'])
+                    elif 'for_object' in r:
+                        print(
+                            '%s segment %s' % (r['for_object'],
+                                               r['segment_index'])
+                            )
+                else:
+                    error = r['error']
+                    if r['action'] == "create_container":
+                        print(
+                            'Warning: failed to create container '
+                            "'%s'", container
+                        )
+                    elif r['action'] == "upload_object":
+                        print(
+                            "Failed to upload object %s to container %s: %s" %
+                            (container, r['object'], error)
+                        )
+                    else:
+                        print("%s" % error)
+
+        except SwiftError as e:
+            print(e.value)
 
 
 @api.task
