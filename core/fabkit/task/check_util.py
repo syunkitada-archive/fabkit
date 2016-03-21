@@ -87,12 +87,15 @@ def set_ip():
                 result)
             default = re.findall(
                 'default +via +([0-9.]+) +dev +([a-zA-Z0-9\-]+) +.+', result)
+
+            dev = default[0][1].split(' ')[0]
             ips = {
                 'default': {
                     'ip': default[0][0],
-                    'dev': default[0][1],
+                    'dev': dev,
                 }
             }
+
             for dev in devs:
                 ip_data = {
                     'subnet': dev[0],

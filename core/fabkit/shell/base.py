@@ -44,7 +44,7 @@ def run(cmd, retry_ttl=0, retry_interval=3, **kwargs):
         result = test_cmd(cmd)
     else:
         if env.is_local:
-            result = local(cmd, **kwargs)
+            result = local(cmd)
         else:
             result = api.run(cmd, **kwargs)
 
@@ -65,7 +65,7 @@ def sudo(cmd, retry_ttl=0, retry_interval=3, **kwargs):
         result = test_cmd(cmd)
     else:
         if env.is_local:
-            result = local(cmd, **kwargs)
+            result = local(cmd)
         else:
             result = api.sudo(cmd, **kwargs)
 
