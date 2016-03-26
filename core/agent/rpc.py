@@ -15,25 +15,32 @@ class BaseRPCAPI(object):
 
     target = messaging.Target(namespace=_NAMESPACE, version='1.1')
 
-    def __init__(self, service_name, backdoor_port):
+    def __init__(self, service_name):
         self.service_name = service_name
-        self.backdoor_port = backdoor_port
 
     def ping(self, context, arg):
         resp = {'service': self.service_name, 'arg': arg}
         return jsonutils.to_primitive(resp)
 
-    def get_backdoor_port(self, context):
-        return self.backdoor_port
+    def stop():
+        pass
 
 
 def get_server(target, endpoints, serializer=None):
     transport = messaging.get_transport(CONF)
     serializer = RequestContextSerializer(serializer)
+
+    # https://bugs.launchpad.net/searchlight/+bug/1548260
+    # Start a non-daemon listener service with at least 1 worker,
+    # when press ctrl + c to terminate the service, some oslo messaging error messages show,
+    # and the worker process doesn't exit, it's still running.
+    # self.rpc_server = messaging.get_rpc_server(
+    #     transport, target, self.rpc_endpoints, executor='eventlet')
+
     return messaging.get_rpc_server(transport,
                                     target,
                                     endpoints,
-                                    executor='eventlet',
+                                    executor='threading',
                                     serializer=serializer)
 
 
