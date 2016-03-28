@@ -8,22 +8,26 @@ import fabcontext
 CONF = cfg.CONF
 
 _NAMESPACE = 'fabkit'
+_TOPIC = 'fabkit'
 
 
 class BaseRPCAPI(object):
     """Server side of the base RPC API."""
 
-    target = messaging.Target(namespace=_NAMESPACE, version='1.1')
-
-    def __init__(self, service_name):
+    def __init__(self, service_name, target):
+        self.target = target
         self.service_name = service_name
 
     def ping(self, context, arg):
         resp = {'service': self.service_name, 'arg': arg}
         return jsonutils.to_primitive(resp)
 
-    def stop():
-        pass
+
+class BaseAPI(object):
+    def __init__(self, target):
+        self.target = target
+        transport = messaging.get_transport(CONF)
+        self.client = messaging.RPCClient(transport, target)
 
 
 def get_server(target, endpoints, serializer=None):

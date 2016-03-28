@@ -6,7 +6,8 @@ from oslo_config import cfg
 from oslo_log import log
 from oslo_service import service
 from agent import AgentService
-from worker import WorkerService
+from central import CentralService
+from manager import manage
 
 CONF = cfg.CONF
 
@@ -21,7 +22,12 @@ def agent():
 
 
 @api.task
-def worker():
-    server = WorkerService()
+def agent_central():
+    server = CentralService()
     lancher = service.launch(CONF, server, workers=1)
     lancher.wait()
+
+
+@api.task
+def agent_manager(*args, **kwargs):
+    manage(*args, **kwargs)

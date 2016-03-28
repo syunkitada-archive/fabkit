@@ -2,7 +2,6 @@
 
 import rpc
 import objects
-import oslo_messaging as messaging
 from oslo_service import service
 from oslo_config import cfg
 from oslo_log import log as logging
@@ -25,9 +24,8 @@ class Service(service.Service):
         self.timers = []
 
         self.rpc_endpoints = [rpc_api]
-        target = messaging.Target(topic='test', server='server1')
         serializer = objects.FabObjectSerializer()
-        self.rpc_server = rpc.get_server(target, self.rpc_endpoints, serializer)
+        self.rpc_server = rpc.get_server(rpc_api.target, self.rpc_endpoints, serializer)
 
     def start(self, *args, **kwargs):
         super(Service, self).start()
