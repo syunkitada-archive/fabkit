@@ -5,6 +5,7 @@ import logging
 from oslo_config import cfg
 from oslo_log import log
 from utils import complement_path
+from oslo_db.options import database_opts
 
 from constant import (  # noqa
     INIFILE_NAME,
@@ -119,6 +120,7 @@ CONF.register_opts(keystone_opts, group='keystone')
 CONF.register_opts(logger_opts, group='logger')
 CONF.register_opts(node_logger_opts, group='node_logger')
 CONF.register_opts(client_opts, group='client')
+CONF.register_opts(database_opts, group='database')
 
 
 def init(repo_dir=None):
