@@ -1,6 +1,6 @@
 from __future__ import with_statement
 from alembic import context
-from sqlalchemy import engine_from_config, pool
+# from sqlalchemy import engine_from_config, pool
 from logging.config import fileConfig
 
 # for oslo
@@ -21,7 +21,7 @@ CONF = cfg.CONF
 db_dir = os.path.join(os.path.dirname(__file__), '../')
 sys.path.extend([db_dir])
 
-from db.sqlalchemy.models import Base
+from db.impl_sqlalchemy.models import Base
 target_metadata = Base.metadata
 
 

@@ -1,5 +1,6 @@
 # coding: utf-8
 
+from db import dbapi
 from service import Service
 from rpc import BaseRPCAPI, BaseAPI
 from oslo_service import periodic_task
@@ -10,6 +11,7 @@ import oslo_messaging as messaging
 from agent import AgentAPI
 
 CONF = cfg.CONF
+central_dbapi = dbapi.DBAPI()
 LOG = logging.getLogger(__name__)
 
 
@@ -25,6 +27,10 @@ class CentralManager(periodic_task.PeriodicTasks):
     def hello(self, context):
         LOG.info('hello')
         print 'hello'
+
+    @periodic_task.periodic_task(spacing=CONF._check_agent_interval)
+    def check_agent(self, context):
+        LOG.info('check_agent')
 
 
 class CentralRPCAPI(BaseRPCAPI):
@@ -54,12 +60,16 @@ class CentralRPCAPI(BaseRPCAPI):
         """
         print 'alarm'
 
-    def store(self, context, arg):
+    def update_agent(self, context, arg):
         """
         store metrics
         store server status
         """
         print 'store'
+        context['host']
+        context['agent_type']
+        context['heartbeat_timestamp']
+        central_dbapi.update_agent()
 
     def disable_node(self, context, arg):
         print 'disable node'

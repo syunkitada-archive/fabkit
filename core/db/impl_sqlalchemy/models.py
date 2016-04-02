@@ -17,7 +17,8 @@ class FabkitBase(models.ModelBase):
     __table_args__ = {'mysql_engine': 'InnoDB'}
 
     created_at = Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
-    updated_at = Column(DateTime, nullable=False, onupdate=datetime.datetime.now())
+    updated_at = Column(DateTime, nullable=False, default=datetime.datetime.utcnow,
+                        onupdate=datetime.datetime.utcnow)
 
 
 Base = declarative_base(cls=FabkitBase)

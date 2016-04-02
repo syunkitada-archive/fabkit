@@ -112,6 +112,12 @@ client_opts = [
     cfg.ListOpt('task_patterns',
                 default=['local.*', 'check.*'],
                 help='task_patterns'),
+    cfg.IntOpt('agent_report_interval',
+               default=60,
+               help='report_interval'),
+    cfg.IntOpt('agent_downtime',
+               default=120,
+               help='agent_downtime'),
 ]
 
 
@@ -134,7 +140,7 @@ def init(repo_dir=None):
     CONF._inifile = INIFILE
     CONF._repo_dir = repo_dir
     CONF._fabfile_dir = os.path.join(repo_dir, 'fabfile')
-    CONF._sqlalchemy_dir = os.path.join(CONF._fabfile_dir, 'core', 'db', 'sqlalchemy')
+    CONF._sqlalchemy_dir = os.path.join(CONF._fabfile_dir, 'core', 'db', 'impl_sqlalchemy')
     CONF._storage_dir = complement_path(CONF.storage_dir)
     CONF._databag_dir = complement_path(CONF.databag_dir)
     CONF._tmp_dir = os.path.join(CONF._storage_dir, 'tmp')
@@ -155,5 +161,7 @@ def init(repo_dir=None):
 
     CONF._logger_formatter = logging.Formatter(fmt=CONF.logger.format)
     CONF._logger_console_formatter = logging.Formatter(fmt=CONF.logger.console_format)
+
+    CONF._check_agent_interval = CONF.client.agent_downtime // 2
 
     log.setup(CONF, 'fabkit')

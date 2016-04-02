@@ -3,7 +3,7 @@
 ## init alembic_migrations
 ``` bash
 $ pwd
-./fabkit-repo/fabfile/core/db/sqlalchemy/
+./fabkit-repo/fabfile/core/db/impl_sqlalchemy/
 
 $ alembic init alembic_migrations
   Creating directory ./alembic_migrations ... done
@@ -16,7 +16,7 @@ $ alembic init alembic_migrations
   Please edit configuration/connection/logging settings in './alembic.ini' before proceeding.
 
 $ pwd
-./fabkit-repo/fabfile/core/db/sqlalchemy/alembic_migrations
+./fabkit-repo/fabfile/core/db/impl_sqlalchemy/alembic_migrations
 
 # edit env.py for oslo_config
 $ vim env.py
@@ -39,7 +39,7 @@ $ vim env.py
 > db_dir = os.path.join(os.path.dirname(__file__), '../')
 > sys.path.extend([db_dir])
 >
-> from db.sqlalchemy.models import Base
+> from db.impl_sqlalchemy.models import Base
 > target_metadata = Base.metadata
 >
 >
