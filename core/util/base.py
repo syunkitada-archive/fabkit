@@ -3,6 +3,7 @@
 import os
 import itertools
 import commands
+import subprocess
 from fabkit import api, util
 from oslo_config import generator, cfg
 from oslo_messaging._drivers import amqp
@@ -11,7 +12,6 @@ from oslo_db.options import database_opts
 from oslo_log import _options
 from fabkit.conf import conf_base, conf_fabric, conf_web, conf_test
 from swiftclient.service import SwiftService, SwiftUploadObject, SwiftError
-import db
 
 
 list_opts = [
@@ -156,6 +156,5 @@ def client():
 
 
 @api.task
-def db_sync():
-    connection = db.Connection()
-    connection.db_sync()
+def sync_db():
+    subprocess.call('cd {0} && alembic upgrade head'.format(CONF._sqlalchemy_dir), shell=True)

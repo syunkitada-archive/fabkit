@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from base import genconfig, sync_fablib, upload, client, db_sync  # noqa
+from base import genconfig, sync_fablib, upload, client, sync_db  # noqa
 
 genconfig.__doc__ = """
 Generate config.
@@ -18,6 +18,6 @@ client.__doc__ = """
 Download fabric-repo from swift, and run $ fab setup:local.
 """
 
-db_sync.__doc__ = """
+sync_db.__doc__ = """
 Sync db.
 """

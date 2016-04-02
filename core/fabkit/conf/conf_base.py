@@ -133,6 +133,8 @@ def init(repo_dir=None):
 
     CONF._inifile = INIFILE
     CONF._repo_dir = repo_dir
+    CONF._fabfile_dir = os.path.join(repo_dir, 'fabfile')
+    CONF._sqlalchemy_dir = os.path.join(CONF._fabfile_dir, 'core', 'db', 'sqlalchemy')
     CONF._storage_dir = complement_path(CONF.storage_dir)
     CONF._databag_dir = complement_path(CONF.databag_dir)
     CONF._tmp_dir = os.path.join(CONF._storage_dir, 'tmp')
