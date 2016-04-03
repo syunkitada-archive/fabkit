@@ -32,3 +32,25 @@ class Agent(Base):
     host = Column(String(255), nullable=False)
     # updated when agents report
     heartbeat_timestamp = Column(DateTime, nullable=False)
+    # active, down, disable
+    status = Column(String(55), nullable=False)
+    # ok, warning, critical
+    err_status = Column(String(55), nullable=False)
+    # warn errors
+    warn_errs_len = Column(Integer, nullable=False)
+    # count crit total_errors
+    crit_errs_len = Column(Integer, nullable=False)
+    # json warn errors: [{"title": "hoge", "status": "warn", "msg": "hoge"}, ...]
+    warn_errs = Column(String(1000), nullable=False)
+    # json crit errors: [{"title": "hoge", "status": "crit", "msg": "hoge"}, ...]
+    crit_errs = Column(String(1000), nullable=False)
+
+
+class Alarm(Base):
+    __tablename__ = 'alarm'
+    host = Column(String(255), nullable=False)
+    title = Column(String(55), nullable=False)
+    msg = Column(String(255), nullable=False)
+    status = Column(String(55), nullable=False)
+    task = Column(String(55), nullable=False)
+    scheduled_time = Column(DateTime, nullable=False)

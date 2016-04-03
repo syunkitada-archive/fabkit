@@ -156,5 +156,5 @@ def client():
 
 
 @api.task
-def sync_db():
+def sync_db(*args, **kwargs):
     subprocess.call('cd {0} && alembic upgrade head'.format(CONF._sqlalchemy_dir), shell=True)

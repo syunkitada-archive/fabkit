@@ -21,7 +21,6 @@ class DBAPI():
         with self.session.begin():
             try:
                 agent = self.get_agent(agent_data['agent_type'], agent_data['host'])
-                agent_data['heartbeat_timestamp'] = datetime.datetime.utcnow()
                 agent.update(agent_data)
 
             except exc.NoResultFound:

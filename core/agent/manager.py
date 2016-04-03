@@ -18,9 +18,18 @@ def manage(*args, **kwargs):
 
     elif 'test' in args:
         central_dbapi = dbapi.DBAPI()
+        import datetime
         agent_data = {
             'agent_type': 'agent',
             'host': 'localhost',
+            'heartbeat_timestamp': datetime.datetime.utcnow(),
+            'status': 'active',
+            'err_status': 'ok',
+            'last_warn_errs_len': '',
+            'last_crit_errs_len': '',
+            'last_warn_errs': '',
+            'last_crit_errs': '',
         }
+
         print central_dbapi.create_or_update_agent(agent_data)
         print central_dbapi.get_agent('agent', 'localhost')
