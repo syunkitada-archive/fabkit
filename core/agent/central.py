@@ -1,14 +1,15 @@
 # coding: utf-8
 
 from db import dbapi
-from service import Service
-from rpc import BaseRPCAPI, BaseAPI
+import datetime
+import service
+import rpc
+import agent
 from oslo_service import periodic_task
 from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_serialization import jsonutils
 import oslo_messaging as messaging
-from agent import AgentAPI
 
 CONF = cfg.CONF
 central_dbapi = dbapi.DBAPI()
@@ -19,6 +20,7 @@ class CentralManager(periodic_task.PeriodicTasks):
     def __init__(self):
         super(CentralManager, self).__init__(CONF)
         self.service_name = 'agent'
+        self.central_dbapi = dbapi.DBAPI()
 
     def periodic_tasks(self, context, raise_on_error=False):
         return self.run_periodic_tasks(context, raise_on_error=raise_on_error)
@@ -31,16 +33,28 @@ class CentralManager(periodic_task.PeriodicTasks):
     @periodic_task.periodic_task(spacing=CONF._check_agent_interval)
     def check_agent(self, context):
         LOG.info('check_agent')
+        self.central_dbapi.check_agents()
+
+    @periodic_task.periodic_task(spacing=CONF.client.check_event_interval)
+    def check_event(self, context):
+        LOG.info('check_event')
+        self.central_dbapi.check_events()
+
+    @periodic_task.periodic_task(spacing=CONF.client.delete_event_interval)
+    def delete_event(self, context):
+        LOG.info('delete_event')
+        self.central_dbapi.delete_events()
 
 
-class CentralRPCAPI(BaseRPCAPI):
+class CentralRPCAPI(rpc.BaseRPCAPI):
     def __init__(self):
         target = messaging.Target(topic='central', version='2.0', server='server1')
+        self.central_dbapi = dbapi.DBAPI()
         super(CentralRPCAPI, self).__init__('central', target)
 
     def setup(self, context, arg):
         LOG.info('setup')
-        agentapi = AgentAPI()
+        agentapi = agent.AgentAPI()
         result = agentapi.setup()
         print result
         resp = {'result': result}
@@ -60,16 +74,9 @@ class CentralRPCAPI(BaseRPCAPI):
         """
         print 'alarm'
 
-    def update_agent(self, context, arg):
-        """
-        store metrics
-        store server status
-        """
-        print 'store'
-        context['host']
-        context['agent_type']
-        context['heartbeat_timestamp']
-        central_dbapi.update_agent()
+    def notify(self, context, agent_data):
+        LOG.info('notify')
+        self.central_dbapi.create_or_update_agent(agent_data)
 
     def disable_node(self, context, arg):
         print 'disable node'
@@ -78,7 +85,7 @@ class CentralRPCAPI(BaseRPCAPI):
         print 'disable node'
 
 
-class CentralAPI(BaseAPI):
+class CentralAPI(rpc.BaseAPI):
     def __init__(self):
         target = messaging.Target(topic='central', version='2.0')
         super(CentralAPI, self).__init__(target)
@@ -86,8 +93,11 @@ class CentralAPI(BaseAPI):
     def setup(self):
         return self.client.call({}, 'setup', arg='')
 
+    def notify(self, agent_data):
+        return self.client.call({}, 'notify', agent_data=agent_data)
 
-class CentralService(Service):
+
+class CentralService(service.Service):
 
     def __init__(self):
         super(CentralService, self).__init__(CentralManager(), CentralRPCAPI())

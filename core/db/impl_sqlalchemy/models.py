@@ -3,7 +3,7 @@
 import datetime
 from oslo_db.sqlalchemy import models
 from sqlalchemy import (Column, Integer, String, ForeignKey, Index, DateTime,
-                        UniqueConstraint, BigInteger, MetaData)
+                        Boolean, UniqueConstraint, BigInteger, MetaData)
 
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -30,27 +30,30 @@ class Agent(Base):
     agent_type = Column(String(255), nullable=False)
     # TOPIC.host is a target topic
     host = Column(String(255), nullable=False)
-    # updated when agents report
+
+    # heatbeat
     heartbeat_timestamp = Column(DateTime, nullable=False)
     # active, down, disable
     status = Column(String(55), nullable=False)
+
+    # setup
+    setup_timestamp = Column(DateTime, nullable=False)
+    setup_status = Column(String(55), nullable=False)
+
+    # check
     # ok, warning, critical
-    err_status = Column(String(55), nullable=False)
-    # warn errors
-    warn_errs_len = Column(Integer, nullable=False)
-    # count crit total_errors
-    crit_errs_len = Column(Integer, nullable=False)
-    # json warn errors: [{"title": "hoge", "status": "warn", "msg": "hoge"}, ...]
-    warn_errs = Column(String(1000), nullable=False)
-    # json crit errors: [{"title": "hoge", "status": "crit", "msg": "hoge"}, ...]
-    crit_errs = Column(String(1000), nullable=False)
+    check_status = Column(Integer, nullable=False)
+
+    # fabscript_map
+    fabscript_map = Column(String(1000), nullable=False)
 
 
-class Alarm(Base):
-    __tablename__ = 'alarm'
+class Event(Base):
+    __tablename__ = 'event'
+    # check, setup
+    event_type = Column(String(255), nullable=False)
     host = Column(String(255), nullable=False)
-    title = Column(String(55), nullable=False)
+    fabscript = Column(String(255), nullable=False)
     msg = Column(String(255), nullable=False)
-    status = Column(String(55), nullable=False)
-    task = Column(String(55), nullable=False)
-    scheduled_time = Column(DateTime, nullable=False)
+    status = Column(Integer(), nullable=False)
+    hooked = Column(Boolean(), nullable=False, default=False)

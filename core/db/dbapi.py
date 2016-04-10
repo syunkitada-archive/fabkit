@@ -4,7 +4,8 @@ import datetime
 from oslo_config import cfg
 from oslo_db.sqlalchemy import session as db_session
 from sqlalchemy.orm import exc
-from impl_sqlalchemy.models import Agent
+from impl_sqlalchemy import models
+from fabkit import util
 
 CONF = cfg.CONF
 
@@ -26,13 +27,77 @@ class DBAPI():
             except exc.NoResultFound:
                 print 'DEBUG'
                 agent_data['heartbeat_timestamp'] = datetime.datetime.utcnow()
-                agent = Agent(**agent_data)
+                agent = models.Agent(**agent_data)
                 self.session.add(agent)
 
         return agent
 
+    def get_session(self):
+        return self.session
+
     def get_agent(self, agent_type, host):
-        query = self.session.query(Agent)
-        agent = query.filter(Agent.agent_type == agent_type,
-                             Agent.host == host).one()
+        query = self.session.query(models.Agent)
+        agent = query.filter(models.Agent.agent_type == agent_type,
+                             models.Agent.host == host).one()
         return agent
+
+    def get_agents(self):
+        query = self.session.query(models.Agent)
+        agents = query.filter().all()
+        return agents
+
+    def check_agents(self):
+        agents = self.get_agents()
+
+        events = []
+        now = datetime.datetime.utcnow()
+        with self.session.begin():
+            for agent in agents:
+                if CONF.client.agent_downtime > (now - agent.heartbeat_timestamp).total_seconds():
+                    if agent.status == 'down':
+                        self.create_event({
+                            'host': agent.host,
+                            'event_type': 'check',
+                            'fabscript': 'heartbeat',
+                            'msg': 'status change from down to active',
+                            'status': 0,
+                        })
+
+                    agent.status = 'active'
+                else:
+                    if agent.status == 'active':
+                        self.create_event({
+                            'host': agent.host,
+                            'event_type': 'check',
+                            'fabscript': 'heartbeat',
+                            'msg': 'status change from active to down',
+                            'status': 10000,
+                        })
+
+                    agent.status = 'down'
+
+        for event in events:
+            self.create_event(self, event)
+
+    def create_event(self, event_data):
+        event = models.Event(**event_data)
+        self.session.add(event)
+
+    def check_events(self):
+        query = self.session.query(models.Event)
+        events = query.filter(models.Event.hooked == 0).all()
+
+        util.event_handler.hook(events)
+        with self.session.begin():
+            for event in events:
+                event.hooked = 1
+
+    def delete_events(self):
+        query = self.session.query(models.Event)
+        current_time = datetime.datetime.utcnow()
+        delete_event_at = current_time - datetime.timedelta(
+            seconds=CONF.client.delete_event_interval)
+
+        with self.session.begin():
+            query.filter(models.Event.hooked == 1,
+                         models.Event.created_at < delete_event_at).delete()

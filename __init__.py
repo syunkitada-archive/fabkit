@@ -22,6 +22,7 @@ conf_base.init(REPO_DIR)
 conf_fabric.init()
 
 util.create_required_dirs()
+util.event_handler.init()
 # util.git_clone_required_fablib()
 
 
