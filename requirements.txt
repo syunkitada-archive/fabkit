@@ -10,3 +10,4 @@ python-swiftclient==3.0.0
 python-keystoneclient==2.3.1
 oslo.versionedobjects==1.7.0
 oslo.db==4.6.0
+PyMySQL==0.7.2

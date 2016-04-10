@@ -1,7 +1,9 @@
 # coding: utf-8
 
-from rpc import BaseRPCAPI, BaseAPI
-from service import Service
+import datetime
+import rpc
+import service
+import central
 from oslo_service import periodic_task
 from oslo_config import cfg
 from oslo_log import log as logging
@@ -16,17 +18,30 @@ class AgentManager(periodic_task.PeriodicTasks):
     def __init__(self):
         super(AgentManager, self).__init__(CONF)
         self.service_name = 'agent'
+        self.centralapi = central.CentralAPI()
 
     def periodic_tasks(self, context, raise_on_error=False):
         return self.run_periodic_tasks(context, raise_on_error=raise_on_error)
 
     @periodic_task.periodic_task(spacing=3)
-    def hello(self, context):
-        LOG.info('hello')
-        print 'hello'
+    def check(self, context):
+        LOG.info('start check')
+
+        agent_data = {
+            'agent_type': 'agent',
+            'host': 'localhost',
+            'heartbeat_timestamp': datetime.datetime.utcnow(),
+            'status': 'active',
+            'setup_timestamp': datetime.datetime.utcnow(),
+            'setup_status': 0,
+            'check_status': 0,
+            'fabscript_map': '{}',
+        }
+
+        self.centralapi.notify(agent_data)
 
 
-class AgentRPCAPI(BaseRPCAPI):
+class AgentRPCAPI(rpc.BaseRPCAPI):
     def __init__(self):
         target = messaging.Target(topic='agent', version='2.0', server='server2')
         super(AgentRPCAPI, self).__init__('agent', target)
@@ -39,7 +54,7 @@ class AgentRPCAPI(BaseRPCAPI):
         return jsonutils.to_primitive(resp)
 
 
-class AgentAPI(BaseAPI):
+class AgentAPI(rpc.BaseAPI):
     def __init__(self):
         target = messaging.Target(topic='agent', version='2.0', fanout=True)
         super(AgentAPI, self).__init__(target)
@@ -48,7 +63,7 @@ class AgentAPI(BaseAPI):
         return self.client.cast({}, 'setup', arg='')
 
 
-class AgentService(Service):
+class AgentService(service.Service):
 
     def __init__(self):
         super(AgentService, self).__init__(AgentManager(), AgentRPCAPI())

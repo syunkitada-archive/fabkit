@@ -22,6 +22,7 @@ conf_base.init(REPO_DIR)
 conf_fabric.init()
 
 util.create_required_dirs()
+util.event_handler.init()
 # util.git_clone_required_fablib()
 
 
@@ -33,4 +34,4 @@ from runserver import runserver  # noqa
 from agent import agent, agent_central, agent_manager  # noqa
 from fabtest import test  # noqa
 from doc import doc  # noqa
-from util import genconfig, sync_fablib, upload, client  # noqa
+from util import genconfig, sync_fablib, upload, client, sync_db  # noqa

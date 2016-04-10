@@ -5,6 +5,7 @@ import logging
 from oslo_config import cfg
 from oslo_log import log
 from utils import complement_path
+from oslo_db.options import database_opts
 
 from constant import (  # noqa
     INIFILE_NAME,
@@ -32,6 +33,9 @@ default_opts = [
     cfg.StrOpt('node_dir',
                default='nodes',
                help='node dir'),
+    cfg.StrOpt('handler_dir',
+               default='handlers',
+               help='handler dir'),
     cfg.StrOpt('fabscript_module',
                default='fabscript',
                help='fabscript_module is module including user\'s scripts of fabric.'
@@ -111,6 +115,18 @@ client_opts = [
     cfg.ListOpt('task_patterns',
                 default=['local.*', 'check.*'],
                 help='task_patterns'),
+    cfg.IntOpt('agent_report_interval',
+               default=60,
+               help='report_interval'),
+    cfg.IntOpt('agent_downtime',
+               default=120,
+               help='agent_downtime'),
+    cfg.IntOpt('check_event_interval',
+               default=60,
+               help='check_event_interval'),
+    cfg.IntOpt('delete_event_interval',
+               default=180,
+               help='delete_event_interval'),
 ]
 
 
@@ -119,6 +135,7 @@ CONF.register_opts(keystone_opts, group='keystone')
 CONF.register_opts(logger_opts, group='logger')
 CONF.register_opts(node_logger_opts, group='node_logger')
 CONF.register_opts(client_opts, group='client')
+CONF.register_opts(database_opts, group='database')
 
 
 def init(repo_dir=None):
@@ -131,7 +148,10 @@ def init(repo_dir=None):
 
     CONF._inifile = INIFILE
     CONF._repo_dir = repo_dir
+    CONF._fabfile_dir = os.path.join(repo_dir, 'fabfile')
+    CONF._sqlalchemy_dir = os.path.join(CONF._fabfile_dir, 'core', 'db', 'impl_sqlalchemy')
     CONF._storage_dir = complement_path(CONF.storage_dir)
+    CONF._handler_dir = complement_path(CONF.handler_dir)
     CONF._databag_dir = complement_path(CONF.databag_dir)
     CONF._tmp_dir = os.path.join(CONF._storage_dir, 'tmp')
     CONF._log_dir = os.path.join(CONF._storage_dir, 'log')
@@ -151,5 +171,7 @@ def init(repo_dir=None):
 
     CONF._logger_formatter = logging.Formatter(fmt=CONF.logger.format)
     CONF._logger_console_formatter = logging.Formatter(fmt=CONF.logger.console_format)
+
+    CONF._check_agent_interval = CONF.client.agent_downtime // 2
 
     log.setup(CONF, 'fabkit')

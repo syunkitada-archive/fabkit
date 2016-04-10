@@ -3,10 +3,12 @@
 import os
 import itertools
 import commands
+import subprocess
 from fabkit import api, util
 from oslo_config import generator, cfg
 from oslo_messaging._drivers import amqp
 from oslo_messaging._drivers import impl_rabbit
+from oslo_db.options import database_opts
 from oslo_log import _options
 from fabkit.conf import conf_base, conf_fabric, conf_web, conf_test
 from swiftclient.service import SwiftService, SwiftUploadObject, SwiftError
@@ -35,6 +37,10 @@ list_opts = [
     ('node_logger',
      itertools.chain(
          conf_base.node_logger_opts,
+     )),
+    ('database',
+     itertools.chain(
+         database_opts,
      )),
     ('oslo_messaging_rabbit', itertools.chain(
         itertools.chain(amqp.amqp_opts, impl_rabbit.rabbit_opts))),
@@ -147,3 +153,8 @@ def client():
                 '/opt/fabkit/bin/fab -f /opt/fabkit/var/fabkit-repo/fabfile '
                 'node:{0},local manage:{1}'.format(node, task))
             print output
+
+
+@api.task
+def sync_db(*args, **kwargs):
+    subprocess.call('cd {0} && alembic upgrade head'.format(CONF._sqlalchemy_dir), shell=True)
