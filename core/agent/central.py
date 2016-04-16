@@ -1,7 +1,6 @@
 # coding: utf-8
 
 from db import dbapi
-import datetime
 import service
 import rpc
 import agent
@@ -12,7 +11,6 @@ from oslo_serialization import jsonutils
 import oslo_messaging as messaging
 
 CONF = cfg.CONF
-central_dbapi = dbapi.DBAPI()
 LOG = logging.getLogger(__name__)
 
 
