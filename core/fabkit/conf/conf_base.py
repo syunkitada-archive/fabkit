@@ -59,6 +59,11 @@ default_opts = [
                help='Interval for retry.'),
 ]
 
+cluster_opts = [
+    cfg.DictOpt('database_map',
+                default={},
+                help='database_map'),
+]
 
 logger_opts = [
     cfg.StrOpt('level',
@@ -131,6 +136,7 @@ client_opts = [
 
 
 CONF.register_opts(default_opts)
+CONF.register_opts(cluster_opts, group='cluster')
 CONF.register_opts(keystone_opts, group='keystone')
 CONF.register_opts(logger_opts, group='logger')
 CONF.register_opts(node_logger_opts, group='node_logger')

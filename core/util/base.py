@@ -22,6 +22,10 @@ list_opts = [
          _options.common_cli_opts,
          _options.logging_cli_opts,
      )),
+    ('cluster',
+     itertools.chain(
+         conf_base.cluster_opts,
+     )),
     ('client',
      itertools.chain(
          conf_base.client_opts,

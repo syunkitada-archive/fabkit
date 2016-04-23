@@ -64,6 +64,7 @@ INSTALLED_APPS = (
     'web_apps.home',
     'web_apps.user',
     'web_apps.node',
+    'web_apps.agent',
     'web_apps.chat',
     'web_lib',
 )
@@ -128,3 +129,8 @@ USE_L10N = True
 USE_TZ = True
 
 LOGIN_URL = '/user/login/'
+
+try:
+    from local_settings import *  # noqa
+except ImportError:
+    logging.warning("No local_settings file found.")

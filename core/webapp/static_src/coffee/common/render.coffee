@@ -72,6 +72,10 @@ apps.init = ->
         mode.current = mode.CHAT
         render_node_clusters(room_clusters)
 
+    if location.pathname.indexOf('/agent/') == 0
+        mode.current = mode.CHAT
+        render_node_clusters(agent_clusters)
+
     render_all()
 
     apps.init_chat()

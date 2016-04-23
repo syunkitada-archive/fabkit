@@ -12,9 +12,10 @@ CONF = cfg.CONF
 
 class DBAPI():
 
-    def __init__(self, target='central'):
+    def __init__(self, url=None):
         options = dict(CONF.database.items())
-        url = options['connection']
+        if url is None:
+            url = options['connection']
         self.engine_facade = db_session.EngineFacade(url, **options)
         self.session = self.engine_facade.get_session()
 

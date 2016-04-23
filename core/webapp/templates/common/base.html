@@ -42,6 +42,8 @@
                 <ul class="nav navbar-nav navbar-left">
                     <li class="{% if namespace == 'node' %}active{% endif %}">
                         <a class="pjax" href="{% url 'node:index' %}">Node</a></li>
+                    <li class="{% if namespace == 'agent' %}active{% endif %}">
+                        <a class="pjax" href="{% url 'agent:index' %}">Agent</a></li>
                     <li class="{% if namespace == 'user' %}active{% endif %}">
                         <a class="pjax" href="{% url 'user:index' %}">User</a></li>
                     <li class="{% if namespace == 'chat' %}active{% endif %}">
