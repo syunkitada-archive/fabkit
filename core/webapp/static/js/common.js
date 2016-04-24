@@ -1,5 +1,5 @@
 (function() {
-  var WARNING_STATUS_THRESHOLD, bind_shown_tab_event, chat_comment, datamap_tabs, fabscripts, filter, graph_links, graph_nodes, mark_chat_text, mode, node_cluster, node_clusters, render_all, render_datamap, render_force_panel, render_node_cluster, render_node_clusters, render_partition_panel, render_table_panel, render_user, room_clusters, socket, users,
+  var WARNING_STATUS_THRESHOLD, agent_cluster, agent_clusters, bind_shown_tab_event, chat_comment, datamap_tabs, fabscripts, filter, graph_links, graph_nodes, mark_chat_text, mode, node_cluster, node_clusters, render_all, render_datamap, render_force_panel, render_node_cluster, render_node_clusters, render_partition_panel, render_table_panel, render_user, room_clusters, socket, users,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   users = [];
@@ -7,6 +7,10 @@
   node_cluster = {};
 
   node_clusters = [];
+
+  agent_cluster = {};
+
+  agent_clusters = [];
 
   fabscripts = [];
 
@@ -519,6 +523,14 @@
       if (cluster_path === '') {
         cluster_path = 'recent';
       }
+    }
+    if (mode.current === mode.AGENT) {
+      paths = location.pathname.split('agent/');
+      page = 'agent';
+      cluster_path = paths[1].slice(0, -1);
+      if (cluster_path === '') {
+        cluster_path = 'recent';
+      }
     } else if (mode.current === mode.CHAT) {
       paths = location.pathname.split('chat/');
       page = 'chat';
@@ -826,6 +838,11 @@
     if (node_cluster.length > 0) {
       mode.current = mode.NODE;
       node_cluster = JSON.parse(node_cluster.html());
+    }
+    if (location.pathname.indexOf('/agent/') === 0) {
+      mode.current = mode.AGENT;
+      agent_clusters = JSON.parse($('#agent_clusters').html());
+      render_node_clusters(agent_clusters);
     }
     if (location.pathname.indexOf('/chat/') === 0) {
       mode.current = mode.CHAT;

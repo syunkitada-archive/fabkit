@@ -1,6 +1,8 @@
 users = []
 node_cluster = {}
 node_clusters = []
+agent_cluster = {}
+agent_clusters = []
 fabscripts = []
 datamap_tabs = ['status', 'relation']
 

@@ -27,6 +27,7 @@ urlpatterns = patterns(
     # url(r'^blog/', include('blog.urls')),
 
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^agent/', include('web_apps.agent.urls', namespace='agent')),
     url(r'^node/', include('web_apps.node.urls', namespace='node')),
     url(r'^user/', include('web_apps.user.urls', namespace='user')),
     url(r'^chat/', include('web_apps.chat.urls', namespace='chat')),

@@ -68,6 +68,11 @@ apps.init = ->
         mode.current = mode.NODE
         node_cluster = JSON.parse(node_cluster.html())
 
+    if location.pathname.indexOf('/agent/') == 0
+        mode.current = mode.AGENT
+        agent_clusters = JSON.parse($('#agent_clusters').html())
+        render_node_clusters(agent_clusters)
+
     if location.pathname.indexOf('/chat/') == 0
         mode.current = mode.CHAT
         render_node_clusters(room_clusters)
