@@ -18,13 +18,30 @@ CONF = cfg.CONF
 def index(request, cluster=None):
 
     # for cluster, value in CONF.cluster.database_map.
+    database_map = CONF.cluster.database_map
+
+    agent_clusters = database_map.keys()
+    agents = []
+    if len(agent_clusters) == 0:
+        pass
+    else:
+        if cluster is None:
+            cluster = agent_clusters[0]
+
+        cluster_dburl = database_map.get(cluster)
+        cluster_dbapi = dbapi.DBAPI(cluster_dburl)
+        agents = cluster_dbapi.get_agents()
+
+    agent_clusters = json.dumps(agent_clusters)
 
     context = {
         'title': 'Agent',
         'cluster': cluster,
-        'agent_cluster': {},
-        'agent_clusters': [],
+        'agents': agents,
+        'agent_clusters': agent_clusters,
     }
+
+    print agent_clusters
 
     if request.META.get('HTTP_X_PJAX'):
         return render(request, 'agent/content.html', context)

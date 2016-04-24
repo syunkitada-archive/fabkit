@@ -51,11 +51,28 @@
         <thead>
             <tr>
                 <th>Status</th>
+                <th>Type</th>
                 <th>Host</th>
+                <th>Check</th>
+                <th>Heartbeat TS</th>
+                <th>Setup</th>
+                <th>Setup TS</th>
                 <th>Fabscript</th>
             </tr>
         </thead>
         <tbody id="nodes-tbody">
+          {% for agent in agents %}
+            <tr>
+                <td>{{ agent.status }}</td>
+                <td>{{ agent.agent_type }}</td>
+                <td>{{ agent.host }}</td>
+                <td>{{ agent.check_status }}</td>
+                <td>{{ agent.heartbeat_timestamp }}</td>
+                <td>{{ agent.setup_status }}</td>
+                <td>{{ agent.setup_timestamp }}</td>
+                <td>{{ agent.fabscript_map }}</td>
+            </tr>
+          {% endfor %}
         </tbody>
     </table>
 </div>
@@ -77,5 +94,7 @@
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
+
+<script type="application/json" id="agent_clusters">{{ agent_clusters|safe }}</script>
 
 {% endblock %}

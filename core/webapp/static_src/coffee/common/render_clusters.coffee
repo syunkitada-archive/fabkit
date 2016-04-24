@@ -6,6 +6,13 @@ render_node_clusters = (clusters)->
         if cluster_path == ''
             cluster_path = 'recent'
 
+    if mode.current == mode.AGENT
+        paths = location.pathname.split('agent/')
+        page = 'agent'
+        cluster_path = paths[1].slice(0, -1)
+        if cluster_path == ''
+            cluster_path = 'recent'
+
     else if mode.current == mode.CHAT
         paths = location.pathname.split('chat/')
         page = 'chat'
