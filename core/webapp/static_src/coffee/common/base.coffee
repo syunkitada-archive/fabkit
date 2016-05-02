@@ -9,6 +9,10 @@ datamap_tabs = ['status', 'relation']
 graph_links = []
 graph_nodes = []
 
+chat_socket = null
+chat_clusters = []
+chat_cluster = 'all'
+
 mode = {
     current: 0,
     USER: 0,

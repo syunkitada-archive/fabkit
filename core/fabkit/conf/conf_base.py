@@ -57,6 +57,9 @@ default_opts = [
     cfg.IntOpt('retry_interval',
                default=3,
                help='Interval for retry.'),
+    cfg.StrOpt('host',
+               default=None,
+               help='host'),
 ]
 
 cluster_opts = [
@@ -111,9 +114,6 @@ keystone_opts = [
 ]
 
 client_opts = [
-    cfg.StrOpt('host',
-               default=None,
-               help='host'),
     cfg.ListOpt('clusters',
                 default=[],
                 help='clusters'),

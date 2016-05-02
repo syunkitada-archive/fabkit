@@ -49,7 +49,7 @@ SECRET_KEY = CONF.web.secret_key
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*', CONF.web.hostname]
+ALLOWED_HOSTS = ['*', CONF.host]
 
 
 # Application definition

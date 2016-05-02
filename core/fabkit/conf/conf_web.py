@@ -31,6 +31,9 @@ web_opts = [
                 default=[],
                 help='nodes of Nodejs.\n'
                 'nodes = http://localhost:4000, http://localhost:4001'),
+    cfg.IntOpt('node_port',
+               default=4000,
+               help='node port'),
 ]
 
 CONF.register_opts(web_opts, group='web')

@@ -170,7 +170,9 @@ footer {
 .show:hover {
     border-right: 3px solid #563d7c
 }
-
+.show-badge {
+    margin-right: 10px;
+}
 
 
 /*
@@ -292,4 +294,12 @@ table.tablesorter .headerSortDown, table.tablesorter .headerSortUp {
 .chat-icon > span {
     font-size: 40px;
     color: #999;
+}
+
+#cluster-users {
+    padding: 2px;
+}
+
+#cluster-users button {
+    margin: 4px;
 }

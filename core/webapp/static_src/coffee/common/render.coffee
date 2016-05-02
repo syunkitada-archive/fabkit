@@ -75,7 +75,7 @@ apps.init = ->
 
     if location.pathname.indexOf('/chat/') == 0
         mode.current = mode.CHAT
-        render_node_clusters(room_clusters)
+        # render_node_clusters(room_clusters)
 
     render_all()
 
@@ -93,6 +93,7 @@ if $.support.pjax
         else
             $('a[href="/' + pathname[1] + '/"]').parent().addClass('active')
         apps.init()
+        change_chat_cluster()
         return)
 
 $(window).on('hashchange', ->

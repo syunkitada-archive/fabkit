@@ -5,17 +5,33 @@ mark_chat_text = ->
 if io?
     socket = io(chat_connection + '/chat')
 
-    socket.on 'connect', ()->
-        apps.log "connected: #{chat_connection}"
-        socket.emit 'join_to_room', cluster, (data)->
-            apps.log "joined #{cluster}"
-            apps.log data
+    if cluster?
+        socket.on 'connect', ()->
+            apps.log "connected: #{chat_connection}"
+            chat_socket = socket
+            console.log chat_socket
+            change_chat_cluster()
 
     chat_comment = null
 
-    socket.on 'message', (message)->
+    socket.on 'post_comment', (message)->
+        apps.log 'socket.on post_comment'
         data = JSON.parse(message)
+        cluster = data.cluster
+        data = JSON.parse(data.data)
+        apps.log cluster
         apps.log data
+
+        for c in chat_clusters
+            if c.cluster_name == chat_cluster
+                continue
+            if c.cluster_name == cluster
+                c.unread_comments_length += 1
+
+        render_node_clusters(chat_clusters)
+
+        if chat_cluster != cluster
+            return
 
         # text = data.text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
         text = data.text
@@ -39,49 +55,61 @@ if io?
         room = JSON.parse(data)
         console.log room
 
-    room_clusters = []
-    socket.on 'update_user_rooms', (data)->
-        apps.log 'on update_user_rooms'
+    chat_clusters = []
+    socket.on 'update_user_clusters', (data)->
+        apps.log 'on update_user_clusters'
         apps.log data
-        userrooms = JSON.parse(data)
-        for room, roomdata of userrooms
-            if room == 'all'
-                continue
-            room_clusters.push room
+        user_clusters = JSON.parse(data)
+        # for room, roomdata of userrooms
+        #     if room == 'all'
+        #         continue
+        #     room_clusters.push room
 
-        room_clusters.sort()
-        room_clusters.splice(0, 0, 'all')
+        # room_clusters.sort()
+        # room_clusters.splice(0, 0, 'all')
+        chat_clusters = user_clusters
 
         if mode.current == mode.CHAT
-            render_node_clusters(room_clusters)
+            render_node_clusters(chat_clusters)
 
-    socket.on 'update_room_users', (data)->
-        apps.log 'on update_room_users'
-        apps.log data
+    socket.on 'update_cluster_users', (data)->
+        apps.log 'on update_cluster_users'
+        user_map = JSON.parse(data)
+        users_html = ''
+        for username, user of user_map
+            if user.active
+                users_html += """<button type="button" class="btn btn-success btn-xs">#{user.user}</button>"""
+
+            else
+                users_html += """<button type="button" class="btn btn-default btn-xs">#{user.user}</button>"""
+
+        $('#cluster-users').html(users_html)
 
     apps.init_chat = ()->
         apps.log('called init_chat')
         chat_comment = $('#chat-comment')
 
         $('#chat-comment-submit').on 'click', (event)->
+            apps.log('on chat-comment-submit')
             msg = JSON.stringify({
                 "cluster": cluster,
                 "text": chat_comment.val(),
             })
 
             if (msg)
-                socket.emit 'send_message', msg, (data)->
+                socket.emit 'post_comment', msg, (data)->
                     apps.log(data)
 
             $(chat_comment).val('')
 
-        $('#chat-leave-room').on 'click', (event)->
+        $('#chat-leave-cluster').on 'click', (event)->
+            apps.log('on chat-leave-cluster')
             that = this
             console.log that
-            apps.log 'clicked leave-room'
-            socket.emit 'leave_from_room', cluster, (data)->
+            apps.log 'clicked leave-cluster'
+            socket.emit 'leave_from_cluster', cluster, (data)->
                 console.log data
-                location.href = that.href
+                location.href = '/chat/'
 
             return false
 
@@ -92,3 +120,16 @@ else
         $('#chat-room-error').html('<p class="msg-box bg-danger">Chat is not available.</p>')
 
         mark_chat_text()
+
+change_chat_cluster = () ->
+    if mode.current != mode.CHAT or not io? or not chat_socket?
+        return
+
+    paths = location.pathname.split('chat/')
+    page = 'chat'
+    chat_cluster = paths[1].slice(0, -1)
+    if chat_cluster == ''
+        chat_cluster = 'all'
+
+    apps.log "change_chat_cluster #{chat_cluster}"
+    chat_socket.emit 'join_to_cluster', chat_cluster

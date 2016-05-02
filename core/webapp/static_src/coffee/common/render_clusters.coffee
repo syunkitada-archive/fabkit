@@ -17,6 +17,7 @@ render_node_clusters = (clusters)->
         paths = location.pathname.split('chat/')
         page = 'chat'
         cluster_path = paths[1].slice(0, -1)
+        console.dir clusters
         if cluster_path == ''
             cluster_path = 'all'
 
@@ -29,7 +30,13 @@ render_node_clusters = (clusters)->
 
         parent_id = html.prop('id')
 
-        for cluster_name in clusters
+        for cluster in clusters
+            console.log cluster
+            if mode.current == mode.CHAT
+                cluster_name = cluster.cluster_name
+            else
+                cluster_name = cluster
+
             splited_cluster = cluster_name.split('/')
 
             # 子のクラスタ階層が続くならtmp_clusterに入れておく
@@ -44,6 +51,7 @@ render_node_clusters = (clusters)->
                 tmp_root_cluster = name
             else
                 tmp_root_cluster = root_cluster + '/' + name
+
             collapse_id = "#{parent_id}-#{name}"
             collapse_panel_id = "#{parent_id}-panel-#{name}"
             collapse_head_id = "#{parent_id}-head-#{name}"
@@ -58,6 +66,8 @@ render_node_clusters = (clusters)->
 
                     show = """<a class="pjax pull-right show #{active}" href="/#{page}/#{tmp_root_cluster}/">show</a>"""
 
+                    if mode.current == mode.CHAT
+                        show = "#{show} <span class=\"pull-right show-badge badge\">#{cluster.unread_comments_length}</span>"
                 else
                     show = ""
 

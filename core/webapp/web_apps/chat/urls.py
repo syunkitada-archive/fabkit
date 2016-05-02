@@ -3,7 +3,7 @@ from web_apps.chat import views
 
 urlpatterns = patterns(
     '',
-    url(r'^(?P<cluster>.+)/$', views.index, name='cluster'),
+    url(r'^node/(?P<action>.+)/$', views.node_api, name='node_api'),
+    url(r'^(?P<cluster_name>.+)/$', views.index, name='cluster'),
     url(r'^$', views.index, name='index'),
-    url(r'^node_api$', views.node_api, name='node_api'),
 )

@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect
 from django.core import serializers
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
+from web_apps.chat.models import UserCluster
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, UserCreationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.sessions.models import Session
@@ -96,14 +97,22 @@ def create(request):
 
 
 @csrf_exempt
-def node_get(request):
+def node_login(request):
     # Get User from sessionid
     session = Session.objects.get(session_key=request.POST.get('sessionid'))
     user_id = session.get_decoded().get('_auth_user_id')
     user = User.objects.get(id=user_id)
+    user_clusters = UserCluster.objects.all().filter(user=user).select_related()
+    tmp_user_clusters = []
+    for user_cluster in user_clusters:
+        tmp_user_clusters.append({
+            'cluster_name': user_cluster.cluster.cluster_name,
+            'unread_comments_length': user_cluster.unread_comments_length,
+        })
 
     data = json.dumps({
         'user': user.username,
+        'user_clusters': tmp_user_clusters,
     })
 
     return HttpResponse(data)
