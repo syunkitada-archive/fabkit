@@ -247,6 +247,7 @@
     socket.on('update_cluster_users', function(data) {
       var user, user_map, username, users_html;
       apps.log('on update_cluster_users');
+      apps.log(data);
       user_map = JSON.parse(data);
       users_html = '';
       for (username in user_map) {

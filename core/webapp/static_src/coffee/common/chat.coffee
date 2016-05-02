@@ -74,6 +74,7 @@ if io?
 
     socket.on 'update_cluster_users', (data)->
         apps.log 'on update_cluster_users'
+        apps.log data
         user_map = JSON.parse(data)
         users_html = ''
         for username, user of user_map

@@ -16,7 +16,7 @@ class Cluster(models.Model):
 class Comment(models.Model):
     user = models.ForeignKey(User)
     cluster = models.ForeignKey(Cluster, related_name='cluster')
-    text = models.CharField(max_length=255)
+    text = models.CharField(max_length=550)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

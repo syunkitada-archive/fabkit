@@ -19,7 +19,10 @@ def index(request, cluster_name='all'):
     comments = get_comments(cluster)
 
     try:
-        UserCluster.objects.get(user=request.user, cluster=cluster)
+        user_cluster = UserCluster.objects.get(user=request.user, cluster=cluster)
+        user_cluster.unread_comments_length = 0
+        user_cluster.save()
+
     except ObjectDoesNotExist:
         UserCluster.objects.create(user=request.user, cluster=cluster, unread_comments_length=0)
 
@@ -64,6 +67,9 @@ def node_api(request, action):
 
             user_clusters = UserCluster.objects.all().filter(cluster=cluster)
             for user_cluster in user_clusters:
+                if user_cluster.user.id == user.id:
+                    continue
+
                 user_cluster.unread_comments_length += 1
                 user_cluster.save()
 
