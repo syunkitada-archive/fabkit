@@ -11,7 +11,7 @@ update_pagedata = ->
         current_page = 'agent'
         current_cluster_path = paths[1].slice(0, -1)
         if current_cluster_path == ''
-            current_cluster_path = 'recent'
+            current_cluster_path = current_cluster
 
     else if mode.current == mode.CHAT
         paths = location.pathname.split('chat/')

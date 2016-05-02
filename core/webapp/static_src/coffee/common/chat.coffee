@@ -61,15 +61,18 @@ if io?
         apps.log 'on update_user_clusters'
         apps.log data
         user_clusters = JSON.parse(data)
-        # for room, roomdata of userrooms
-        #     if room == 'all'
-        #         continue
-        #     room_clusters.push room
+        chat_clusters = user_clusters.sort (a, b) ->
+            if a.cluster_name == 'all'
+                return -1
+            else if b.cluster_name == 'all'
+                return 1
 
-        # room_clusters.sort()
-        # room_clusters.splice(0, 0, 'all')
-        chat_clusters = user_clusters
-        console.log "\nDEBUG"
+            if (a.cluster_name < b.cluster_name)
+                return -1
+            if (a.cluster_name > b.cluster_name)
+                return 1
+
+            return 0
 
         if mode.current == mode.CHAT
             console.log chat_clusters

@@ -245,8 +245,20 @@
       apps.log('on update_user_clusters');
       apps.log(data);
       user_clusters = JSON.parse(data);
-      chat_clusters = user_clusters;
-      console.log("\nDEBUG");
+      chat_clusters = user_clusters.sort(function(a, b) {
+        if (a.cluster_name === 'all') {
+          return -1;
+        } else if (b.cluster_name === 'all') {
+          return 1;
+        }
+        if (a.cluster_name < b.cluster_name) {
+          return -1;
+        }
+        if (a.cluster_name > b.cluster_name) {
+          return 1;
+        }
+        return 0;
+      });
       if (mode.current === mode.CHAT) {
         console.log(chat_clusters);
         return render_node_clusters(chat_clusters);
@@ -827,7 +839,7 @@
       current_page = 'agent';
       current_cluster_path = paths[1].slice(0, -1);
       if (current_cluster_path === '') {
-        return current_cluster_path = 'recent';
+        return current_cluster_path = current_cluster;
       }
     } else if (mode.current === mode.CHAT) {
       paths = location.pathname.split('chat/');
