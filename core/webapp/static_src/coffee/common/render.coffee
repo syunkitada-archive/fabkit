@@ -1,3 +1,25 @@
+update_pagedata = ->
+    if mode.current == mode.NODE
+        paths = location.pathname.split('node/')
+        current_page = 'node'
+        current_cluster = paths[1].slice(0, -1)
+        if current_cluster == ''
+            current_cluster = 'recent'
+
+    else if mode.current == mode.AGENT
+        paths = location.pathname.split('agent/')
+        current_page = 'agent'
+        current_cluster = paths[1].slice(0, -1)
+        if current_cluster == ''
+            current_cluster = 'recent'
+
+    else if mode.current == mode.CHAT
+        paths = location.pathname.split('chat/')
+        current_page = 'chat'
+        current_cluster = paths[1].slice(0, -1)
+        if current_cluster == ''
+            current_cluster = 'all'
+
 render_all = ->
     if mode.current == mode.USER
         render_user()

@@ -13,6 +13,9 @@ chat_socket = null
 chat_clusters = []
 chat_cluster = 'all'
 
+current_page = ''
+current_cluster = ''
+
 mode = {
     current: 0,
     USER: 0,

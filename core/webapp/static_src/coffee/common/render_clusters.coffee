@@ -1,25 +1,5 @@
 render_node_clusters = (clusters)->
-    if mode.current == mode.NODE
-        paths = location.pathname.split('node/')
-        page = 'node'
-        cluster_path = paths[1].slice(0, -1)
-        if cluster_path == ''
-            cluster_path = 'recent'
-
-    if mode.current == mode.AGENT
-        paths = location.pathname.split('agent/')
-        page = 'agent'
-        cluster_path = paths[1].slice(0, -1)
-        if cluster_path == ''
-            cluster_path = 'recent'
-
-    else if mode.current == mode.CHAT
-        paths = location.pathname.split('chat/')
-        page = 'chat'
-        cluster_path = paths[1].slice(0, -1)
-        console.dir clusters
-        if cluster_path == ''
-            cluster_path = 'all'
+    update_pagedata()
 
     clusters_html = $("""<div class="panel-group" id="accordion">
             </div>""")
@@ -43,7 +23,13 @@ render_node_clusters = (clusters)->
             tmp_clusters = []
             if splited_cluster.length > 1
                 tmp_name = splited_cluster.slice(1).join('/')
-                tmp_clusters.push(tmp_name)
+                if mode.current == mode.CHAT
+                    tmp_clusters.push({
+                        'cluster_name': tmp_name,
+                        'unread_comments_length':cluster. unread_comments_length,
+                    })
+                else
+                    tmp_clusters.push(tmp_name)
 
             # 現在のクラスタ階層のhtmlを作成
             name = splited_cluster[0]
@@ -61,10 +47,10 @@ render_node_clusters = (clusters)->
                 active = ''
                 if splited_cluster.length == 1
                     tmp_root_cluster = tmp_root_cluster.replace(/__/g, '/')
-                    if tmp_root_cluster == cluster_path
+                    if tmp_root_cluster == current_cluster
                         active = 'active'
 
-                    show = """<a class="pjax pull-right show #{active}" href="/#{page}/#{tmp_root_cluster}/">show</a>"""
+                    show = """<a class="pjax pull-right show #{active}" href="/#{current_page}/#{tmp_root_cluster}/">show</a>"""
 
                     if mode.current == mode.CHAT
                         show = "#{show} <span class=\"pull-right show-badge badge\">#{cluster.unread_comments_length}</span>"
@@ -91,7 +77,7 @@ render_node_clusters = (clusters)->
 
                 collapse_body = html.find("##{collapse_body_id}")
 
-                if tmp_root_cluster == cluster_path and splited_cluster.length == 1
+                if tmp_root_cluster == current_cluster and splited_cluster.length == 1
                     html.find("##{collapse_id}").parents('.collapse').addClass('in')
                     html.find("##{collapse_panel_id}").parents('.panel').find('> .panel-heading .panel-title').removeClass('collapsed')
 

@@ -23,14 +23,15 @@ if io?
         apps.log data
 
         for c in chat_clusters
-            if c.cluster_name == chat_cluster
+            if c.cluster_name == current_cluster
                 continue
             if c.cluster_name == cluster
                 c.unread_comments_length += 1
 
-        render_node_clusters(chat_clusters)
+        if mode.current == mode.CHAT
+            render_node_clusters(chat_clusters)
 
-        if chat_cluster != cluster
+        if current_cluster != cluster
             return
 
         # text = data.text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
@@ -68,8 +69,10 @@ if io?
         # room_clusters.sort()
         # room_clusters.splice(0, 0, 'all')
         chat_clusters = user_clusters
+        console.log "\nDEBUG"
 
         if mode.current == mode.CHAT
+            console.log chat_clusters
             render_node_clusters(chat_clusters)
 
     socket.on 'update_cluster_users', (data)->
@@ -123,14 +126,10 @@ else
         mark_chat_text()
 
 change_chat_cluster = () ->
-    if mode.current != mode.CHAT or not io? or not chat_socket?
+    if not io? or not chat_socket?
         return
 
-    paths = location.pathname.split('chat/')
-    page = 'chat'
-    chat_cluster = paths[1].slice(0, -1)
-    if chat_cluster == ''
-        chat_cluster = 'all'
+    update_pagedata()
 
-    apps.log "change_chat_cluster #{chat_cluster}"
-    chat_socket.emit 'join_to_cluster', chat_cluster
+    apps.log "change_chat_cluster #{current_cluster}"
+    chat_socket.emit 'join_to_cluster', current_cluster
