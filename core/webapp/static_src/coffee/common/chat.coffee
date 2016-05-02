@@ -5,7 +5,7 @@ mark_chat_text = ->
 if io?
     socket = io(chat_connection + '/chat')
 
-    if cluster?
+    if current_cluster?
         socket.on 'connect', ()->
             apps.log "connected: #{chat_connection}"
             chat_socket = socket
@@ -96,7 +96,7 @@ if io?
         $('#chat-comment-submit').on 'click', (event)->
             apps.log('on chat-comment-submit')
             msg = JSON.stringify({
-                "cluster": cluster,
+                "cluster": current_cluster,
                 "text": chat_comment.val(),
             })
 

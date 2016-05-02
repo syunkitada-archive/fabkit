@@ -47,7 +47,7 @@ render_node_clusters = (clusters)->
                 active = ''
                 if splited_cluster.length == 1
                     tmp_root_cluster = tmp_root_cluster.replace(/__/g, '/')
-                    if tmp_root_cluster == current_cluster
+                    if tmp_root_cluster == current_cluster_path
                         active = 'active'
 
                     show = """<a class="pjax pull-right show #{active}" href="/#{current_page}/#{tmp_root_cluster}/">show</a>"""
@@ -77,7 +77,7 @@ render_node_clusters = (clusters)->
 
                 collapse_body = html.find("##{collapse_body_id}")
 
-                if tmp_root_cluster == current_cluster and splited_cluster.length == 1
+                if tmp_root_cluster == current_cluster_path and splited_cluster.length == 1
                     html.find("##{collapse_id}").parents('.collapse').addClass('in')
                     html.find("##{collapse_panel_id}").parents('.panel').find('> .panel-heading .panel-title').removeClass('collapsed')
 

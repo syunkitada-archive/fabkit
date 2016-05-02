@@ -14,7 +14,7 @@ chat_clusters = []
 chat_cluster = 'all'
 
 current_page = ''
-current_cluster = ''
+current_cluster_path = ''
 
 mode = {
     current: 0,

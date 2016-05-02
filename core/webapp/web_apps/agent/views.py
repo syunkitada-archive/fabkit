@@ -4,7 +4,7 @@ import pickle
 import yaml
 import os
 import json
-from web_apps.chat.utils import get_comments
+from web_apps.chat.utils import get_comments, get_cluster
 from markdown import markdown
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
@@ -39,6 +39,7 @@ def index(request, cluster=None):
         'cluster': cluster,
         'agents': agents,
         'agent_clusters': agent_clusters,
+        'comments': get_comments(get_cluster(cluster)),
     }
 
     print agent_clusters
