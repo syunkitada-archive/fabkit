@@ -10,8 +10,10 @@ def base(request):
     print CONF.host
     namespace = request.resolver_match.namespace
     view_name = request.resolver_match.view_name
-    livereload_js = 'http://{0}:35729/livereload.js'.format(CONF.host)
-    chat_socketio_js = 'http://{0}:4000/socket.io/socket.io.js'.format(CONF.host)
+    livereload_js = 'http://{0}:35729/livereload.js'.format(
+        CONF.web.node_public_host)
+    chat_socketio_js = 'http://{0}:{1}/socket.io/socket.io.js'.format(
+        CONF.web.node_public_host, CONF.node_public_port)
 
     return {
         'debug': CONF.web.debug,
@@ -19,6 +21,6 @@ def base(request):
         'view_name': view_name,
         'livereload_js': livereload_js,
         'chat_socketio_js': chat_socketio_js,
-        'web_hostname': CONF.host,
-        'chat_port': 4000,
+        'web_hostname': CONF.web.node_public_host,
+        'chat_port': CONF.web.node_public_port,
     }
