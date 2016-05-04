@@ -31,7 +31,7 @@ module.exports = {
                     socket.csrftoken = cookie.csrftoken
                     socket.is_login = false
 
-                    webapi.request(socket, '/user/node_get/', {},
+                    webapi.request(socket, '/user/node/login/', {},
                         (data)->
                             socket.is_login = true
                             socket.user = data
@@ -50,86 +50,145 @@ module.exports = {
 
 
         this.io.on 'connection', (socket)->
-            socket.on 'join_to_room', (room)->
+            socket.on 'join_to_cluster', (cluster)->
                 if not socket.is_login
                     return
 
                 user = context.user_map[socket.id]
 
-                socket.on 'leave_from_room', (room, fn)->
-                    logger.all.debug "chat: on leave_from_room"
-                    delete context.user_rooms_map[user.user][room]
-                    that.publish_pipeline(room, 'leave_from_room', user)
+                if not context.user_map[socket.id].joined_cluster?
+                    socket.join cluster
+                    context.user_map[socket.id].joined_cluster = cluster
+
+                    user_clusters = JSON.stringify(user['user_clusters'])
+                    socket.emit('update_user_clusters', user_clusters)
+                    that.publish_pipeline(cluster, 'join_user', user)
+
+                else
+                    if cluster != context.user_map[socket.id].joined_cluster
+                        socket.leave context.user_map[socket.id].joined_cluster
+                        socket.join cluster
+                        context.user_map[socket.id].joined_cluster = cluster
+
+                    webapi.request(socket, '/user/node/login/', {},
+                        (data)->
+                            logger.all.info "chat: update user: #{data}"
+                            context.user_map[socket.id] = JSON.parse(data)
+                            user = context.user_map[socket.id]
+                            user_clusters = JSON.stringify(user['user_clusters'])
+                            socket.emit('update_user_clusters', user_clusters)
+
+                            cluster_users = JSON.stringify(context.cluster_users_map[cluster])
+                            socket.emit('update_cluster_users', cluster_users)
+                        ,
+                        (e)->
+                            logger.error.error "chat: Authentication error: #{e.message}"
+                    )
+
+                logger.all.info "chat: #{user.user} join to #{cluster}"
+                context.dump()
+
+            socket.on 'leave_from_cluster', (cluster, fn)->
+                if not context.user_map[socket.id]?
                     fn()
 
-                socket.on 'send_message', (message)->
-                    that.send_message(socket, message)
+                user = context.user_map[socket.id]
+                logger.all.debug "chat: on leave_from_cluster"
 
-                socket.once 'disconnect', ->
-                    logger.all.debug "chat: socket: disconnect"
-                    that.publish_pipeline(room, 'disconnect_socket', user)
+                webapi.request(socket, '/chat/node/leave_from_cluster/', {
+                    'cluster': cluster,
+                },
+                    (data)->
+                        user_clusters = []
+                        for user_cluster in user['user_clusters']
+                            if user_cluster.cluster_name == cluster
+                                continue
 
-                socket.join room
+                            user_clusters.push(user_cluster)
 
-                if context.user_rooms_map[user.user] is undefined
-                    context.user_rooms_map[user.user] = {}
-                context.user_rooms_map[user.user][room] = {}
+                        context.user_map[socket.id]['user_clusters'] = user_clusters
 
-                user_rooms = JSON.stringify(context.user_rooms_map[user.user])
-                socket.emit('update_user_rooms', user_rooms)
-                that.publish_pipeline(room, 'join_to_room', user)
+                        that.publish_pipeline(cluster, 'leave_from_cluster', user)
+                        logger.all.info "chat: leave_from_cluster: #{data}"
+                        fn()
+                    ,
+                    (e)->
+                        logger.error.error "chat: leave_from_cluster error: #{e.message}"
+                        fn()
+                )
 
-                logger.all.info "chat: #{user.user} join to #{room}"
-                context.dump()
+            socket.on 'post_comment', (message, fn)->
+                if not context.user_map[socket.id]?
+                    fn()
+
+                user = context.user_map[socket.id]
+                logger.all.debug "chat: socket.on post_comment: #{message}"
+                that.post_comment(socket, message)
+                fn()
+
+            socket.once 'disconnect', ->
+                if not context.user_map[socket.id]?
+                    return
+
+                user = context.user_map[socket.id]
+                logger.all.debug "chat: socket: disconnect"
+                that.publish_pipeline(user.joined_cluster, 'leave_user', user)
+                if context.user_map[socket.id]?
+                    delete context.user_map[socket.id]
 
         logger.all.debug 'chat: initialized'
 
-    send_message: (socket, message)->
+    post_comment: (socket, message)->
         that = this
         msg = JSON.parse(message)
-        room = msg['cluster']
+        cluster = msg['cluster']
         user = context.user_map[socket.id]
-        logger.all.info "chat: on send_message: user=#{user.user}, message=#{message}"
+        logger.all.info "chat: on post_comment: user=#{user.user}, message=#{message}"
 
-        webapi.request socket, '/chat/node_api', {
-                data: message,
+        webapi.request socket, '/chat/node/post_comment/', {
+                message: message,
             }
             , (data)->
-                that.publish_pipeline(room, 'message', data)
+                that.publish_pipeline(cluster, 'post_comment', data)
 
-                logger.all.info "chat: emit to #{room}: #{data}"
+                logger.all.info "chat: emit to #{cluster}: #{data}"
 
                 data = JSON.parse(data)
                 text = data.text
-                if text.indexOf('! ') == 0
-                    text = text.replace('! ', 'fab ')
+                if text.indexOf('!fab ') == 0
+                    text = text.replace('!fab ', 'fab ')
                     logger.all.debug "chat: exec: #{text}"
 
                     exec text, (err, stdout, stderr)->
                         if err
                             logger.error.error "chat: exec: stderr: #{stderr}"
-                            text = stderr
+                            result_text = stderr
                         else
                             logger.all.debug "chat: exec: stdout #{stdout}"
-                            text = stdout
+                            result_text = stdout
 
-                        msg['text'] = "``` bash\n#{text}\n```"
-                        data = JSON.stringify(msg)
-                        that.send_message(socket, data)
+                        if result_text.length > 10000
+                            result_text = result_text.slice(0, 2000) + "\n...\n\n" + result_text.slice(-8000)
 
+                        data['text'] = "``` bash\n$ #{text}\n#{result_text}```"
+                        data = JSON.stringify(data)
+                        console.log data
+                        # that.post_comment(socket, data)
+                        that.publish_pipeline(cluster, 'post_comment', data)
 
             , (e)->
                 logger.error.error "problem with request: #{e.message}"
 
 
-    publish_pipeline: (room, event_name, data)->
-        logger.all.debug "chat: publish_pipeline: room=#{room}, event_name=#{event_name}"
+    publish_pipeline: (cluster, event_name, data)->
+        logger.all.debug "chat: publish_pipeline: cluster=#{cluster}, event_name=#{event_name}"
         req_data = {
-            'room': room,
+            'cluster': cluster,
             'data': data,
         }
         req_data = JSON.stringify(req_data)
 
         for node_socket in context.node_sockets
+            logger.all.debug "publish"
             node_socket.emit event_name, req_data
 }

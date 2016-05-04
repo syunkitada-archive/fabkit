@@ -6,13 +6,13 @@ config_ini = ini.parse(fs.readFileSync('../../../../fabfile.ini', 'utf-8'))
 debug = config_ini.web.debug
 debug = true if debug is undefined
 
-hostname = config_ini.web.hostname
+hostname = config_ini.DEFAULT.host
 hostname = 'localhost' if hostname is undefined
 
-port = config_ini.web.port
+port = config_ini.web.web_port
 port = 8080 if port is undefined
 
-secret_key = config_ini.DEFAULT.secret_key
+secret_key = config_ini.web.secret_key
 secret_key = 'changeme' if secret_key is undefined
 
 node_port = config_ini.web.node_port

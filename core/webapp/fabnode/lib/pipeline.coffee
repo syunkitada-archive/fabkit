@@ -25,50 +25,62 @@ module.exports = {
                 return next(new Error('Authentication error'))
 
         this.io.on 'connection', (socket)->
-            socket.on 'message', (data)->
+            socket.on 'post_comment', (data)->
+                logger.all.info "pipeline: post_comment: #{data}"
+                chat.io.emit('post_comment', data)
+
+            socket.on 'join_user', (data)->
+                logger.all.info "pipeline: join_user: #{data}"
                 data = JSON.parse(data)
-                chat.io.to(data.room).emit('message', data.data)
-
-            socket.on 'join_to_room', (data)->
-                data = JSON.parse(data)
-                room = data.room
-                user = data.data
-                if context.user_rooms_map[user.user] is undefined
-                    context.user_rooms_map[user.user] = {}
-                context.user_rooms_map[user.user][room] = {}
-
-                if context.room_users_map[room] is undefined
-                    context.room_users_map[room] = {}
-
-                if context.room_users_map[room][user.user] is undefined
-                    user.active = 0
-                    context.room_users_map[room][user.user] = user
-
-                context.room_users_map[room][user.user].active += 1
-
-                room_users = JSON.stringify(context.room_users_map[room])
-                chat.io.to(room).emit('update_room_users', room_users)
-
-            socket.on 'leave_from_room', (data)->
-                data = JSON.parse(data)
-                room = data.room
-                user = data.data
-                delete context.user_rooms_map[user.user][room]
-
-                delete context.room_users_map[room][user.user]
-                room_users = JSON.stringify(context.room_users_map[room])
-                chat.io.to(room).emit('update_room_users', room_users)
-
-            socket.on 'disconnect_socket', (data)->
-                logger.all.debug "pipeline: disconnect: #{data}"
-                data = JSON.parse(data)
-                room = data.room
+                cluster = data.cluster
                 user = data.data
 
-                context.room_users_map[room][user.user].active -= 1
-                room_users = JSON.stringify(context.room_users_map[room])
-                chat.io.to(room).emit('update_room_users', room_users)
+                for cluster in user.user_clusters
+                    cluster_name = cluster.cluster_name
+                    if context.cluster_users_map[cluster_name] is undefined
+                        context.cluster_users_map[cluster_name] = {}
 
+                    if context.cluster_users_map[cluster_name][user.user] is undefined
+                        user.active = 0
+                        context.cluster_users_map[cluster_name][user.user] = user
+
+                    context.cluster_users_map[cluster_name][user.user].active = 1
+                    cluster_users = JSON.stringify(context.cluster_users_map[cluster_name])
+                    chat.io.to(cluster_name).emit('update_cluster_users', cluster_users)
+
+
+            socket.on 'leave_from_cluster', (data)->
+                data = JSON.parse(data)
+                cluster = data.cluster
+                user = data.data
+
+                if context.cluster_users_map[cluster][user.user]?
+                    delete context.cluster_users_map[cluster][user.user]
+
+                console.log "\n\nDEBUG"
+                console.log context.cluster_users_map
+
+                cluster_users = JSON.stringify(context.cluster_users_map[cluster])
+                chat.io.to(cluster).emit('update_cluster_users', cluster_users)
+
+            socket.on 'leave_user', (data)->
+                logger.all.debug "pipeline: leave_user: #{data}"
+                data = JSON.parse(data)
+                cluster = data.cluster
+                user = data.data
+
+                console.log "\n\nleave_user DEBUG"
+                console.log context.cluster_users_map
+                console.log user
+                console.log user.user_clusters
+                for cluster in user.user_clusters
+                    cluster_name = cluster.cluster_name
+                    console.log cluster_name
+                    console.log context.cluster_users_map[cluster_name]
+                    if context.cluster_users_map[cluster_name][user.user]?
+                        context.cluster_users_map[cluster_name][user.user].active = 0
+                    cluster_users = JSON.stringify(context.cluster_users_map[cluster_name])
+                    chat.io.to(cluster_name).emit('update_cluster_users', cluster_users)
 
         for node in config.nodes
             logger.all.info "connect to: #{node}"

@@ -6,15 +6,6 @@ CONF = cfg.CONF
 
 
 web_opts = [
-    cfg.StrOpt('hostname',
-               default='localhost',
-               help='Hostname of webserver.'),
-    cfg.IntOpt('port',
-               default=8080,
-               help='Port of webserver.'),
-    cfg.BoolOpt('is_https',
-                default=False,
-                help='Wheter to use HTTPS'),
     cfg.BoolOpt('debug',
                 default=True,
                 help='Debug'),
@@ -27,9 +18,18 @@ web_opts = [
     cfg.StrOpt('time_zone',
                default='Asia/Tokyo',
                help='TIME_ZONE of Django'),
+    cfg.StrOpt('node_public_host',
+               default='localhost',
+               help='node host that web client access.'),
+    cfg.IntOpt('node_public_port',
+               default=4000,
+               help='node port that web client access.'),
+    cfg.IntOpt('node_port',
+               default=4000,
+               help='node port.'),
     cfg.ListOpt('nodes',
                 default=[],
-                help='nodes of Nodejs.\n'
+                help='nodes of nodejs cluster.\n'
                 'nodes = http://localhost:4000, http://localhost:4001'),
 ]
 

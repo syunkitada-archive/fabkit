@@ -1,3 +1,25 @@
+update_pagedata = ->
+    if mode.current == mode.NODE
+        paths = location.pathname.split('node/')
+        current_page = 'node'
+        current_cluster_path = paths[1].slice(0, -1)
+        if current_cluster_path == ''
+            current_cluster_path = 'recent'
+
+    else if mode.current == mode.AGENT
+        paths = location.pathname.split('agent/')
+        current_page = 'agent'
+        current_cluster_path = paths[1].slice(0, -1)
+        if current_cluster_path == ''
+            current_cluster_path = current_cluster
+
+    else if mode.current == mode.CHAT
+        paths = location.pathname.split('chat/')
+        current_page = 'chat'
+        current_cluster_path = paths[1].slice(0, -1)
+        if current_cluster_path == ''
+            current_cluster_path = 'all'
+
 render_all = ->
     if mode.current == mode.USER
         render_user()
@@ -75,7 +97,7 @@ apps.init = ->
 
     if location.pathname.indexOf('/chat/') == 0
         mode.current = mode.CHAT
-        render_node_clusters(room_clusters)
+        # render_node_clusters(room_clusters)
 
     render_all()
 
@@ -93,6 +115,7 @@ if $.support.pjax
         else
             $('a[href="/' + pathname[1] + '/"]').parent().addClass('active')
         apps.init()
+        change_chat_cluster()
         return)
 
 $(window).on('hashchange', ->

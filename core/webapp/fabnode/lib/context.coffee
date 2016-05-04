@@ -24,8 +24,12 @@ module.exports = {
 
     node_sockets: []  # changeto pipeline
 
+    # for manage login user of nodejs
     # {user} = {user: 'hoge', active: 0}
     user_map: {}  # {socket1.id: {user}, socket2.id: {user2}, ... }
-    user_rooms_map: {}  # {user1: {room1: {userroom}, room2: {userroom}}, user2: ... }
-    room_users_map: {}  # {room1: {user1: {usea}
+    # user_rooms_map: {}  # {user1: {room1: {userroom}, room2: {userroom}}, user2: ... }
+    # room_users_map: {}  # {room1: {user1: {usea}
+
+    # for manage users of clusters
+    cluster_users_map: {}  # {cluster1: {user1: {usea}
 }

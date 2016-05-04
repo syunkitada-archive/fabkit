@@ -8,6 +8,6 @@ urlpatterns = patterns(
     url(r'^change_password/$', views.change_password, name='change_password'),
     url(r'^create/$', views.create, name='create'),
     url(r'^remove/$', views.remove, name='remove'),
-    url(r'^node_get/$', views.node_get, name='node_get'),
+    url(r'^node/login/$', views.node_login, name='node_login'),
     url(r'^$', views.index, name='index'),
 )

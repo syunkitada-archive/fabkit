@@ -4,7 +4,7 @@ import pickle
 import yaml
 import os
 import json
-from web_apps.chat.utils import get_comments
+from web_apps.chat.utils import get_comments, get_cluster
 from markdown import markdown
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
@@ -107,7 +107,7 @@ def index(request, cluster=None):
         'node_cluster': node_cluster,
         'datamap': datamap,
         'readme_html': readme_html,
-        'comments': get_comments(cluster),
+        'comments': get_comments(get_cluster(cluster)),
     }
 
     if request.META.get('HTTP_X_PJAX'):

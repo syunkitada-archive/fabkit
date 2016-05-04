@@ -1,5 +1,5 @@
 (function() {
-  var WARNING_STATUS_THRESHOLD, agent_cluster, agent_clusters, bind_shown_tab_event, chat_comment, datamap_tabs, fabscripts, filter, graph_links, graph_nodes, mark_chat_text, mode, node_cluster, node_clusters, render_all, render_datamap, render_force_panel, render_node_cluster, render_node_clusters, render_partition_panel, render_table_panel, render_user, room_clusters, socket, users,
+  var WARNING_STATUS_THRESHOLD, agent_cluster, agent_clusters, bind_shown_tab_event, change_chat_cluster, chat_cluster, chat_clusters, chat_comment, chat_socket, current_cluster_path, current_page, datamap_tabs, fabscripts, filter, graph_links, graph_nodes, mark_chat_text, mode, node_cluster, node_clusters, render_all, render_datamap, render_force_panel, render_node_cluster, render_node_clusters, render_partition_panel, render_table_panel, render_user, socket, update_pagedata, users,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   users = [];
@@ -19,6 +19,16 @@
   graph_links = [];
 
   graph_nodes = [];
+
+  chat_socket = null;
+
+  chat_clusters = [];
+
+  chat_cluster = 'all';
+
+  current_page = '';
+
+  current_cluster_path = '';
 
   mode = {
     current: 0,
@@ -188,18 +198,38 @@
 
   if (typeof io !== "undefined" && io !== null) {
     socket = io(chat_connection + '/chat');
-    socket.on('connect', function() {
-      apps.log("connected: " + chat_connection);
-      return socket.emit('join_to_room', cluster, function(data) {
-        apps.log("joined " + cluster);
-        return apps.log(data);
+    if (typeof current_cluster !== "undefined" && current_cluster !== null) {
+      socket.on('connect', function() {
+        apps.log("connected: " + chat_connection);
+        chat_socket = socket;
+        console.log(chat_socket);
+        return change_chat_cluster();
       });
-    });
+    }
     chat_comment = null;
-    socket.on('message', function(message) {
-      var data, text;
+    socket.on('post_comment', function(message) {
+      var c, cluster, data, text, _i, _len;
+      apps.log('socket.on post_comment');
       data = JSON.parse(message);
+      cluster = data.cluster;
+      data = JSON.parse(data.data);
+      apps.log(cluster);
       apps.log(data);
+      for (_i = 0, _len = chat_clusters.length; _i < _len; _i++) {
+        c = chat_clusters[_i];
+        if (c.cluster_name === current_cluster) {
+          continue;
+        }
+        if (c.cluster_name === cluster) {
+          c.unread_comments_length += 1;
+        }
+      }
+      if (mode.current === mode.CHAT) {
+        render_node_clusters(chat_clusters);
+      }
+      if (current_cluster !== cluster) {
+        return;
+      }
       text = data.text;
       $('#chat-comments').prepend("<tr>\n  <td class=\"chat-icon\">\n    <span class=\"glyphicon glyphicon-user\"></span>\n  </td>\n  <td>\n    <span>" + data.user + "</span>\n    <span class=\"pull-right\">" + data.created_at + "</span>\n    <br>\n    " + (marked(text)) + "\n  </td>\n</tr>");
       return chat_comment.focus();
@@ -209,53 +239,73 @@
       room = JSON.parse(data);
       return console.log(room);
     });
-    room_clusters = [];
-    socket.on('update_user_rooms', function(data) {
-      var room, roomdata, userrooms;
-      apps.log('on update_user_rooms');
+    chat_clusters = [];
+    socket.on('update_user_clusters', function(data) {
+      var user_clusters;
+      apps.log('on update_user_clusters');
       apps.log(data);
-      userrooms = JSON.parse(data);
-      for (room in userrooms) {
-        roomdata = userrooms[room];
-        if (room === 'all') {
-          continue;
+      user_clusters = JSON.parse(data);
+      chat_clusters = user_clusters.sort(function(a, b) {
+        if (a.cluster_name === 'all') {
+          return -1;
+        } else if (b.cluster_name === 'all') {
+          return 1;
         }
-        room_clusters.push(room);
-      }
-      room_clusters.sort();
-      room_clusters.splice(0, 0, 'all');
+        if (a.cluster_name < b.cluster_name) {
+          return -1;
+        }
+        if (a.cluster_name > b.cluster_name) {
+          return 1;
+        }
+        return 0;
+      });
       if (mode.current === mode.CHAT) {
-        return render_node_clusters(room_clusters);
+        console.log(chat_clusters);
+        return render_node_clusters(chat_clusters);
       }
     });
-    socket.on('update_room_users', function(data) {
-      apps.log('on update_room_users');
-      return apps.log(data);
+    socket.on('update_cluster_users', function(data) {
+      var user, user_map, username, users_html;
+      apps.log('on update_cluster_users');
+      apps.log(data);
+      user_map = JSON.parse(data);
+      users_html = '';
+      for (username in user_map) {
+        user = user_map[username];
+        if (user.active) {
+          users_html += "<button type=\"button\" class=\"btn btn-success btn-xs\">" + user.user + "</button>";
+        } else {
+          users_html += "<button type=\"button\" class=\"btn btn-default btn-xs\">" + user.user + "</button>";
+        }
+      }
+      return $('#cluster-users').html(users_html);
     });
     apps.init_chat = function() {
       apps.log('called init_chat');
       chat_comment = $('#chat-comment');
       $('#chat-comment-submit').on('click', function(event) {
         var msg;
+        apps.log('on chat-comment-submit');
         msg = JSON.stringify({
-          "cluster": cluster,
+          "cluster": current_cluster,
           "text": chat_comment.val()
         });
         if (msg) {
-          socket.emit('send_message', msg, function(data) {
+          socket.emit('post_comment', msg, function(data) {
             return apps.log(data);
           });
         }
         return $(chat_comment).val('');
       });
-      $('#chat-leave-room').on('click', function(event) {
+      $('#chat-leave-cluster').on('click', function(event) {
         var that;
+        apps.log('on chat-leave-cluster');
         that = this;
         console.log(that);
-        apps.log('clicked leave-room');
-        socket.emit('leave_from_room', cluster, function(data) {
+        apps.log('clicked leave-cluster');
+        socket.emit('leave_from_cluster', cluster, function(data) {
           console.log(data);
-          return location.href = that.href;
+          return location.href = '/chat/';
         });
         return false;
       });
@@ -267,6 +317,15 @@
       return mark_chat_text();
     };
   }
+
+  change_chat_cluster = function() {
+    if ((typeof io === "undefined" || io === null) || (chat_socket == null)) {
+      return;
+    }
+    update_pagedata();
+    apps.log("change_chat_cluster " + current_cluster);
+    return chat_socket.emit('join_to_cluster', current_cluster);
+  };
 
   render_partition_panel = function(panel_id, map) {
     var $svg, click, g, h, id, kx, ky, partition, root, svg, transform, vis, w, x, y;
@@ -515,45 +574,36 @@
   };
 
   render_node_clusters = function(clusters) {
-    var cluster_path, clusters_html, expand_clusters, page, paths;
-    if (mode.current === mode.NODE) {
-      paths = location.pathname.split('node/');
-      page = 'node';
-      cluster_path = paths[1].slice(0, -1);
-      if (cluster_path === '') {
-        cluster_path = 'recent';
-      }
-    }
-    if (mode.current === mode.AGENT) {
-      paths = location.pathname.split('agent/');
-      page = 'agent';
-      cluster_path = paths[1].slice(0, -1);
-      if (cluster_path === '') {
-        cluster_path = 'recent';
-      }
-    } else if (mode.current === mode.CHAT) {
-      paths = location.pathname.split('chat/');
-      page = 'chat';
-      cluster_path = paths[1].slice(0, -1);
-      if (cluster_path === '') {
-        cluster_path = 'all';
-      }
-    }
+    var clusters_html, expand_clusters;
+    update_pagedata();
     clusters_html = $("<div class=\"panel-group\" id=\"accordion\">\n</div>");
     expand_clusters = function(html, clusters, root_cluster) {
-      var active, cluster_name, collapse_body, collapse_body_id, collapse_head_id, collapse_id, collapse_panel_id, name, parent_id, show, splited_cluster, tmp_clusters, tmp_name, tmp_root_cluster, _i, _len, _results;
+      var active, cluster, cluster_name, collapse_body, collapse_body_id, collapse_head_id, collapse_id, collapse_panel_id, name, parent_id, show, splited_cluster, tmp_clusters, tmp_name, tmp_root_cluster, _i, _len, _results;
       if (clusters == null) {
         return;
       }
       parent_id = html.prop('id');
       _results = [];
       for (_i = 0, _len = clusters.length; _i < _len; _i++) {
-        cluster_name = clusters[_i];
+        cluster = clusters[_i];
+        console.log(cluster);
+        if (mode.current === mode.CHAT) {
+          cluster_name = cluster.cluster_name;
+        } else {
+          cluster_name = cluster;
+        }
         splited_cluster = cluster_name.split('/');
         tmp_clusters = [];
         if (splited_cluster.length > 1) {
           tmp_name = splited_cluster.slice(1).join('/');
-          tmp_clusters.push(tmp_name);
+          if (mode.current === mode.CHAT) {
+            tmp_clusters.push({
+              'cluster_name': tmp_name,
+              'unread_comments_length': cluster.unread_comments_length
+            });
+          } else {
+            tmp_clusters.push(tmp_name);
+          }
         }
         name = splited_cluster[0];
         if (root_cluster === null) {
@@ -570,16 +620,19 @@
           active = '';
           if (splited_cluster.length === 1) {
             tmp_root_cluster = tmp_root_cluster.replace(/__/g, '/');
-            if (tmp_root_cluster === cluster_path) {
+            if (tmp_root_cluster === current_cluster_path) {
               active = 'active';
             }
-            show = "<a class=\"pjax pull-right show " + active + "\" href=\"/" + page + "/" + tmp_root_cluster + "/\">show</a>";
+            show = "<a class=\"pjax pull-right show " + active + "\" href=\"/" + current_page + "/" + tmp_root_cluster + "/\">show</a>";
+            if (mode.current === mode.CHAT) {
+              show = "" + show + " <span class=\"pull-right show-badge badge\">" + cluster.unread_comments_length + "</span>";
+            }
           } else {
             show = "";
           }
           html.append("<div class=\"panel\" id=\"" + collapse_panel_id + "\">\n    <div class=\"panel-heading\" id=\"" + collapse_head_id + "\">\n        <span>\n            <a class=\"panel-title collapsed\" data-toggle=\"collapse\"\n                    data-parent=\"#" + parent_id + "\" href=\"#" + collapse_id + "\"\n                    aria-controls=\"" + collapse_id + "\">" + name + "</a>\n            " + show + "\n        </span>\n    </div>\n    <div id=\"" + collapse_id + "\" class=\"panel-collapse collapse\"\n            aria-labelledby=\"" + collapse_head_id + "\">\n        <div class=\"panel-body panel-group\" id=\"" + collapse_body_id + "\">\n        </div>\n    </div>\n</div>");
           collapse_body = html.find("#" + collapse_body_id);
-          if (tmp_root_cluster === cluster_path && splited_cluster.length === 1) {
+          if (tmp_root_cluster === current_cluster_path && splited_cluster.length === 1) {
             html.find("#" + collapse_id).parents('.collapse').addClass('in');
             html.find("#" + collapse_panel_id).parents('.panel').find('> .panel-heading .panel-title').removeClass('collapsed');
           }
@@ -772,6 +825,32 @@
     };
   };
 
+  update_pagedata = function() {
+    var paths;
+    if (mode.current === mode.NODE) {
+      paths = location.pathname.split('node/');
+      current_page = 'node';
+      current_cluster_path = paths[1].slice(0, -1);
+      if (current_cluster_path === '') {
+        return current_cluster_path = 'recent';
+      }
+    } else if (mode.current === mode.AGENT) {
+      paths = location.pathname.split('agent/');
+      current_page = 'agent';
+      current_cluster_path = paths[1].slice(0, -1);
+      if (current_cluster_path === '') {
+        return current_cluster_path = current_cluster;
+      }
+    } else if (mode.current === mode.CHAT) {
+      paths = location.pathname.split('chat/');
+      current_page = 'chat';
+      current_cluster_path = paths[1].slice(0, -1);
+      if (current_cluster_path === '') {
+        return current_cluster_path = 'all';
+      }
+    }
+  };
+
   render_all = function() {
     var tab;
     if (mode.current === mode.USER) {
@@ -846,7 +925,6 @@
     }
     if (location.pathname.indexOf('/chat/') === 0) {
       mode.current = mode.CHAT;
-      render_node_clusters(room_clusters);
     }
     render_all();
     apps.init_chat();
@@ -864,6 +942,7 @@
         $('a[href="/' + pathname[1] + '/"]').parent().addClass('active');
       }
       apps.init();
+      change_chat_cluster();
     });
   }
 

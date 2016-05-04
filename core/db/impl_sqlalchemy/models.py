@@ -31,18 +31,16 @@ class Agent(Base):
     # TOPIC.host is a target topic
     host = Column(String(255), nullable=False)
 
-    # heatbeat
-    heartbeat_timestamp = Column(DateTime, nullable=False)
     # active, down, disable
     status = Column(String(55), nullable=False)
 
-    # setup
-    setup_timestamp = Column(DateTime, nullable=False)
-    setup_status = Column(String(55), nullable=False)
-
     # check
-    # ok, warning, critical
     check_status = Column(Integer, nullable=False)
+    check_timestamp = Column(DateTime, nullable=False)
+
+    # setup
+    setup_status = Column(String(55), nullable=False)
+    setup_timestamp = Column(DateTime, nullable=False)
 
     # fabscript_map
     fabscript_map = Column(String(1000), nullable=False)
