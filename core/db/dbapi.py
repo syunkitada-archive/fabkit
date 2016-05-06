@@ -26,8 +26,7 @@ class DBAPI():
                 agent.update(agent_data)
 
             except exc.NoResultFound:
-                print 'DEBUG'
-                agent_data['heartbeat_timestamp'] = datetime.datetime.utcnow()
+                agent_data['check_timestamp'] = datetime.datetime.utcnow()
                 agent = models.Agent(**agent_data)
                 self.session.add(agent)
 
@@ -54,12 +53,12 @@ class DBAPI():
         now = datetime.datetime.utcnow()
         with self.session.begin():
             for agent in agents:
-                if CONF.client.agent_downtime > (now - agent.heartbeat_timestamp).total_seconds():
+                if CONF.client.agent_downtime > (now - agent.check_timestamp).total_seconds():
                     if agent.status == 'down':
                         self.create_event({
                             'host': agent.host,
                             'event_type': 'check',
-                            'fabscript': 'heartbeat',
+                            'fabscript': 'check_timestamp',
                             'msg': 'status change from down to active',
                             'status': 0,
                         })
@@ -70,7 +69,7 @@ class DBAPI():
                         self.create_event({
                             'host': agent.host,
                             'event_type': 'check',
-                            'fabscript': 'heartbeat',
+                            'fabscript': 'check_timestamp',
                             'msg': 'status change from active to down',
                             'status': 10000,
                         })

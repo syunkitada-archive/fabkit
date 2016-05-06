@@ -4,6 +4,7 @@ import os
 import itertools
 import commands
 import subprocess
+import sys
 from fabkit import api, util
 from oslo_config import generator, cfg
 from oslo_messaging._drivers import amqp
@@ -161,4 +162,8 @@ def client():
 
 @api.task
 def sync_db(*args, **kwargs):
-    subprocess.call('cd {0} && alembic upgrade head'.format(CONF._sqlalchemy_dir), shell=True)
+    if sys.exec_prefix == '/usr':
+        subprocess.call('cd {0} && alembic upgrade head'.format(CONF._sqlalchemy_dir), shell=True)
+    else:
+        subprocess.call('cd {0} && {1}/bin/alembic upgrade head'.format(
+            CONF._sqlalchemy_dir, sys.exec_prefix), shell=True)

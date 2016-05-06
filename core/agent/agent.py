@@ -29,12 +29,12 @@ class AgentManager(periodic_task.PeriodicTasks):
 
         agent_data = {
             'agent_type': 'agent',
-            'host': CONF.client.host,
-            'heartbeat_timestamp': datetime.datetime.utcnow(),
+            'host': CONF.host,
             'status': 'active',
-            'setup_timestamp': datetime.datetime.utcnow(),
             'setup_status': 0,
+            'setup_timestamp': datetime.datetime.utcnow(),
             'check_status': 0,
+            'check_timestamp': datetime.datetime.utcnow(),
             'fabscript_map': '{}',
         }
 
