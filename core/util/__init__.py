@@ -1,6 +1,7 @@
 # coding: utf-8
 
-from base import genconfig, sync_fablib, upload, client, sync_db  # noqa
+from base import genconfig, sync_fablib, upload, sync_db  # noqa
+from client import client
 
 genconfig.__doc__ = """
 Generate config.

@@ -27,6 +27,8 @@ urlpatterns = patterns(
     # url(r'^blog/', include('blog.urls')),
 
     url(r'^admin/', include(admin.site.urls)),
+    # url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^api/', include('web_apps.api.urls', namespace='api')),
     url(r'^agent/', include('web_apps.agent.urls', namespace='agent')),
     url(r'^node/', include('web_apps.node.urls', namespace='node')),
     url(r'^user/', include('web_apps.user.urls', namespace='user')),

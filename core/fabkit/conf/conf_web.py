@@ -6,6 +6,9 @@ CONF = cfg.CONF
 
 
 web_opts = [
+    cfg.IntOpt('port',
+               default=8080,
+               help='httpd port. this option referenced from fabnode.'),
     cfg.BoolOpt('debug',
                 default=True,
                 help='Debug'),
@@ -26,10 +29,10 @@ web_opts = [
                help='node port that web client access.'),
     cfg.IntOpt('node_port',
                default=4000,
-               help='node port.'),
+               help='node port. this option referenced from fabnode.'),
     cfg.ListOpt('nodes',
                 default=[],
-                help='nodes of nodejs cluster.\n'
+                help='nodes of nodejs cluster. this option referenced from fabnode.\n'
                 'nodes = http://localhost:4000, http://localhost:4001'),
 ]
 

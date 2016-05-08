@@ -13,7 +13,7 @@ def base(request):
     livereload_js = 'http://{0}:35729/livereload.js'.format(
         CONF.web.node_public_host)
     chat_socketio_js = 'http://{0}:{1}/socket.io/socket.io.js'.format(
-        CONF.web.node_public_host, CONF.node_public_port)
+        CONF.web.node_public_host, CONF.web.node_public_port)
 
     return {
         'debug': CONF.web.debug,
