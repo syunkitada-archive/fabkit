@@ -13,3 +13,4 @@ python-keystoneclient==2.3.1
 oslo.versionedobjects==1.7.0
 oslo.db==4.6.0
 PyMySQL==0.7.2
+requests==2.9.1

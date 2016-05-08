@@ -9,8 +9,8 @@ class Cluster(models.Model):
     cluster_info = models.CharField(max_length=1000, default='')
     is_public = models.BooleanField(default=True)
 
-    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
 class Comment(models.Model):
@@ -18,8 +18,8 @@ class Comment(models.Model):
     cluster = models.ForeignKey(Cluster, related_name='cluster')
     text = models.CharField(max_length=550)
 
-    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
 class UserCluster(models.Model):
@@ -27,5 +27,5 @@ class UserCluster(models.Model):
     cluster = models.ForeignKey(Cluster)
     unread_comments_length = models.IntegerField()
 
-    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)

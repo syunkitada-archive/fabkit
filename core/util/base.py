@@ -135,7 +135,7 @@ def upload():
 
 
 @api.task
-def client():
+def client_setup():
     container = 'fabkit'
     with SwiftService(options=dict(CONF.keystone)) as swift:
         options = {

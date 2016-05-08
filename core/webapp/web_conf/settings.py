@@ -63,7 +63,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
-    'web_apps.restapi',
+    'web_apps.api',
     'web_apps.home',
     'web_apps.user',
     'web_apps.node',
