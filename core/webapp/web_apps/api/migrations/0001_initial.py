@@ -19,6 +19,7 @@ class Migration(migrations.Migration):
             name='File',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(unique=True, max_length=150)),
                 ('file', models.FileField(storage=django.core.files.storage.FileSystemStorage(location=b'/tmp/'), upload_to=web_apps.api.models.upload_to)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),

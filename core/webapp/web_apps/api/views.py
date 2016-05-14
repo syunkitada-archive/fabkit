@@ -1,5 +1,6 @@
 # coding: utf-8
 
+from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
@@ -10,6 +11,7 @@ from rest_framework import renderers
 
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User, Group
+from django.core.exceptions import ObjectDoesNotExist
 
 from web_apps.api.models import File
 from web_apps.api.serializers import UserSerializer, GroupSerializer, FileSerializer
@@ -20,6 +22,14 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+    def update(self, request, pk=None):
+        group_name = request.POST['group']
+        user = User.objects.get(username=pk)
+        group = Group.objects.get(name=group_name)
+        user.groups.add(group)
+        user.save()
+        return Response(status=status.HTTP_200_OK)
 
 
 class GroupViewSet(viewsets.ModelViewSet):
@@ -48,15 +58,36 @@ class FileViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = File.objects.all()
     serializer_class = FileSerializer
-    renderer_classes = (FileRenderer, )
+    renderer_classes = (FileRenderer,)
     parser_classes = (MultiPartParser, FormParser,)
 
     def perform_create(self, serializer):
-        print self.request.data
+        group_name = self.request.POST['group']
+        name = self.request.POST['name']
+        group = Group.objects.get(name=group_name)
+        files = File.objects.all().filter(name=name, group=group)
+        for file in files:
+            file.generation += 1
+            if file.generation > 2:
+                file.file.delete()
+                file.delete()
+            else:
+                file.save()
+
         serializer.save(owner=self.request.user,
-                        datafile=self.request.data.get('datafile'))
+                        group=group,
+                        name=name,
+                        file=self.request.data.get('datafile'))
 
     def retrieve(self, request, pk=None):
-        fileupload = get_object_or_404(self.queryset, pk=pk)
-        datafile = open(fileupload.datafile.path, "rb").read()
-        return Response(datafile)
+        group_name = pk
+        group = Group.objects.get(name=group_name)
+        filename = self.request.GET['name']
+        generation = self.request.GET.get('generation', 1)
+        try:
+            file = File.objects.get(name=filename, group=group, generation=generation)
+            datafile = open(file.file.path, "rb").read()
+            return Response(datafile)
+
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
