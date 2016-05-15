@@ -44,8 +44,8 @@ class GroupViewSet(viewsets.ModelViewSet):
 
 
 class FileRenderer(renderers.BaseRenderer):
-    media_type = 'image/jpeg'
-    format = 'jpg'
+    media_type = 'application/x-tar'
+    format = '.multipart'
     charset = None
     render_style = 'binary'
 
