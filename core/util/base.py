@@ -31,10 +31,6 @@ list_opts = [
      itertools.chain(
          conf_base.client_opts,
      )),
-    ('keystone',
-     itertools.chain(
-         conf_base.keystone_opts,
-     )),
     ('logger',
      itertools.chain(
          conf_base.logger_opts,
@@ -83,81 +79,6 @@ def genconfig(conf_file='fabfile.ini.sample'):
 @api.task
 def sync_fablib():
     util.git_clone_required_fablib()
-
-
-@api.task
-def upload():
-    print dict(CONF.keystone)
-    container = 'fabkit'
-    with SwiftService(options=dict(CONF.keystone)) as swift:
-        try:
-            status, output = commands.getstatusoutput(
-                'rm -rf /tmp/fabkit-repo && '
-                'cp -r {0} /tmp/fabkit-repo && '
-                'rm -rf /tmp/fabkit-repo/fabfile/core/webapp && '
-                'rm -rf /tmp/fabkit-repo/storage/tmp && '
-                'find /tmp/fabkit-repo -name .git | xargs rm -rf && '
-                'find /tmp/fabkit-repo -name .tox | xargs rm -rf && '
-                'find /tmp/fabkit-repo -name test-repo | xargs rm -rf && '
-                'find /tmp/fabkit-repo -name *.pyc | xargs rm -rf && '
-                'cd /tmp/ && tar cf fabkit-repo.tar.gz fabkit-repo'.format(CONF._repo_dir))
-
-            objs = [
-                SwiftUploadObject('/tmp/fabkit-repo.tar.gz', 'fabkit-repo.tar.gz')
-            ]
-
-            for r in swift.upload(container, objs):
-                if r['success']:
-                    if 'object' in r:
-                        print(r['object'])
-                    elif 'for_object' in r:
-                        print(
-                            '%s segment %s' % (r['for_object'],
-                                               r['segment_index'])
-                            )
-                else:
-                    error = r['error']
-                    if r['action'] == "create_container":
-                        print(
-                            'Warning: failed to create container '
-                            "'%s'", container
-                        )
-                    elif r['action'] == "upload_object":
-                        print(
-                            "Failed to upload object %s to container %s: %s" %
-                            (container, r['object'], error)
-                        )
-                    else:
-                        print("%s" % error)
-
-        except SwiftError as e:
-            print(e.value)
-
-
-@api.task
-def client_setup():
-    container = 'fabkit'
-    with SwiftService(options=dict(CONF.keystone)) as swift:
-        options = {
-            'out_directory': '/opt/fabkit/var/',
-        }
-        for r in swift.download(container, ['fabkit-repo.tar.gz'], options=options):
-            print r
-
-    status, output = commands.getstatusoutput(
-        'cd /opt/fabkit/var && rm -rf fabkit-repo && tar xf fabkit-repo.tar.gz')
-
-    status, output = commands.getstatusoutput(
-        'cp {0} /opt/fabkit/var/fabkit-repo'.format(CONF._inifile))
-
-    for cluster in CONF.client.clusters:
-        print cluster
-        node = os.path.join(cluster, CONF.client.host)
-        for task in CONF.client.task_patterns:
-            status, output = commands.getstatusoutput(
-                '/opt/fabkit/bin/fab -f /opt/fabkit/var/fabkit-repo/fabfile '
-                'node:{0},local manage:{1}'.format(node, task))
-            print output
 
 
 @api.task

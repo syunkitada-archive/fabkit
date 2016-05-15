@@ -114,6 +114,18 @@ keystone_opts = [
 ]
 
 client_opts = [
+    cfg.StrOpt('endpoint',
+               default='http://localhost',
+               help='endpoint'),
+    cfg.StrOpt('username',
+               default='admin',
+               help='username'),
+    cfg.StrOpt('password',
+               default='admin',
+               help='password'),
+    cfg.StrOpt('group',
+               default='admin',
+               help='group'),
     cfg.ListOpt('clusters',
                 default=[],
                 help='clusters'),

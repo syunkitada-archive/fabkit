@@ -21,5 +21,5 @@ class GroupSerializer(serializers.ModelSerializer):
 class FileSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = File
-        fields = ('file', 'created_at', 'updated_at')
-        read_only_fields = ('created', 'datafile', 'owner')
+        fields = ('name', 'file')
+        read_only_fields = ('name', 'file', 'created_at', 'updated_at')

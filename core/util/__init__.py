@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from base import genconfig, sync_fablib, upload, sync_db  # noqa
+from base import genconfig, sync_fablib, sync_db  # noqa
 from client import client
 
 genconfig.__doc__ = """
@@ -9,10 +9,6 @@ Generate config.
 
 sync_fablib.__doc__ = """
 Sync fablib.
-"""
-
-upload.__doc__ = """
-Upload fabric-repo to swift.
 """
 
 client.__doc__ = """
