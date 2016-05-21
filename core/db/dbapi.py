@@ -4,6 +4,7 @@ import datetime
 from oslo_config import cfg
 from oslo_db.sqlalchemy import session as db_session
 from sqlalchemy.orm import exc
+from sqlalchemy import desc
 from impl_sqlalchemy import models
 from fabkit import util
 
@@ -41,6 +42,13 @@ class DBAPI():
                              models.Agent.host == host).one()
         return agent
 
+    def get_active_cental_agents(self):
+        query = self.session.query(models.Agent)
+        agents = query.filter(
+            models.Agent.agent_type == 'central',
+            models.Agent.status == 'active').order_by(desc(models.Agent.id)).all()
+        return agents
+
     def get_agents(self):
         query = self.session.query(models.Agent)
         agents = query.filter().all()
@@ -53,7 +61,7 @@ class DBAPI():
         now = datetime.datetime.utcnow()
         with self.session.begin():
             for agent in agents:
-                if CONF.client.agent_downtime > (now - agent.check_timestamp).total_seconds():
+                if CONF.agent.agent_downtime > (now - agent.check_timestamp).total_seconds():
                     if agent.status == 'down':
                         self.create_event({
                             'host': agent.host,
@@ -79,6 +87,26 @@ class DBAPI():
         for event in events:
             self.create_event(self, event)
 
+    def create_task(self, task_data):
+        task = models.Task(**task_data)
+        with self.session.begin():
+            self.session.add(task)
+
+    def get_tasks(self, method=None, active=True, status=None):
+        query = self.session.query(models.Task)
+        if method is None:
+            tasks = query.filter(models.Task.active == active).all()
+        else:
+            tasks = query.filter(models.Task.method == method,
+                                 models.Task.active == active).all()
+        return tasks
+
+    def get_request_tasks(self):
+        query = self.session.query(models.Task)
+        tasks = query.filter(models.Task.active == 'active',
+                             models.Task.status == 'requested').all()
+        return tasks
+
     def create_event(self, event_data):
         event = models.Event(**event_data)
         self.session.add(event)
@@ -96,7 +124,7 @@ class DBAPI():
         query = self.session.query(models.Event)
         current_time = datetime.datetime.utcnow()
         delete_event_at = current_time - datetime.timedelta(
-            seconds=CONF.client.delete_event_interval)
+            seconds=CONF.agent.delete_event_interval)
 
         with self.session.begin():
             query.filter(models.Event.hooked == 1,

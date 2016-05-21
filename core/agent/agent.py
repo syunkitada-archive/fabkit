@@ -1,5 +1,7 @@
 # coding: utf-8
 
+import time
+import random
 import datetime
 import rpc
 import service
@@ -23,7 +25,7 @@ class AgentManager(periodic_task.PeriodicTasks):
     def periodic_tasks(self, context, raise_on_error=False):
         return self.run_periodic_tasks(context, raise_on_error=raise_on_error)
 
-    @periodic_task.periodic_task(spacing=3)
+    @periodic_task.periodic_task(spacing=CONF.agent.agent_report_interval)
     def check(self, context):
         LOG.info('start check')
 
@@ -43,11 +45,16 @@ class AgentManager(periodic_task.PeriodicTasks):
 
 class AgentRPCAPI(rpc.BaseRPCAPI):
     def __init__(self):
-        target = messaging.Target(topic='agent', version='2.0', server='server2')
+        target = messaging.Target(topic='agent', version='2.0', server=CONF.host)
         super(AgentRPCAPI, self).__init__('agent', target)
 
     def setup(self, context, arg):
-        print 'fab client'
+        LOG.info('start setup')
+        random_wait = arg.get('random_wait', 0)
+        if random_wait > 0:
+            wait_time = random.randint(0, random_wait)
+            time.sleep(wait_time)
+
         resp = {
             'status': 0,
         }
@@ -59,8 +66,14 @@ class AgentAPI(rpc.BaseAPI):
         target = messaging.Target(topic='agent', version='2.0', fanout=True)
         super(AgentAPI, self).__init__(target)
 
-    def setup(self):
-        return self.client.cast({}, 'setup', arg='')
+    def setup(self, arg={}, host=None):
+        if host is None:
+            return self.client.cast({}, 'setup', arg=arg)
+        else:
+            target = messaging.Target(topic='agent', version='2.0', server=CONF.host)
+            transport = messaging.get_transport(CONF)
+            client = messaging.RPCClient(transport, target)
+            return client.call({}, 'setup', arg=arg)
 
 
 class AgentService(service.Service):

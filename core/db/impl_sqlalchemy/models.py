@@ -46,6 +46,23 @@ class Agent(Base):
     fabscript_map = Column(String(1000), nullable=False)
 
 
+class Task(Base):
+    __tablename__ = 'task'
+    # check, setup
+    method = Column(String(255), nullable=False)
+    json_arg = Column(String(500), nullable=False, default='{}')
+
+    target = Column(String(255), nullable=False, default='.*')
+    # N: random wait(0-N s) on each node, 0<: serial
+    pallalel = Column(Integer, nullable=False, default=0)
+
+    # requested, running, success, failed
+    status = Column(String(55), nullable=False, default='requested')
+    err_msg = Column(String(255), nullable=False, default='')
+
+    active = Column(Boolean(), nullable=False, default=True)
+
+
 class Event(Base):
     __tablename__ = 'event'
     # check, setup
