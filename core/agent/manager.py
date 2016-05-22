@@ -47,7 +47,8 @@ def manage(*args, **kwargs):
             print cluster
             clusterapi = dbapi.DBAPI(dburl)
             for agent in clusterapi.get_agents():
-                print '{0}: {1}'.format(
+                print '{0}: {1}: {2}'.format(
+                    agent.agent_type,
                     agent.host,
                     agent.status,
                 )

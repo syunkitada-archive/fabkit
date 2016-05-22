@@ -169,7 +169,7 @@ CONF.register_opts(agent_opts, group='agent')
 CONF.register_opts(database_opts, group='database')
 
 
-def init(repo_dir=None):
+def init(repo_dir=None, log_file=None):
     INIFILE = os.path.join(repo_dir, INIFILE_NAME)
     log.register_options(CONF)
     if os.path.exists(INIFILE):
@@ -205,4 +205,8 @@ def init(repo_dir=None):
 
     CONF._check_agent_interval = CONF.agent.agent_downtime // 2
 
-    log.setup(CONF, 'fabkit')
+    if log_file is None:
+        log.setup(CONF, 'fabkit')
+    else:
+        CONF.log_file = os.path.join(CONF.log_dir, log_file)
+        log.setup(CONF, 'fabkit')

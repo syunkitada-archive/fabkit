@@ -16,9 +16,18 @@ sys.path.extend([
 
 
 # initialize config
-from fabkit import util
+from fabkit import util, env
 from fabkit.conf import conf_base, conf_fabric, conf_web, conf_test  # noqa
-conf_base.init(REPO_DIR)
+
+log_file = None
+tasks = env.tasks
+if len(tasks) > 0:
+    if tasks[0] == 'agent':
+        log_file = 'agent.log'
+    elif tasks[0] == 'agent_central':
+        log_file = 'agent-central.log'
+
+conf_base.init(REPO_DIR, log_file)
 conf_fabric.init()
 
 util.create_required_dirs()
