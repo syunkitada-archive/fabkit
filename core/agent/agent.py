@@ -1,9 +1,13 @@
 # coding: utf-8
 
+import json
+import time
+import random
 import datetime
 import rpc
 import service
 import central
+from util import client
 from oslo_service import periodic_task
 from oslo_config import cfg
 from oslo_log import log as logging
@@ -23,7 +27,7 @@ class AgentManager(periodic_task.PeriodicTasks):
     def periodic_tasks(self, context, raise_on_error=False):
         return self.run_periodic_tasks(context, raise_on_error=raise_on_error)
 
-    @periodic_task.periodic_task(spacing=3)
+    @periodic_task.periodic_task(spacing=CONF.agent.agent_report_interval)
     def check(self, context):
         LOG.info('start check')
 
@@ -31,27 +35,39 @@ class AgentManager(periodic_task.PeriodicTasks):
             'agent_type': 'agent',
             'host': CONF.host,
             'status': 'active',
-            'setup_status': 0,
-            'setup_timestamp': datetime.datetime.utcnow(),
             'check_status': 0,
             'check_timestamp': datetime.datetime.utcnow(),
-            'fabscript_map': '{}',
         }
 
-        self.centralapi.notify(agent_data)
+        self.centralapi.notify_check(agent_data)
 
 
 class AgentRPCAPI(rpc.BaseRPCAPI):
     def __init__(self):
-        target = messaging.Target(topic='agent', version='2.0', server='server2')
+        target = messaging.Target(topic='agent', version='2.0', server=CONF.host)
         super(AgentRPCAPI, self).__init__('agent', target)
 
+        self.centralapi = central.CentralAPI()
+
     def setup(self, context, arg):
-        print 'fab client'
-        resp = {
-            'status': 0,
+        LOG.info('start setup: {0}'.format(arg))
+        random_wait = arg.get('random_wait', 0)
+        if random_wait > 0:
+            wait_time = random.randint(0, random_wait)
+            time.sleep(wait_time)
+
+        result_map = client('setup')
+        result_map = json.dumps(result_map)
+
+        agent_data = {
+            'agent_type': 'agent',
+            'host': CONF.host,
+            'setup_status': 0,
+            'setup_timestamp': datetime.datetime.utcnow(),
+            'fabscript_map': result_map,
         }
-        return jsonutils.to_primitive(resp)
+
+        self.centralapi.notify_setup(agent_data)
 
 
 class AgentAPI(rpc.BaseAPI):
@@ -59,8 +75,14 @@ class AgentAPI(rpc.BaseAPI):
         target = messaging.Target(topic='agent', version='2.0', fanout=True)
         super(AgentAPI, self).__init__(target)
 
-    def setup(self):
-        return self.client.cast({}, 'setup', arg='')
+    def setup(self, arg={}, host=None):
+        if host is None:
+            return self.client.cast({}, 'setup', arg=arg)
+        else:
+            target = messaging.Target(topic='agent', version='2.0', server=CONF.host)
+            transport = messaging.get_transport(CONF)
+            client = messaging.RPCClient(transport, target)
+            return client.call({}, 'setup', arg=arg)
 
 
 class AgentService(service.Service):

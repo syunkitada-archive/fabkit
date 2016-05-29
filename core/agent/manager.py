@@ -20,6 +20,26 @@ def manage(*args, **kwargs):
         for cluster in CONF.cluster.database_map.keys():
             print cluster
 
+    elif 'agent-setup' in args:
+        cluster = kwargs.get('cluster')
+
+        dburl = CONF.cluster.database_map.get(cluster)
+        clusterapi = dbapi.DBAPI(dburl)
+        setup_tasks = clusterapi.get_request_tasks(method='setup')
+        if len(setup_tasks) > 0:
+            print 'Already exists setup_task'
+            for task in setup_tasks:
+                print '  * {0}({1}): {2}'.format(
+                    task.method,
+                    task.json_arg,
+                    task.status,
+                )
+            return
+
+        clusterapi.create_task({
+            'method': 'setup',
+        })
+
     elif 'agent-list' in args:
         cluster = kwargs.get('cluster')
 
@@ -27,7 +47,8 @@ def manage(*args, **kwargs):
             print cluster
             clusterapi = dbapi.DBAPI(dburl)
             for agent in clusterapi.get_agents():
-                print '{0}: {1}'.format(
+                print '{0}: {1}: {2}'.format(
+                    agent.agent_type,
                     agent.host,
                     agent.status,
                 )

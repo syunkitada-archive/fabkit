@@ -132,12 +132,24 @@ client_opts = [
     cfg.ListOpt('task_patterns',
                 default=['local.*', 'check.*'],
                 help='task_patterns'),
+    cfg.StrOpt('package_prefix',
+               default='/opt/fabkit',
+               help='package_prefix'),
+    cfg.StrOpt('package_var_dir',
+               default='/var/lib/fabkit',
+               help='package_var_dir'),
+]
+
+agent_opts = [
     cfg.IntOpt('agent_report_interval',
                default=60,
                help='report_interval'),
     cfg.IntOpt('agent_downtime',
                default=120,
                help='agent_downtime'),
+    cfg.IntOpt('check_task_interval',
+               default=60,
+               help='check_task_interval'),
     cfg.IntOpt('check_event_interval',
                default=60,
                help='check_event_interval'),
@@ -153,10 +165,11 @@ CONF.register_opts(keystone_opts, group='keystone')
 CONF.register_opts(logger_opts, group='logger')
 CONF.register_opts(node_logger_opts, group='node_logger')
 CONF.register_opts(client_opts, group='client')
+CONF.register_opts(agent_opts, group='agent')
 CONF.register_opts(database_opts, group='database')
 
 
-def init(repo_dir=None):
+def init(repo_dir=None, log_file=None):
     INIFILE = os.path.join(repo_dir, INIFILE_NAME)
     log.register_options(CONF)
     if os.path.exists(INIFILE):
@@ -190,6 +203,10 @@ def init(repo_dir=None):
     CONF._logger_formatter = logging.Formatter(fmt=CONF.logger.format)
     CONF._logger_console_formatter = logging.Formatter(fmt=CONF.logger.console_format)
 
-    CONF._check_agent_interval = CONF.client.agent_downtime // 2
+    CONF._check_agent_interval = CONF.agent.agent_downtime // 2
 
-    log.setup(CONF, 'fabkit')
+    if log_file is None:
+        log.setup(CONF, 'fabkit')
+    else:
+        CONF.log_file = os.path.join(CONF.log_dir, log_file)
+        log.setup(CONF, 'fabkit')

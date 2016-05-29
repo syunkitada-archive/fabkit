@@ -1,14 +1,17 @@
 # coding: utf-8
 
+import pickle
 import shutil
 import json
 import requests
 import commands
 import os
 from oslo_config import cfg
+from oslo_log import log as logging
 from fabkit import api
 
 CONF = cfg.CONF
+LOG = logging.getLogger(__name__)
 
 endpoint = '{0}/api/'.format(CONF.client.endpoint)
 
@@ -19,9 +22,7 @@ def download(headers, group, filename, path):
             endpoint, group, filename),
         headers=headers, stream=True)
 
-    print result.status_code
     if result.status_code == 200:
-        print result.status_code
         with open(path, 'wb') as f:
             result.raw.decode_content = True
             shutil.copyfileobj(result.raw, f)
@@ -51,8 +52,6 @@ def client(*args, **kwargs):
     headers = {
         'Authorization': 'Token {0}'.format(token),
     }
-    print token
-    print args
 
     if args[0] == 'help':
         print 'help'
@@ -109,7 +108,7 @@ def client(*args, **kwargs):
             }
 
         elif len(args) != 4:
-            print 'upload [group_name] {file_name} {file_path}'
+            print 'upload [group_name] [file_name] [file_path]'
             return
 
         else:
@@ -140,19 +139,36 @@ def client(*args, **kwargs):
             print 'setup'
             return
 
-        download(headers, CONF.client.group, 'fabkit', '/opt/fabkit/var/fabkit-repo.tar.gz')
+        var_dir = CONF.client.package_var_dir
+        fab_tar = '{0}/fabkit-repo.tar.gz'.format(var_dir)
+        repo_dir = '{0}/fabkit-repo'.format(var_dir)
+
+        download(headers, CONF.client.group, 'fabkit',
+                 '{0}'.format(fab_tar))
 
         status, output = commands.getstatusoutput(
-            'cd /opt/fabkit/var && rm -rf fabkit-repo && tar xf fabkit-repo.tar.gz')
+            'cd {0} && rm -rf fabkit-repo && tar xf {1}'.format(
+                var_dir, fab_tar))
 
         status, output = commands.getstatusoutput(
-            'cp {0} /opt/fabkit/var/fabkit-repo'.format(CONF._inifile))
+            'cp {0} {1}'.format(CONF._inifile, repo_dir))
 
+        result_map = {}
         for cluster in CONF.client.clusters:
-            print cluster
             node = os.path.join(cluster, CONF.host)
             for task in CONF.client.task_patterns:
                 status, output = commands.getstatusoutput(
-                    '/opt/fabkit/bin/fab -f /opt/fabkit/var/fabkit-repo/fabfile '
-                    'node:{0},local manage:{1}'.format(node, task))
+                    '{0}/bin/fab -f {1}/fabfile '
+                    'node:{2},local manage:{3}'.format(
+                        CONF.client.package_prefix, repo_dir, node, task))
+
                 print output
+
+            pickle_file = '{0}/{1}/{2}/__cluster.pickle'.format(
+                repo_dir, CONF.node_dir, cluster)
+            with open(pickle_file) as f:
+                cluster_data = pickle.load(f)
+                result_map[cluster] = cluster_data['__status']['node_map'][CONF.host]
+
+        print result_map
+        return result_map
