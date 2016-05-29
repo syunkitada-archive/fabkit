@@ -1,11 +1,13 @@
 # coding: utf-8
 
+import json
 import time
 import random
 import datetime
 import rpc
 import service
 import central
+from util import client
 from oslo_service import periodic_task
 from oslo_config import cfg
 from oslo_log import log as logging
@@ -33,14 +35,11 @@ class AgentManager(periodic_task.PeriodicTasks):
             'agent_type': 'agent',
             'host': CONF.host,
             'status': 'active',
-            'setup_status': 0,
-            'setup_timestamp': datetime.datetime.utcnow(),
             'check_status': 0,
             'check_timestamp': datetime.datetime.utcnow(),
-            'fabscript_map': '{}',
         }
 
-        self.centralapi.notify(agent_data)
+        self.centralapi.notify_check(agent_data)
 
 
 class AgentRPCAPI(rpc.BaseRPCAPI):
@@ -48,17 +47,27 @@ class AgentRPCAPI(rpc.BaseRPCAPI):
         target = messaging.Target(topic='agent', version='2.0', server=CONF.host)
         super(AgentRPCAPI, self).__init__('agent', target)
 
+        self.centralapi = central.CentralAPI()
+
     def setup(self, context, arg):
-        LOG.info('start setup')
+        LOG.info('start setup: {0}'.format(arg))
         random_wait = arg.get('random_wait', 0)
         if random_wait > 0:
             wait_time = random.randint(0, random_wait)
             time.sleep(wait_time)
 
-        resp = {
-            'status': 0,
+        result_map = client('setup')
+        result_map = json.dumps(result_map)
+
+        agent_data = {
+            'agent_type': 'agent',
+            'host': CONF.host,
+            'setup_status': 0,
+            'setup_timestamp': datetime.datetime.utcnow(),
+            'fabscript_map': result_map,
         }
-        return jsonutils.to_primitive(resp)
+
+        self.centralapi.notify_setup(agent_data)
 
 
 class AgentAPI(rpc.BaseAPI):

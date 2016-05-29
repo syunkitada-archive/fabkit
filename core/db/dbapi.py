@@ -101,11 +101,22 @@ class DBAPI():
                                  models.Task.active == active).all()
         return tasks
 
-    def get_request_tasks(self):
+    def get_request_tasks(self, method=None):
         query = self.session.query(models.Task)
-        tasks = query.filter(models.Task.active == 'active',
-                             models.Task.status == 'requested').all()
+        if method is None:
+            tasks = query.filter(models.Task.active,
+                                 models.Task.status == 'requested').all()
+
+        else:
+            tasks = query.filter(models.Task.active,
+                                 models.Task.status == 'requested',
+                                 models.Task.method == method).all()
+
         return tasks
+
+    def update_task(self, task, status):
+        with self.session.begin():
+            task.status = status
 
     def create_event(self, event_data):
         event = models.Event(**event_data)

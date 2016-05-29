@@ -56,7 +56,7 @@ class Task(Base):
     # N: random wait(0-N s) on each node, 0<: serial
     pallalel = Column(Integer, nullable=False, default=0)
 
-    # requested, running, success, failed
+    # requested, queued
     status = Column(String(55), nullable=False, default='requested')
     err_msg = Column(String(255), nullable=False, default='')
 

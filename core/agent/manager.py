@@ -25,7 +25,7 @@ def manage(*args, **kwargs):
 
         dburl = CONF.cluster.database_map.get(cluster)
         clusterapi = dbapi.DBAPI(dburl)
-        setup_tasks = clusterapi.get_tasks(method='setup')
+        setup_tasks = clusterapi.get_request_tasks(method='setup')
         if len(setup_tasks) > 0:
             print 'Already exists setup_task'
             for task in setup_tasks:

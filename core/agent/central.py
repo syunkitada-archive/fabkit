@@ -35,11 +35,8 @@ class CentralManager(periodic_task.PeriodicTasks):
 
     @periodic_task.periodic_task(spacing=CONF._check_agent_interval)
     def check_agent(self, context):
-        if self.is_master():
-            LOG.info('check_agent')
-            self.central_dbapi.check_agents()
-        else:
-            LOG.info('check_agent: skipped')
+        LOG.info('check_agent')
+        self.central_dbapi.check_agents()
 
     @periodic_task.periodic_task(spacing=CONF.agent.check_event_interval)
     def check_event(self, context):
@@ -50,12 +47,14 @@ class CentralManager(periodic_task.PeriodicTasks):
             LOG.info('check_event: skipped')
 
     # @periodic_task.periodic_task(spacing=CONF.agent.check_task_interval)
-    @periodic_task.periodic_task(spacing=3)
+    @periodic_task.periodic_task(spacing=5)
     def check_task(self, context):
         if self.is_master():
             LOG.info('check_task')
             tasks = self.central_dbapi.get_request_tasks()
             for task in tasks:
+                LOG.info('{0}:{1}:{2}'.format(
+                    task.method, task.target, task.json_arg))
                 arg = json.loads(task.json_arg)
                 if task.pallalel > -1:
                     arg['random_wait'] = task.pallalel
@@ -63,6 +62,8 @@ class CentralManager(periodic_task.PeriodicTasks):
                 else:
                     # TODO serial setup
                     print 'serial setup, but not implement'
+
+                self.central_dbapi.update_task(task, 'queued')
         else:
             LOG.info('check_task: skipped')
 
@@ -86,7 +87,7 @@ class CentralManager(periodic_task.PeriodicTasks):
             'fabscript_map': '{}',
         }
 
-        self.centralapi.notify(agent_data)
+        self.centralapi.notify_check(agent_data)
 
 
 class CentralRPCAPI(rpc.BaseRPCAPI):
@@ -117,8 +118,12 @@ class CentralRPCAPI(rpc.BaseRPCAPI):
         """
         print 'alarm'
 
-    def notify(self, context, agent_data):
+    def notify_check(self, context, agent_data):
         LOG.info('notify')
+        self.central_dbapi.create_or_update_agent(agent_data)
+
+    def notify_setup(self, context, agent_data):
+        LOG.info('notify_setup')
         self.central_dbapi.create_or_update_agent(agent_data)
 
     def disable_node(self, context, arg):
@@ -136,8 +141,11 @@ class CentralAPI(rpc.BaseAPI):
     def setup(self):
         return self.client.call({}, 'setup', arg='')
 
-    def notify(self, agent_data):
-        return self.client.call({}, 'notify', agent_data=agent_data)
+    def notify_check(self, agent_data):
+        return self.client.call({}, 'notify_check', agent_data=agent_data)
+
+    def notify_setup(self, agent_data):
+        return self.client.call({}, 'notify_setup', agent_data=agent_data)
 
 
 class CentralService(service.Service):

@@ -75,6 +75,7 @@ def node(*options):
             elif option == 'local':
                 is_yes = True
                 env.is_local = True
+                query += CONF.host
 
         for task in env.tasks:
             if task.find('setup') == 0:
