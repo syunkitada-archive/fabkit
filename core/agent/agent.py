@@ -31,12 +31,16 @@ class AgentManager(periodic_task.PeriodicTasks):
     def check(self, context):
         LOG.info('start check')
 
+        result_map = client('check')
+        result_map = json.dumps(result_map)
+
         agent_data = {
             'agent_type': 'agent',
             'host': CONF.host,
             'status': 'active',
             'check_status': 0,
             'check_timestamp': datetime.datetime.utcnow(),
+            'fabscript_map': result_map,
         }
 
         self.centralapi.notify_check(agent_data)

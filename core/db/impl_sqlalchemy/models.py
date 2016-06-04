@@ -43,7 +43,7 @@ class Agent(Base):
     setup_timestamp = Column(DateTime, nullable=False)
 
     # fabscript_map
-    fabscript_map = Column(String(1000), nullable=False)
+    fabscript_map = Column(String(1000), nullable=False, default='{}')
 
 
 class Task(Base):
