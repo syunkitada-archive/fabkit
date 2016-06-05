@@ -57,6 +57,40 @@ render_all = ->
             $('#datamap-modal').modal()
             return)
 
+    else if mode.current == mode.AGENT
+        render_node_clusters(agent_clusters)
+        render_node_cluster()
+
+        $('#node-table').tablesorter({
+            sortList: [[0, 1], [1, 0]]
+        })
+
+        render_datamap()
+        bind_shown_tab_event()
+
+        tab = 0
+        $('#datamap-modal').on('shown.bs.modal', ->
+            console.log 'shown'
+            $("#map-#{datamap_tabs[tab]}").tab('show')
+            return)
+
+        $('#show-datamap').on('click', ->
+            $('#datamap-modal').modal()
+            tab = 0
+            if datamap_tabs.length > 2
+                tab = 2
+            return)
+
+        $('#show-statusmap').on('click', ->
+            tab = 0
+            $('#datamap-modal').modal()
+            return)
+
+        $('#show-relationmap').on('click', ->
+            tab = 1
+            $('#datamap-modal').modal()
+            return)
+
     $('[data-toggle=popover]').popover()
 
 apps.init = ->
@@ -86,16 +120,16 @@ apps.init = ->
         node_clusters = JSON.parse(node_clusters.html())
 
     node_cluster = $('#node_cluster')
-    if node_cluster.length > 0
+    if location.pathname.indexOf('/node/') == 0
         mode.current = mode.NODE
         node_cluster = JSON.parse(node_cluster.html())
 
-    if location.pathname.indexOf('/agent/') == 0
+    else if location.pathname.indexOf('/agent/') == 0
         mode.current = mode.AGENT
         agent_clusters = JSON.parse($('#agent_clusters').html())
-        render_node_clusters(agent_clusters)
+        node_cluster = JSON.parse(node_cluster.html())
 
-    if location.pathname.indexOf('/chat/') == 0
+    else if location.pathname.indexOf('/chat/') == 0
         mode.current = mode.CHAT
         # render_node_clusters(room_clusters)
 

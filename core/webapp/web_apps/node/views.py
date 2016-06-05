@@ -9,6 +9,7 @@ from markdown import markdown
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from oslo_config import cfg
+from web_lib import util
 
 CONF = cfg.CONF
 
@@ -84,25 +85,17 @@ def index(request, cluster=None):
             readme_html = f.read()
 
     node_cluster['datamap'] = datamap
+
     fabscript_map = node_cluster['__status']['fabscript_map']
-    for fabscript_name, fabscript in fabscript_map.items():
-        splited_name = fabscript_name.rsplit('/', 1)
-        fabscript_cluster = splited_name[0]
-        script = splited_name[1]
-        fabscript_yaml = os.path.join(
-            CONF.fabscript_module, fabscript_cluster, '__fabscript.yml')
-        if os.path.exists(fabscript_yaml):
-            with open(fabscript_yaml, 'r') as f:
-                data = yaml.load(f)
-                if data is not None:
-                    fabscript.update(data.get(script, {}))
+    util.update_fabscript_map(fabscript_map)
+    print fabscript_map
 
     node_clusters = json.dumps(node_clusters)
     node_cluster = json.dumps(node_cluster)
 
     context = {
         'cluster': cluster,
-        'title': 'Node List: {0}'.format(cluster),
+        'title': 'Node: {0}'.format(cluster),
         'node_clusters': node_clusters,
         'node_cluster': node_cluster,
         'datamap': datamap,

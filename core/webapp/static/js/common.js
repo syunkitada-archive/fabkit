@@ -1,5 +1,5 @@
 (function() {
-  var WARNING_STATUS_THRESHOLD, agent_cluster, agent_clusters, bind_shown_tab_event, change_chat_cluster, chat_cluster, chat_clusters, chat_comment, chat_socket, current_cluster_path, current_page, datamap_tabs, fabscripts, filter, graph_links, graph_nodes, mark_chat_text, mode, node_cluster, node_clusters, render_all, render_datamap, render_force_panel, render_node_cluster, render_node_clusters, render_partition_panel, render_table_panel, render_user, socket, update_pagedata, users,
+  var WARNING_STATUS_THRESHOLD, agent_cluster, agent_clusters, agents, bind_shown_tab_event, change_chat_cluster, chat_cluster, chat_clusters, chat_comment, chat_socket, current_cluster_path, current_page, datamap_tabs, fabscripts, filter, graph_links, graph_nodes, mark_chat_text, mode, node_cluster, node_clusters, render_all, render_datamap, render_force_panel, render_node_cluster, render_node_clusters, render_partition_panel, render_table_panel, render_user, socket, update_pagedata, users,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   users = [];
@@ -7,6 +7,8 @@
   node_cluster = {};
 
   node_clusters = [];
+
+  agents = [];
 
   agent_cluster = {};
 
@@ -677,7 +679,7 @@
   };
 
   render_node_cluster = function() {
-    var all_node_length, danger_node_length, data, fabscript, fabscript_map, fabscript_node_map, fabscript_status_map, host, i, index, is_danger, is_warning, links, name, node, node_class, node_map, nodes, nodes_tbody_html, require, result, result_html, script, status, success_node_length, sum_status, target, tmp_fabscript, warning_node_length, _i, _len, _ref, _ref1;
+    var all_node_length, danger_node_length, data, fabscript, fabscript_map, fabscript_node_map, fabscript_status_map, host, i, index, is_danger, is_warning, links, name, node, node_class, node_map, nodes, nodes_tbody_html, require, result, result_html, script, status, success_node_length, sum_status, target, tmp_fabscript, tmp_node, warning_node_length, _i, _len, _ref, _ref1;
     console.log('Test');
     $('#markdown').html(marked($('#markdown').text()));
     fabscript_node_map = {};
@@ -725,7 +727,7 @@
         result = _ref[script];
         sum_status += result.task_status + result.check_status;
         result_html += "" + script + " [" + result.task_status + "],\nsetup [" + result.status + "]: '" + result.msg + "',\ncheck [" + result.check_status + "]: '" + result.check_msg + "'\n<br>";
-        node = {
+        tmp_node = {
           'type': node,
           'name': host,
           'size': 1
@@ -741,7 +743,7 @@
         } else {
           tmp_fabscript = fabscript_map[script].children[0];
         }
-        tmp_fabscript.children.push(node);
+        tmp_fabscript.children.push(tmp_node);
         tmp_fabscript.length++;
       }
       if (is_danger) {
@@ -755,7 +757,11 @@
         success_node_length++;
       }
       result_html += '</div>';
-      nodes_tbody_html += "<tr class=\"" + node_class + "\">\n    <td>" + sum_status + "</td>\n    <td>" + host + "</td>\n    <td>" + result_html + "</td>\n</tr>";
+      if (mode.current === mode.NODE) {
+        nodes_tbody_html += "<tr class=\"" + node_class + "\">\n    <td>" + sum_status + "</td>\n    <td>" + host + "</td>\n    <td>" + result_html + "</td>\n</tr>";
+      } else if (mode.current === mode.AGENT) {
+        nodes_tbody_html += "<tr class=\"" + node_class + "\">\n    <td>" + sum_status + "</td>\n    <td>" + host + "</td>\n    <td>" + node.status + "</td>\n    <td>" + node.check_timestamp + "</td>\n    <td>" + node.setup_timestamp + "</td>\n    <td>" + result_html + "</td>\n</tr>";
+      }
     }
     $('#all-node-badge').html(all_node_length);
     $('#success-node-badge').html(success_node_length);
@@ -883,6 +889,34 @@
         tab = 1;
         $('#datamap-modal').modal();
       });
+    } else if (mode.current === mode.AGENT) {
+      render_node_clusters(agent_clusters);
+      render_node_cluster();
+      $('#node-table').tablesorter({
+        sortList: [[0, 1], [1, 0]]
+      });
+      render_datamap();
+      bind_shown_tab_event();
+      tab = 0;
+      $('#datamap-modal').on('shown.bs.modal', function() {
+        console.log('shown');
+        $("#map-" + datamap_tabs[tab]).tab('show');
+      });
+      $('#show-datamap').on('click', function() {
+        $('#datamap-modal').modal();
+        tab = 0;
+        if (datamap_tabs.length > 2) {
+          tab = 2;
+        }
+      });
+      $('#show-statusmap').on('click', function() {
+        tab = 0;
+        $('#datamap-modal').modal();
+      });
+      $('#show-relationmap').on('click', function() {
+        tab = 1;
+        $('#datamap-modal').modal();
+      });
     }
     return $('[data-toggle=popover]').popover();
   };
@@ -914,16 +948,14 @@
       node_clusters = JSON.parse(node_clusters.html());
     }
     node_cluster = $('#node_cluster');
-    if (node_cluster.length > 0) {
+    if (location.pathname.indexOf('/node/') === 0) {
       mode.current = mode.NODE;
       node_cluster = JSON.parse(node_cluster.html());
-    }
-    if (location.pathname.indexOf('/agent/') === 0) {
+    } else if (location.pathname.indexOf('/agent/') === 0) {
       mode.current = mode.AGENT;
       agent_clusters = JSON.parse($('#agent_clusters').html());
-      render_node_clusters(agent_clusters);
-    }
-    if (location.pathname.indexOf('/chat/') === 0) {
+      node_cluster = JSON.parse(node_cluster.html());
+    } else if (location.pathname.indexOf('/chat/') === 0) {
       mode.current = mode.CHAT;
     }
     render_all();

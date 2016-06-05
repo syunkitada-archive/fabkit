@@ -1,6 +1,7 @@
 users = []
 node_cluster = {}
 node_clusters = []
+agents = []
 agent_cluster = {}
 agent_clusters = []
 fabscripts = []
