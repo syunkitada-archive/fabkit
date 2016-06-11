@@ -143,11 +143,15 @@ def client(*args, **kwargs):
         fab_tar = '{0}/fabkit-repo.tar.gz'.format(var_dir)
         repo_dir = '{0}/fabkit-repo'.format(var_dir)
 
+        status, output = commands.getstatusoutput(
+            'rm -rf {0}/fabkit-repo.tar.gz && rm -rf {0}/fabkit-repo'.format(
+                var_dir, fab_tar))
+
         download(headers, CONF.client.group, 'fabkit',
                  '{0}'.format(fab_tar))
 
         status, output = commands.getstatusoutput(
-            'cd {0} && rm -rf fabkit-repo && tar xf {1}'.format(
+            'cd {0} && tar xf {1}'.format(
                 var_dir, fab_tar))
 
         status, output = commands.getstatusoutput(
@@ -155,12 +159,37 @@ def client(*args, **kwargs):
 
         result_map = {}
         for cluster in CONF.client.clusters:
-            node = os.path.join(cluster, CONF.host)
             for task in CONF.client.task_patterns:
-                status, output = commands.getstatusoutput(
-                    '{0}/bin/fab -f {1}/fabfile '
-                    'node:{2},local manage:{3}'.format(
-                        CONF.client.package_prefix, repo_dir, node, task))
+                fabcmd = '{0}/bin/fab -f {1}/fabfile node:{2},local manage:{3}'.format(
+                    CONF.client.package_prefix, repo_dir, cluster, task)
+                status, output = commands.getstatusoutput(fabcmd)
+
+                print output
+
+            pickle_file = '{0}/{1}/{2}/__cluster.pickle'.format(
+                repo_dir, CONF.node_dir, cluster)
+            with open(pickle_file) as f:
+                cluster_data = pickle.load(f)
+                result_map[cluster] = cluster_data['__status']['node_map'][CONF.host]
+
+        print result_map
+        return result_map
+
+    elif args[0] == 'check':
+        if len(args) != 1:
+            print 'setup'
+            return
+
+        var_dir = CONF.client.package_var_dir
+        fab_tar = '{0}/fabkit-repo.tar.gz'.format(var_dir)
+        repo_dir = '{0}/fabkit-repo'.format(var_dir)
+
+        result_map = {}
+        for cluster in CONF.client.clusters:
+            for task in CONF.client.task_patterns:
+                fabcmd = '{0}/bin/fab -f {1}/fabfile node:{2},local check'.format(
+                    CONF.client.package_prefix, repo_dir, cluster, task)
+                status, output = commands.getstatusoutput(fabcmd)
 
                 print output
 

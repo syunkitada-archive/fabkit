@@ -31,12 +31,25 @@ class AgentManager(periodic_task.PeriodicTasks):
     def check(self, context):
         LOG.info('start check')
 
+        result_map = client('check')
+        setup_status = 0
+        check_status = 0
+        for cluster in result_map.values():
+            for result in cluster['fabscript_map'].values():
+                print result
+                setup_status += result['status']
+                check_status += result['check_status']
+
+        result_map = json.dumps(result_map)
+
         agent_data = {
             'agent_type': 'agent',
             'host': CONF.host,
             'status': 'active',
-            'check_status': 0,
+            'check_status': check_status,
             'check_timestamp': datetime.datetime.utcnow(),
+            'setup_status': setup_status,
+            'fabscript_map': result_map,
         }
 
         self.centralapi.notify_check(agent_data)
@@ -57,12 +70,18 @@ class AgentRPCAPI(rpc.BaseRPCAPI):
             time.sleep(wait_time)
 
         result_map = client('setup')
+
+        setup_status = 0
+        for cluster in result_map.values():
+            for result in cluster['fabscript_map'].values():
+                setup_status += result['status']
+
         result_map = json.dumps(result_map)
 
         agent_data = {
             'agent_type': 'agent',
             'host': CONF.host,
-            'setup_status': 0,
+            'setup_status': setup_status,
             'setup_timestamp': datetime.datetime.utcnow(),
             'fabscript_map': result_map,
         }

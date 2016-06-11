@@ -36,7 +36,7 @@ render_node_cluster = ->
             <br>
             """
 
-            node = {'type': node, 'name': host, 'size': 1}
+            tmp_node = {'type': node, 'name': host, 'size': 1}
             if result.task_status > 0 or result.check_status > 0
                 if result.task_status < WARNING_STATUS_THRESHOLD or result.check_status < WARNING_STATUS_THRESHOLD
                     is_warning = true
@@ -47,7 +47,7 @@ render_node_cluster = ->
             else
                 tmp_fabscript = fabscript_map[script].children[0]
 
-            tmp_fabscript.children.push(node)
+            tmp_fabscript.children.push(tmp_node)
             tmp_fabscript.length++
 
         if is_danger
@@ -61,12 +61,23 @@ render_node_cluster = ->
             success_node_length++
 
         result_html += '</div>'
-        nodes_tbody_html += """
-            <tr class="#{node_class}">
-                <td>#{sum_status}</td>
-                <td>#{host}</td>
-                <td>#{result_html}</td>
-            </tr>"""
+        if mode.current == mode.NODE
+            nodes_tbody_html += """
+                <tr class="#{node_class}">
+                    <td>#{sum_status}</td>
+                    <td>#{host}</td>
+                    <td>#{result_html}</td>
+                </tr>"""
+        else if mode.current == mode.AGENT
+            nodes_tbody_html += """
+                <tr class="#{node_class}">
+                    <td>#{sum_status}</td>
+                    <td>#{host}</td>
+                    <td>#{node.status}</td>
+                    <td>#{node.check_timestamp}</td>
+                    <td>#{node.setup_timestamp}</td>
+                    <td>#{result_html}</td>
+                </tr>"""
 
     $('#all-node-badge').html(all_node_length)
     $('#success-node-badge').html(success_node_length)
