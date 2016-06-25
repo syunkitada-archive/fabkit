@@ -6,8 +6,6 @@ CONF = cfg.CONF
 
 
 def base(request):
-    print '\n\nDEBUG'
-    print CONF.host
     namespace = request.resolver_match.namespace
     view_name = request.resolver_match.view_name
     livereload_js = 'http://{0}:35729/livereload.js'.format(

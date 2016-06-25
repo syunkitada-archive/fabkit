@@ -73,7 +73,6 @@ def change_password(request):
             u.save()
             return redirect('home:index')
         else:
-            print form.errors
             return redirect('home:index')
 
 
@@ -87,11 +86,7 @@ def create(request):
             password = request.POST['password1']
             user = User.objects.create_user(username, '', password)
             user.save()
-            print 'create OK'
             redirect('user:create')
-
-        else:
-            print form.errors
 
         return redirect('user:index')
 
