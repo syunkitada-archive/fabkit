@@ -40,7 +40,6 @@ class GroupViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         result = serializer.save(name=self.request.data.get('name'))
-        print result
 
 
 class FileRenderer(renderers.BaseRenderer):
@@ -62,14 +61,10 @@ class FileViewSet(ModelViewSet):
     parser_classes = (MultiPartParser, FormParser,)
 
     def perform_create(self, serializer):
-        print 'DEBUG'
         group_name = self.request.POST['group']
         name = self.request.POST['name']
-        print group_name
-        print name
         group = Group.objects.get(name=group_name)
         files = File.objects.all().filter(name=name, group=group)
-        print 'DEBUG2'
         for file in files:
             file.generation += 1
             if file.generation > 2:
@@ -78,7 +73,6 @@ class FileViewSet(ModelViewSet):
             else:
                 file.save()
 
-        print 'DEBUG3'
         serializer.save(owner=self.request.user,
                         group=group,
                         name=name,

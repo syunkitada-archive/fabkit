@@ -5,7 +5,6 @@ import yaml
 import os
 import json
 from web_apps.chat.utils import get_comments, get_cluster
-from markdown import markdown
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from oslo_config import cfg
@@ -88,7 +87,6 @@ def index(request, cluster=None):
 
     fabscript_map = node_cluster['__status']['fabscript_map']
     util.update_fabscript_map(fabscript_map)
-    print fabscript_map
 
     node_clusters = json.dumps(node_clusters)
     node_cluster = json.dumps(node_cluster)

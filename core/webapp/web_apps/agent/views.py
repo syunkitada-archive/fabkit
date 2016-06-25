@@ -1,12 +1,8 @@
 # coding: utf-8
 
-import pickle
-import yaml
-import os
 import json
 from web_lib import util
 from web_apps.chat.utils import get_comments, get_cluster
-from markdown import markdown
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from oslo_config import cfg
@@ -76,17 +72,20 @@ def index(request, cluster_name=None):
     agent_clusters = json.dumps(agent_clusters)
     node_cluster = json.dumps(node_cluster)
 
+    if cluster_name is None:
+        comments = []
+    else:
+        comments = get_comments(get_cluster(cluster_name))
+
     context = {
-        'title': 'Agent: ' + cluster_name,
+        'title': 'Agent: {0}'.format(cluster_name),
         'cluster': cluster_name,
         'agents': agents,
         'central_agents': central_agents,
         'node_cluster': node_cluster,
         'agent_clusters': agent_clusters,
-        'comments': get_comments(get_cluster(cluster)),
+        'comments': comments,
     }
-
-    print agent_clusters
 
     if request.META.get('HTTP_X_PJAX'):
         return render(request, 'agent/content.html', context)
