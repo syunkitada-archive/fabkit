@@ -8,6 +8,7 @@ eventlet==0.17.4
 oslo.config==2.7.0
 oslo.log==2.1.0
 oslo.service==1.2.0
+oslo.messaging==4.5.1
 python-swiftclient==3.0.0
 python-keystoneclient==2.3.1
 oslo.versionedobjects==1.7.0
