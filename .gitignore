@@ -11,3 +11,4 @@
 .coverage
 .tox
 node_modules
+local_settings.py
