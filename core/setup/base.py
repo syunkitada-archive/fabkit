@@ -81,7 +81,11 @@ def run_func(func_names=[], *args, **kwargs):
     func_patterns = [re.compile(name) for name in func_names]
     host_filter = {}
     for run in env.runs:
-        log.init_logger(run['cluster'])
+        cluster_name = run['cluster']
+        cluster = env.cluster_map[run['cluster']]
+        env.cluster = cluster
+        log.init_logger(cluster_name)
+
         for cluster_run in run['runs']:
             run_results = []
             script_name = cluster_run['fabscript']
@@ -115,7 +119,6 @@ def run_func(func_names=[], *args, **kwargs):
 
             env.script_name = script_name
             env.hosts = hosts
-            env.cluster = env.cluster_map[run['cluster']]
 
             # override env
             override_env = env.cluster.get('env', {})

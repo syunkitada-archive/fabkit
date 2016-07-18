@@ -36,6 +36,15 @@ def nested_merge(src_dict, data):
     return result
 
 
+def update_host_script_map(tmp_hosts, fabscript, fabscript_kwargs):
+    for host in tmp_hosts:
+        script_map = env.host_script_map.get(host, {})
+        script_var = script_map.get(fabscript, {})
+        script_var = nested_merge(script_var, fabscript_kwargs)
+        script_map[fabscript] = script_var
+        env.host_script_map[host] = script_map
+
+
 def include_cluster(cluster_name):
     data = {}
     cluster_dir = os.path.join(CONF._node_dir, cluster_name)
@@ -67,6 +76,7 @@ def load_runs(query, find_depth=1):
     env.cluster_mapにクラスタごとのデータ情報を格納
 
     """
+    env.host_script_map = {}
 
     # query rule
     # <cluster_name>/<node_search_pattern>
@@ -135,8 +145,18 @@ def load_runs(query, find_depth=1):
 
             cluster_node['hosts'] = tmp_hosts
 
-            for fabscript in cluster_node['fabruns']:
+            for tmp_fabscript in cluster_node['fabruns']:
                 # fabruns = [<cluster>/<python_mod_path>, <cluster>/<python_mod_path>]
+                fabscript = tmp_fabscript
+                fabscript_kwargs = {}
+                if isinstance(tmp_fabscript, dict):
+                    for f, kwargs in tmp_fabscript.items():
+                        fabscript = f
+                        fabscript_kwargs = kwargs
+                        break
+
+                    update_host_script_map(tmp_hosts, fabscript, fabscript_kwargs)
+
                 # fabscriptは、クラスタ単位で管理する
                 fabscript_cluster = fabscript.rsplit('/', 1)[0]
                 fabscript_mod = fabscript.rsplit('/', 1)[1]
@@ -152,6 +172,7 @@ def load_runs(query, find_depth=1):
                     # デフォルト値
                     fabscript_data = {
                         'fabscript': fabscript,
+                        'fabscript_kwargs': fabscript_kwargs,
                         'hosts': [],
                         'status_flow': [0],
                         'require': {},
