@@ -18,6 +18,7 @@ def task(function=None, is_bootstrap=True):
             env.kwargs = kwargs if kwargs else {}
             env.node = env.node_map[env.host]
             env.node.update(env.node_status_map[env.host]['fabscript_map'][env.script_name])
+            kwargs = env.host_script_map.get(env.host, {}).get(env.script_name, {})
             if is_bootstrap:
                 bootstrap_status = env.node_map[env.host]['bootstrap_status']
                 if not bootstrap_status == status.SUCCESS:
@@ -33,7 +34,7 @@ def task(function=None, is_bootstrap=True):
                                 mode='770')
 
             try:
-                result = func()
+                result = func(**kwargs)
             except:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 msg = traceback.format_exception(exc_type, exc_value, exc_traceback)
