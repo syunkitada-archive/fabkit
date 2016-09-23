@@ -37,7 +37,7 @@ util.event_handler.init()
 
 # register fabric tasks
 from node import node  # noqa
-from setup import setup, manage, check  # noqa
+from setup import setup, manage, check, job  # noqa
 from databag import databag  # noqa
 from runserver import runserver  # noqa
 from agent import agent, agent_central, agent_manager  # noqa

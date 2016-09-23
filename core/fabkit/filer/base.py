@@ -170,7 +170,7 @@ def touch(dest, is_local=False, owner='root:root', mode='775'):
         sudo('{0} && chmod {1} $t && chown {2} $t'.format(cmd_touch, mode, owner))
 
 
-def exists(dest):
+def exists(dest, is_local=False):
     with api.warn_only():
         cmd = '[ -e {0} ]'.format(dest)
         return True if sudo(cmd).return_code == 0 else False

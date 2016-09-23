@@ -34,6 +34,12 @@ def cmd(cmd_str, retry_ttl=0, retry_interval=3):
     return result
 
 
+def sudo_cmd(cmd_str):
+    args = cmd_str.split(' ')
+    os.execlp('sudo', 'sudo', *args)
+    return
+
+
 def run(cmd, retry_ttl=0, retry_interval=3, **kwargs):
     log_cmd = 'run> ' + cmd
     api.env.cmd_history.append(log_cmd)
