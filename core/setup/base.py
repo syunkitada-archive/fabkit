@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from fabkit import env, api, status, log, util, cmd, container
+from fabkit import env, api, status, log, util
 import re
 from types import DictType
 import inspect
@@ -23,64 +23,6 @@ def check(*args, **kwargs):
 @api.task
 def setup(*args, **kwargs):
     run_func(['^setup.*'], *args, **kwargs)
-
-
-@api.task
-def job(*args, **kwargs):
-    for run in env.runs:
-        cluster_name = run['cluster']
-        cluster = env.cluster_map[cluster_name]
-        job = cluster.get('job', {})
-        pipelines = job.get('pipelines', [])
-        print pipelines
-        exec_pipelines(cluster, pipelines)
-
-    return
-    run_func([], *args, **kwargs)
-
-
-RE_IF = re.compile('if (.*)')
-
-
-def exec_pipelines(cluster, pipelines):
-    status = 0
-    if_statement = False
-    for pipeline in pipelines:
-        if isinstance(pipeline, str):
-            exec_command(cluster, pipeline)
-        elif isinstance(pipeline, dict):
-            for key, value in pipeline.items():
-                splited_key = key.split(' ', 1)
-                if splited_key[0] == 'if':
-                    if_statement = True
-                    if eval(splited_key[1]):
-                        if_statement = False
-                        exec_pipelines(cluster, value)
-                elif if_statement == splited_key[0] == 'elif':
-                    if eval(splited_key[1]):
-                        if_statement = False
-                        exec_pipelines(cluster, value)
-                elif if_statement == splited_key[0] == 'else':
-                    if_statement = False
-                    exec_pipelines(cluster, value)
-
-    return status
-
-
-def exec_command(cluster, command):
-    log.info('exec_command: {0}'.format(command))
-    action = command.split(' ', 1)
-    result = 0
-    if action[0] == 'sh':
-        result = cmd(action[1])[0]
-    elif action[0] == 'create':
-        container.create(cluster[action[1]])
-        print 'bootstrap'
-    elif action[0] == 'setup':
-        print 'setup'
-
-    log.info('result_command: {0}({1})'.format(command, result))
-    return result
 
 
 def run_func(func_names=[], *args, **kwargs):

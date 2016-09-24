@@ -58,7 +58,7 @@ default_opts = [
                default=3,
                help='Interval for retry.'),
     cfg.StrOpt('host',
-               default=None,
+               default='localhost',
                help='host'),
 ]
 

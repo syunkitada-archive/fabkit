@@ -3,7 +3,7 @@
 import time
 import os
 import inspect
-from fabkit import api, env, local, run, sudo, scp, log
+from fabkit import api, env, run, sudo, scp, log, cmd
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from oslo_config import cfg
 
@@ -154,8 +154,8 @@ def template(dest, mode='644', owner='root:root', data={},
 
 def mkdir(dest, is_local=False, owner='root:root', mode='775', use_sudo=True):
     cmd_mkdir = 't={0} && mkdir -p $t'.format(dest)
-    if is_local:
-        local(cmd_mkdir)
+    if is_local or env.is_local:
+        cmd(cmd_mkdir)
     elif use_sudo:
         sudo('{0} && chmod {1} $t && chown {2} $t'.format(cmd_mkdir, mode, owner))
     else:
@@ -164,13 +164,17 @@ def mkdir(dest, is_local=False, owner='root:root', mode='775', use_sudo=True):
 
 def touch(dest, is_local=False, owner='root:root', mode='775'):
     cmd_touch = 't={0} && touch $t'.format(dest)
-    if is_local:
-        local(cmd_touch)
+    if is_local or env.is_local:
+        cmd(cmd_touch)
     else:
         sudo('{0} && chmod {1} $t && chown {2} $t'.format(cmd_touch, mode, owner))
 
 
 def exists(dest, is_local=False):
-    with api.warn_only():
-        cmd = '[ -e {0} ]'.format(dest)
-        return True if sudo(cmd).return_code == 0 else False
+    cmd_exists = '[ -e {0} ]'.format(dest)
+    if is_local or env.is_local:
+        result, result_out = cmd(cmd_exists)
+        return True if result == 0 else False
+    else:
+        with api.warn_only():
+            return True if sudo(cmd_exists).return_code == 0 else False

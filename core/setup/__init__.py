@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from base import setup, check, manage, job
+from base import setup, check, manage
 
 setup.__doc__ = """
 Run task function that begins with setup of fabscript.
@@ -80,14 +80,5 @@ Task: setup
 
     document setup
     ...
-```
-"""
-
-job.__doc__ = """
-Start Job.
-
-## Examples
-```
-% fab node:test/api job
 ```
 """

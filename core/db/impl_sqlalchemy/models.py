@@ -35,12 +35,12 @@ class Agent(Base):
     status = Column(String(55), nullable=False)
 
     # check
-    check_status = Column(Integer, nullable=False)
-    check_timestamp = Column(DateTime, nullable=False)
+    check_status = Column(Integer, nullable=True)
+    check_timestamp = Column(DateTime, nullable=True)
 
     # setup
-    setup_status = Column(String(55), nullable=False)
-    setup_timestamp = Column(DateTime, nullable=False)
+    setup_status = Column(String(55), nullable=True)
+    setup_timestamp = Column(DateTime, nullable=True)
 
     # fabscript_map
     fabscript_map = Column(String(1000), nullable=False, default='{}')

@@ -3,8 +3,7 @@
 import random
 import uuid
 import time
-import re
-from fabkit import filer, sudo, api, env, run, cmd, sudo_cmd
+from fabkit import filer, sudo, api, run, cmd
 from oslo_config import cfg
 import os
 
@@ -33,93 +32,42 @@ class Libvirt():
         self.services = [
             'libvirtd',
         ]
+        self.libvirt_dir = os.path.join(CONF._storage_dir, 'container', 'libvirt')
+        self.template_dir = os.path.join(os.path.dirname(__file__), 'templates')
+        self.instances_dir = os.path.join(self.libvirt_dir, 'instances')
+        filer.mkdir(self.instances_dir)
 
-    def setup(self):
+    def create(self):
         data = self.data
-        sudo_cmd('modprobe kvm')
-        sudo_cmd('modprobe kvm_intel')
+        sudo('modprobe kvm')
+        sudo('modprobe kvm_intel')
 
         for i, vm in enumerate(data['libvirt_vms']):
-            template_data = {
-                'user': CONF.test.user,
-                'password': CONF.test.password,
-                'vm': vm,
-                'gateway': data['libvirt']['gateway'],
-                'netmask': data['libvirt']['netmask'],
-            }
+            instance_dir = os.path.join(self.instances_dir, vm['name'])
+            filer.mkdir(instance_dir)
 
-            vm_dir = '/var/lib/libvirt/images/{0}'.format(vm['name'])
-            image_path = '{0}/vm.img'.format(vm_dir)
-            metadata_path = '{0}/meta-data'.format(vm_dir)
-            userdata_path = '{0}/user-data'.format(vm_dir)
-            configiso_path = '{0}/config.iso'.format(vm_dir)
-
-            src_image = vm['src_image'].rsplit('/', 1)[1]
-            src_image_path = '/var/lib/libvirt/images/{0}'.format(src_image)
-            src_image_format = 'qcow2'
-
-            if src_image_path[-3:] == '.xz':
-                src_image_path = src_image_path[:-3]
-                src_image_format = 'xz'
-
-            if not os.path.exists(src_image_path):
-                sudo_cmd('cd /var/lib/libvirt/images/ && wget {0}'.format(vm['src_image']))
-
-                if src_image_format == 'xz':
-                    sudo_cmd('cd /var/lib/libvirt/images/ && xz -d {0}'.format(src_image))
-
-            with api.warn_only():
-                sudo_cmd("virsh list --all | grep {0} && virsh destroy {0}"
-                         " && virsh undefine {0}".format(vm['name']))
-
-            sudo_cmd('rm -rf {0} && mkdir -p {0}'.format(vm_dir))
-
-            if not os.path.exists(image_path):
-                sudo_cmd('cp {0} {1}'.format(src_image_path, image_path))
-                sudo_cmd('qemu-img resize {0} {1}G'.format(image_path, vm.get('disk_size', 10)))
-
-            filer.template(metadata_path, src='meta-data', data=template_data)
-            filer.template(userdata_path, src=vm['template'], data=template_data)
-            if not os.path.exists(configiso_path):
-                sudo_cmd('genisoimage -o {0} -V cidata -r -J {1} {2}'.format(
-                    configiso_path, metadata_path, userdata_path))
-
-            sudo_cmd("sed -i 's/^Defaults.*requiretty/# Defaults requiretty/' /etc/sudoers")
-
-            vm['uuid'] = str(uuid.uuid1())
+            image_path = '{0}/vm.img'.format(instance_dir)
             vm['image_path'] = image_path
+            src_image_path = self.wget_src_image(vm)
+            if not filer.exists(image_path):
+                cmd('cp {0} {1}'.format(src_image_path, image_path))
+                cmd('qemu-img resize {0} {1}G'.format(image_path, vm.get('disk_size', 10)))
+
+            configiso_path = self.create_configiso(vm, instance_dir)
             vm['configiso_path'] = configiso_path
-            vm['tap'] = 'tap{0}'.format(i)
+
             vm['mac'] = self.get_random_mac()
-            domain_xml = '/tmp/domain-{0}.xml'.format(vm['name'])
-            filer.template(domain_xml, src='domain.xml', data=vm)
 
-            with api.warn_only():
-                sudo_cmd("virsh net-update default delete ip-dhcp-host \"`virsh net-dumpxml default | grep '{0}' | sed -e 's/^ *//'`\"".format(vm['ip']))
+            domain_xml = self.create_domain_xml(vm, instance_dir)
 
-            sudo_cmd("virsh net-update default add ip-dhcp-host "
+            sudo("sed -i 's/^Defaults.*requiretty/# Defaults requiretty/' /etc/sudoers")
+
+            sudo("virsh net-update default add ip-dhcp-host "
                  "\"<host mac='{0}' name='{1}' ip='{2}' />\"".format(
                      vm['mac'], vm['name'], vm['ip']))
 
-            sudo_cmd('virsh define {0}'.format(domain_xml))
-            sudo_cmd('virsh start {0}'.format(vm['name']))
-
-            # sudo("virt-install"
-            #      " --connect=qemu:///system"
-            #      " --name={name} --vcpus={vcpus} --ram={ram}"
-            #      " --accelerate --hvm --virt-type=kvm"
-            #      " --cpu host"
-            #      " --network bridge=virbr0,model=virtio"
-            #      " --disk {image_path},format=qcow2 --import"
-            #      " --disk {configiso_path},device=cdrom"
-            #      " --nographics &".format(
-            #          name=vm['name'],
-            #          vcpus=vm['vcpus'],
-            #          ram=vm['ram'],
-            #          image_path=image_path,
-            #          configiso_path=configiso_path,
-            #          ip=vm['ip'],
-            #      ), pty=False)  # ), pty=False)
+            sudo('virsh define {0}'.format(domain_xml))
+            sudo('virsh start {0}'.format(vm['name']))
 
         for vm in data['libvirt_vms']:
             while True:
@@ -128,22 +76,33 @@ class Libvirt():
                         break
                     time.sleep(5)
 
-        sudo_cmd("iptables -R FORWARD 1 -o virbr0 -s 0.0.0.0/0"
-                 " -d 192.168.122.0/255.255.255.0 -j ACCEPT")
+        sudo("iptables -R FORWARD 1 -o virbr0 -s 0.0.0.0/0"
+             " -d 192.168.122.0/255.255.255.0 -j ACCEPT")
         for vm in data['libvirt_vms']:
             for port in vm.get('ports', []):
-                sudo_cmd("iptables -t nat -A PREROUTING -p tcp"
-                         " --dport {0[1]} -j DNAT --to {1}:{0[0]}".format(
-                             port, vm['ip']))
+                sudo("iptables -t nat -A PREROUTING -p tcp"
+                     " --dport {0[1]} -j DNAT --to {1}:{0[0]}".format(
+                         port, vm['ip']))
 
         for ip in data['iptables']:
             for port in ip.get('ports', []):
-                sudo_cmd("iptables -t nat -A PREROUTING -p tcp"
-                         " --dport {0[1]} -j DNAT --to {1}:{0[0]}".format(
-                             port, ip['ip']))
+                sudo("iptables -t nat -A PREROUTING -p tcp"
+                     " --dport {0[1]} -j DNAT --to {1}:{0[0]}".format(
+                         port, ip['ip']))
 
-    def start(self):
-        pass
+        time.sleep(5)
+
+    def delete(self):
+        data = self.data
+        for i, vm in enumerate(data['libvirt_vms']):
+            with api.warn_only():
+                sudo("virsh net-update default delete ip-dhcp-host \"`virsh net-dumpxml default"
+                     " | grep '{0}' | sed -e 's/^ *//'`\"".format(vm['ip']))
+                sudo('virsh list | grep {0} && virsh destroy {0}'.format(vm['name']))
+                sudo('virsh list --all | grep {0} && virsh undefine {0}'.format(vm['name']))
+
+            instance_dir = os.path.join(self.instances_dir, vm['name'])
+            sudo('rm -rf {0}'.format(instance_dir))
 
     def stop(self):
         pass
@@ -151,6 +110,63 @@ class Libvirt():
     def restart(self):
         self.stop()
         self.start()
+
+    def wget_src_image(self, vm):
+        images_dir = os.path.join(self.libvirt_dir, 'images')
+        filer.mkdir(images_dir)
+
+        src_image = vm['src_image'].rsplit('/', 1)[1]
+        src_image_path = '{0}/{1}'.format(images_dir, src_image)
+        src_image_format = 'qcow2'
+
+        if src_image_path[-3:] == '.xz':
+            src_image_path = src_image_path[:-3]
+            src_image_format = 'xz'
+
+        if not filer.exists(src_image_path):
+            cmd('cd {0} && wget {1}'.format(images_dir, vm['src_image']))
+
+            if src_image_format == 'xz':
+                cmd('cd {0} && xz -d {1}'.format(src_image))
+
+        if not filer.exists(src_image_path):
+            cmd('cd {0} && wget {1}'.format(images_dir, vm['src_image']))
+
+        return src_image_path
+
+    def create_configiso(self, vm, instance_dir):
+        data = self.data
+
+        template_data = {
+            'user': CONF.job_user,
+            'password': CONF.job_password,
+            'vm': vm,
+            'gateway': data['libvirt']['gateway'],
+            'netmask': data['libvirt']['netmask'],
+        }
+
+        metadata_path = '{0}/meta-data'.format(instance_dir)
+        userdata_path = '{0}/user-data'.format(instance_dir)
+        configiso_path = '{0}/config.iso'.format(instance_dir)
+
+        src_metadata_path = os.path.join(self.template_dir, 'meta-data')
+        src_userdata_path = os.path.join(self.template_dir, vm['template'])
+        filer.template(metadata_path, src_file=src_metadata_path, data=template_data)
+        filer.template(userdata_path, src_file=src_userdata_path, data=template_data)
+        if not filer.exists(configiso_path):
+            sudo('genisoimage -o {0} -V cidata -r -J {1} {2}'.format(
+                configiso_path, metadata_path, userdata_path))
+
+        return configiso_path
+
+    def create_domain_xml(self, vm, instance_dir):
+        vm['uuid'] = str(uuid.uuid1())
+        vm['tap'] = 'tap{0}'.format(vm['mac'].replace(':', ''))
+
+        domain_xml = '{0}/domain.xml'.format(instance_dir)
+        src_domain_xml = os.path.join(self.template_dir, 'domain.xml')
+        filer.template(domain_xml, src_file=src_domain_xml, data=vm)
+        return domain_xml
 
     def get_random_mac(self):
         mac = [0x00, 0x16, 0x3e,

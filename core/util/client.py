@@ -28,8 +28,7 @@ def download(headers, group, filename, path):
             shutil.copyfileobj(result.raw, f)
 
 
-@api.task
-def client(*args, **kwargs):
+def get_auth_headers():
     payload = {
         'username': CONF.client.username,
         'password': CONF.client.password,
@@ -53,6 +52,10 @@ def client(*args, **kwargs):
         'Authorization': 'Token {0}'.format(token),
     }
 
+
+@api.task
+def client(*args, **kwargs):
+
     if args[0] == 'help':
         print 'help'
 
@@ -61,6 +64,7 @@ def client(*args, **kwargs):
             print 'create_group [group_name]'
             return
 
+        headers = get_auth_headers()
         payload = {
             'name': args[1],
         }
@@ -80,6 +84,7 @@ def client(*args, **kwargs):
             'group': args[2],
         }
 
+        headers = get_auth_headers()
         result = requests.put('{0}users/{1}/'.format(endpoint, args[1]),
                               data=payload,
                               headers=headers)
@@ -119,6 +124,7 @@ def client(*args, **kwargs):
                 'group': args[1],
             }
 
+        headers = get_auth_headers()
         result = requests.post('{0}files/'.format(endpoint),
                                data=payload,
                                files=files,
@@ -141,12 +147,12 @@ def client(*args, **kwargs):
 
         var_dir = CONF.client.package_var_dir
         fab_tar = '{0}/fabkit-repo.tar.gz'.format(var_dir)
-        repo_dir = '{0}/fabkit-repo'.format(var_dir)
 
         status, output = commands.getstatusoutput(
             'rm -rf {0}/fabkit-repo.tar.gz && rm -rf {0}/fabkit-repo'.format(
                 var_dir, fab_tar))
 
+        headers = get_auth_headers()
         download(headers, CONF.client.group, 'fabkit',
                  '{0}'.format(fab_tar))
 
@@ -155,19 +161,19 @@ def client(*args, **kwargs):
                 var_dir, fab_tar))
 
         status, output = commands.getstatusoutput(
-            'cp {0} {1}'.format(CONF._inifile, repo_dir))
+            'cp {0} {1}'.format(CONF._inifile, CONF._repo_dir))
 
         result_map = {}
         for cluster in CONF.client.clusters:
             for task in CONF.client.task_patterns:
                 fabcmd = '{0}/bin/fab -f {1}/fabfile node:{2},local manage:{3}'.format(
-                    CONF.client.package_prefix, repo_dir, cluster, task)
+                    CONF.client.package_prefix, CONF._repo_dir, cluster, task)
                 status, output = commands.getstatusoutput(fabcmd)
 
                 print output
 
             pickle_file = '{0}/{1}/{2}/__cluster.pickle'.format(
-                repo_dir, CONF.node_dir, cluster)
+                CONF._repo_dir, CONF.node_dir, cluster)
             with open(pickle_file) as f:
                 cluster_data = pickle.load(f)
                 result_map[cluster] = cluster_data['__status']['node_map'][CONF.host]
@@ -177,27 +183,24 @@ def client(*args, **kwargs):
 
     elif args[0] == 'check':
         if len(args) != 1:
-            print 'setup'
             return
 
         var_dir = CONF.client.package_var_dir
         fab_tar = '{0}/fabkit-repo.tar.gz'.format(var_dir)
-        repo_dir = '{0}/fabkit-repo'.format(var_dir)
 
         result_map = {}
         for cluster in CONF.client.clusters:
             for task in CONF.client.task_patterns:
                 fabcmd = '{0}/bin/fab -f {1}/fabfile node:{2},local check'.format(
-                    CONF.client.package_prefix, repo_dir, cluster, task)
+                    CONF.client.package_prefix, CONF._repo_dir, cluster, task)
                 status, output = commands.getstatusoutput(fabcmd)
 
                 print output
 
             pickle_file = '{0}/{1}/{2}/__cluster.pickle'.format(
-                repo_dir, CONF.node_dir, cluster)
+                CONF._repo_dir, CONF.node_dir, cluster)
             with open(pickle_file) as f:
                 cluster_data = pickle.load(f)
                 result_map[cluster] = cluster_data['__status']['node_map'][CONF.host]
 
-        print result_map
         return result_map
