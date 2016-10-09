@@ -13,4 +13,8 @@ Run agent central.
 
 agent_manager.__doc__ = """
 agent manager.
+
+agent_manager:agent-setup
+agent_manager:agent-list
+agent_manager:cluster-list
 """

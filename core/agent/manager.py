@@ -8,10 +8,7 @@ CONF = cfg.CONF
 
 
 def manage(*args, **kwargs):
-    if 'help' in args:
-        print 'help'
-
-    elif 'setup' in args:
+    if 'setup' in args:
         centralapi = central.CentralAPI()
         result = centralapi.setup()
         print result
@@ -22,7 +19,6 @@ def manage(*args, **kwargs):
 
     elif 'agent-setup' in args:
         cluster = kwargs.get('cluster')
-
         dburl = CONF.cluster.database_map.get(cluster)
         clusterapi = dbapi.DBAPI(dburl)
         setup_tasks = clusterapi.get_request_tasks(method='setup')

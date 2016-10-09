@@ -6,6 +6,8 @@ import json
 import requests
 import commands
 import os
+import sys
+import subprocess
 from oslo_config import cfg
 from oslo_log import log as logging
 from fabkit import api
@@ -51,6 +53,7 @@ def get_auth_headers():
     headers = {
         'Authorization': 'Token {0}'.format(token),
     }
+    return headers
 
 
 @api.task
@@ -58,6 +61,14 @@ def client(*args, **kwargs):
 
     if args[0] == 'help':
         print 'help'
+
+    elif args[0] == 'create_superuser':
+        if sys.exec_prefix == '/usr':
+            prefix = ''
+        else:
+            prefix = '{0}/bin/'.format(sys.exec_prefix)
+        subprocess.call('cd {0} && {1}python manage.py createsuperuser'.format(
+            CONF._webapp_dir, prefix), shell=True)
 
     elif args[0] == 'create_group':
         if len(args) != 2:
@@ -98,7 +109,7 @@ def client(*args, **kwargs):
                 'rm -rf /tmp/fabkit-repo && '
                 'cp -r {0} /tmp/fabkit-repo && '
                 'rm -rf /tmp/fabkit-repo/fabfile/core/webapp && '
-                'rm -rf /tmp/fabkit-repo/storage/tmp && '
+                'rm -rf /tmp/fabkit-repo/storage/* && '
                 'find /tmp/fabkit-repo -name .git | xargs rm -rf && '
                 'find /tmp/fabkit-repo -name .tox | xargs rm -rf && '
                 'find /tmp/fabkit-repo -name test-repo | xargs rm -rf && '
@@ -138,6 +149,7 @@ def client(*args, **kwargs):
             print 'download [group_name] {file_name} {file_path}'
             return
 
+        headers = get_auth_headers()
         download(headers, args[1], args[2], args[3])
 
     elif args[0] == 'setup':
@@ -146,6 +158,8 @@ def client(*args, **kwargs):
             return
 
         var_dir = CONF.client.package_var_dir
+        if not os.path.exists(var_dir):
+            os.makedirs(var_dir)
         fab_tar = '{0}/fabkit-repo.tar.gz'.format(var_dir)
 
         status, output = commands.getstatusoutput(

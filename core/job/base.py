@@ -28,6 +28,11 @@ def job(*args, **kwargs):
             for pipeline in pipelines:
                 if len(args) == 1 or args[1] == pipeline['name']:
                     exec_pipelines(cluster, run, pipeline['runs'])
+        else:
+            print '''
+                start, status, stop, local
+                local,[jobname]
+            '''
 
 
 def exec_pipelines(cluster, run, pipelines):

@@ -4,9 +4,9 @@ import datetime
 from django.db import models
 from django.contrib.auth.models import User, Group
 from django.core.files.storage import FileSystemStorage
+from oslo_config import cfg
 
-
-fs = FileSystemStorage(location='/tmp/')
+CONF = cfg.CONF
 
 
 def upload_to(instance, filename):
@@ -20,7 +20,9 @@ class File(models.Model):
     owner = models.ForeignKey(User)
     group = models.ForeignKey(Group)
     generation = models.IntegerField(default=1)
-    file = models.FileField(storage=fs, upload_to=upload_to)
+    file = models.FileField(
+        storage=FileSystemStorage(location=CONF._webapp_storage_dir),
+        upload_to=upload_to)
 
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
