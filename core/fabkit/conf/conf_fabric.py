@@ -15,7 +15,8 @@ env.warn_only = False
 # env.shell = '/bin/bash -l -c'  # default
 env.shell = '/bin/bash -c'
 # env.sudo_prefix = "sudo -S -p '%(sudo_prompt)s' " % env  # default
-env.sudo_prefix = "sudo -SE -p '%(sudo_prompt)s' "
+# env.sudo_prefix = "sudo -SE -p '%(sudo_prompt)s' "
+env.sudo_prefix = "sudo -S -p '%(sudo_prompt)s' "
 env.colorize_errors = True
 env.is_test = False
 env.is_local = False
@@ -36,6 +37,12 @@ default_opts = [
     cfg.StrOpt('password',
                default=None,
                help='password'),
+    cfg.StrOpt('job_user',
+               default='fabric',
+               help='job_user'),
+    cfg.StrOpt('job_password',
+               default='fabric',
+               help='job_password'),
     cfg.StrOpt('password_file',
                default=None,
                help='password_file'),

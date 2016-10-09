@@ -82,7 +82,51 @@ def sync_fablib():
 @api.task
 def sync_db(*args, **kwargs):
     if sys.exec_prefix == '/usr':
-        subprocess.call('cd {0} && alembic upgrade head'.format(CONF._sqlalchemy_dir), shell=True)
+        prefix = ''
     else:
-        subprocess.call('cd {0} && {1}/bin/alembic upgrade head'.format(
-            CONF._sqlalchemy_dir, sys.exec_prefix), shell=True)
+        prefix = '{0}/bin/'.format(sys.exec_prefix)
+
+    if len(args) == 0 or args[0] == 'all':
+        subprocess.call('cd {0} && {1}alembic upgrade head'.format(
+            CONF._sqlalchemy_dir, prefix), shell=True)
+        subprocess.call("""cd {0} &&
+{1}python manage.py makemigrations --noinput;
+{1}python manage.py migrate --noinput;
+        """.format(CONF._webapp_dir, prefix), shell=True)
+
+    if len(args) > 0 and args[0] == 'all':
+        subprocess.call("""cd {0} &&
+echo "
+from django.contrib.auth.models import User, Group;
+from django.core.exceptions import ObjectDoesNotExist;
+
+try:
+    user = User.objects.get(username='{username}');
+    user.set_password('{password}')
+    user.save()
+    print 'Updated ' + user.username + ' user.'
+except ObjectDoesNotExist:
+    user = User.objects.create_superuser('{username}', '', '{password}')
+    print 'Created ' + user.username + ' user.'
+
+try:
+    group = Group.objects.get(name='{group}');
+    print user.username + ' group is already exists.'
+except ObjectDoesNotExist:
+    group = Group(name='{group}')
+    group.save()
+    print 'Created ' + group.name + ' group.'
+
+try:
+    user.groups.get(name=group.name)
+    print group.name + ' is already exsits in ' + user.username + ' user.groups.'
+except ObjectDoesNotExist:
+    user.groups.add(group)
+    user.save()
+    print 'Added ' + group.name + ' group to ' + user.username + ' user.groups.'
+
+" | {1}python manage.py shell;
+        """.format(CONF._webapp_dir, prefix,
+                   username=CONF.client.username, password=CONF.client.password,
+                   group=CONF.client.group),
+            shell=True)

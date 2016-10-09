@@ -1,0 +1,16 @@
+FROM centos:7.2.1511
+
+# Install
+RUN yum update -y
+RUN yum install -y sudo passwd openssh-server openssh-clients iproute vim
+
+RUN /usr/bin/ssh-keygen -t dsa -f /etc/ssh/ssh_host_dsa_key -C '' -N ''
+RUN /usr/bin/ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -C '' -N ''
+
+RUN useradd {{ user }}
+RUN gpasswd --add {{ user }} {{ docker.sudo_group }}
+RUN echo '{{ user }}:{{ password }}' |chpasswd
+
+{% for port in docker.ports %}
+EXPOSE {{ port[0] }}
+{% endfor %}

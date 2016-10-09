@@ -1,0 +1,31 @@
+#!/bin/sh
+
+apt-get update -y
+apt-get install -y sudo passwd openssh-server
+
+# fixed 'fatal: Missing privilege separation directory: /var/run/sshd'
+mkdir /var/run/sshd
+
+echo 'fabric  ALL=(ALL:ALL) ALL' >> /etc/sudoers
+echo 'hello world' > /etc/motd
+useradd {{ user }} -d /home/{{ user }}
+gpasswd --add {{ user }} sudo
+mkdir /home/{{ user }}
+chown {{ user }}:{{ user }} /home/{{ user }}
+echo '{{ user }}:{{ password }}' |chpasswd
+
+
+cat << EOT > /etc/network/interfaces.d/eth0.cfg
+auto eth0
+iface eth0 inet static
+address {{ vm.ip }}
+netmask {{ netmask }}
+gateway {{ gateway }}
+EOT
+
+ifdown eth0
+ifup eth0
+
+echo "192.168.122.51 `hostname`" >> /etc/hosts
+sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+service ssh restart

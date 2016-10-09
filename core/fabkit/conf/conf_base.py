@@ -58,7 +58,7 @@ default_opts = [
                default=3,
                help='Interval for retry.'),
     cfg.StrOpt('host',
-               default=None,
+               default='localhost',
                help='host'),
 ]
 
@@ -181,7 +181,9 @@ def init(repo_dir=None, log_file=None):
     CONF._repo_dir = repo_dir
     CONF._fabfile_dir = os.path.join(repo_dir, 'fabfile')
     CONF._sqlalchemy_dir = os.path.join(CONF._fabfile_dir, 'core', 'db', 'impl_sqlalchemy')
+    CONF._webapp_dir = os.path.join(CONF._fabfile_dir, 'core', 'webapp')
     CONF._storage_dir = complement_path(CONF.storage_dir)
+    CONF._webapp_storage_dir = os.path.join(CONF._storage_dir, 'webapp')
     CONF._handler_dir = complement_path(CONF.handler_dir)
     CONF._databag_dir = complement_path(CONF.databag_dir)
     CONF._tmp_dir = os.path.join(CONF._storage_dir, 'tmp')

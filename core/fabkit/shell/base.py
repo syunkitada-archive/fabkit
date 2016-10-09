@@ -65,7 +65,7 @@ def sudo(cmd, retry_ttl=0, retry_interval=3, **kwargs):
         result = test_cmd(cmd)
     else:
         if env.is_local:
-            result = local(cmd)
+            result = local('sudo ' + cmd)
         else:
             result = api.sudo(cmd, **kwargs)
 

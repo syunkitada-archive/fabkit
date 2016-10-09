@@ -3,7 +3,6 @@
 import os
 import re
 import commands
-from fabkit import env
 from fabkit.conf import conf_base
 from oslo_config import cfg
 import pickle
@@ -113,6 +112,7 @@ def create_required_dirs():
     create_dir(CONF._storage_dir)
     create_dir(CONF._databag_dir)
     create_dir(CONF._tmp_dir)
+    create_dir(CONF._webapp_storage_dir)
     create_dir(CONF._node_dir)
     create_dir(CONF._handler_dir, True)
     create_dir(CONF._fabscript_module_dir, True)
