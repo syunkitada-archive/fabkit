@@ -179,7 +179,7 @@ def client(*args, **kwargs):
 
         result_map = {}
         for cluster in CONF.client.clusters:
-            for task in CONF.client.task_patterns:
+            for task in CONF.client.setup_task_patterns:
                 fabcmd = '{0}/bin/fab -f {1}/fabfile node:{2},local manage:{3}'.format(
                     CONF.client.package_prefix, CONF._repo_dir, cluster, task)
                 status, output = commands.getstatusoutput(fabcmd)
@@ -191,6 +191,52 @@ def client(*args, **kwargs):
             with open(pickle_file) as f:
                 cluster_data = pickle.load(f)
                 result_map[cluster] = cluster_data['__status']['node_map'][CONF.host]
+
+        print result_map
+        return result_map
+
+    elif args[0] == 'job':
+        job_cluster = args[1]
+
+        var_dir = CONF.client.package_var_dir
+        if not os.path.exists(var_dir):
+            os.makedirs(var_dir)
+        fab_tar = '{0}/fabkit-repo.tar.gz'.format(var_dir)
+
+        status, output = commands.getstatusoutput(
+            'rm -rf {0}/fabkit-repo.tar.gz && rm -rf {0}/fabkit-repo'.format(
+                var_dir, fab_tar))
+
+        headers = get_auth_headers()
+        download(headers, CONF.client.group, 'fabkit',
+                 '{0}'.format(fab_tar))
+
+        status, output = commands.getstatusoutput(
+            'cd {0} && tar xf {1}'.format(
+                var_dir, fab_tar))
+
+        status, output = commands.getstatusoutput(
+            'cp {0} {1}'.format(CONF._inifile, CONF._repo_dir))
+
+        result_map = {}
+
+        print '\n\nDEBUG job cluster'
+        print job_cluster
+
+        fabcmd = '{0}/bin/fab -f {1}/fabfile node:{2},yes job:local'.format(
+            CONF.client.package_prefix, CONF._repo_dir, job_cluster)
+        # status, output = commands.getstatusoutput(fabcmd)
+        process = subprocess.Popen(fabcmd.split(' '), stdout=subprocess.PIPE)
+        for line in iter(process.stdout.readline, ''):
+            sys.stdout.write(line)
+
+        return result_map
+
+        pickle_file = '{0}/{1}/{2}/__cluster.pickle'.format(
+            CONF._repo_dir, CONF.node_dir, job_cluster)
+        with open(pickle_file) as f:
+            cluster_data = pickle.load(f)
+            result_map[cluster] = cluster_data['__status']['node_map'][CONF.host]
 
         print result_map
         return result_map

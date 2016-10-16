@@ -129,9 +129,9 @@ client_opts = [
     cfg.ListOpt('clusters',
                 default=[],
                 help='clusters'),
-    cfg.ListOpt('task_patterns',
+    cfg.ListOpt('setup_task_patterns',
                 default=['local.*', 'check.*'],
-                help='task_patterns'),
+                help='setup_task_patterns'),
     cfg.StrOpt('package_prefix',
                default='/opt/fabkit',
                help='package_prefix'),
@@ -180,6 +180,7 @@ def init(repo_dir=None, log_file=None):
     CONF._inifile = INIFILE
     CONF._repo_dir = repo_dir
     CONF._fabfile_dir = os.path.join(repo_dir, 'fabfile')
+    CONF._conf_dir = os.path.join(repo_dir, 'conf')
     CONF._sqlalchemy_dir = os.path.join(CONF._fabfile_dir, 'core', 'db', 'impl_sqlalchemy')
     CONF._webapp_dir = os.path.join(CONF._fabfile_dir, 'core', 'webapp')
     CONF._storage_dir = complement_path(CONF.storage_dir)
@@ -189,6 +190,7 @@ def init(repo_dir=None, log_file=None):
     CONF._tmp_dir = os.path.join(CONF._storage_dir, 'tmp')
     CONF._log_dir = os.path.join(CONF._storage_dir, 'log')
     CONF._node_dir = complement_path(CONF.node_dir)
+    CONF._job_yml = os.path.join(CONF._conf_dir, 'job.yml')
     CONF._fabscript_module_dir = complement_path(CONF.fabscript_module)
     CONF._fablib_module_dir = complement_path(CONF.fablib_module)
     CONF._node_meta_pickle = os.path.join(CONF._node_dir, 'meta.pickle')
