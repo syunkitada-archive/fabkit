@@ -7,8 +7,10 @@ from sqlalchemy.orm import exc
 from sqlalchemy import desc
 from impl_sqlalchemy import models
 from fabkit import util
+from oslo_log import log as logging
 
 CONF = cfg.CONF
+LOG = logging.getLogger(__name__)
 
 
 class DBAPI():
@@ -92,13 +94,29 @@ class DBAPI():
         with self.session.begin():
             self.session.add(task)
 
+    def get_last_job(self, method, target):
+        query = self.session.query(models.Task)
+        task = query.filter(models.Task.method == method,
+                            models.Task.target == target).order_by(
+                                models.Task.updated_at.desc()).first()
+        return task
+
     def get_tasks(self, method=None, active=True, status=None):
         query = self.session.query(models.Task)
-        if method is None:
-            tasks = query.filter(models.Task.active == active).all()
+        if status is None:
+            if method is None:
+                tasks = query.filter(models.Task.active == active).all()
+            else:
+                tasks = query.filter(models.Task.method == method,
+                                     models.Task.active == active).all()
         else:
-            tasks = query.filter(models.Task.method == method,
-                                 models.Task.active == active).all()
+            if method is None:
+                tasks = query.filter(models.Task.active == active,
+                                     models.Task.status == status).all()
+            else:
+                tasks = query.filter(models.Task.method == method,
+                                     models.Task.status == status,
+                                     models.Task.active == active).all()
         return tasks
 
     def get_request_tasks(self, method=None):
@@ -114,9 +132,22 @@ class DBAPI():
 
         return tasks
 
-    def update_task(self, task, status):
+    def update_task_status(self, current_status=None, status=None,
+                           task=None, method=None, target=None):
+        query = self.session.query(models.Task)
         with self.session.begin():
-            task.status = status
+            if task is None:
+                tasks = query.filter(models.Task.method == method,
+                                     models.Task.target == target,
+                                     models.Task.status == current_status).all()
+                if len(tasks) == 1:
+                    task = tasks[0]
+
+            if task is not None:
+                task.status = status
+                LOG.info('Updated task: {0} {1}'.format(method, target))
+            else:
+                LOG.warn('Task not found: {0} {1}'.format(method, target))
 
     def create_event(self, event_data):
         event = models.Event(**event_data)
