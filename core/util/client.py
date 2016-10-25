@@ -250,12 +250,11 @@ def client(*args, **kwargs):
 
         result_map = {}
         for cluster in CONF.client.clusters:
-            for task in CONF.client.task_patterns:
-                fabcmd = '{0}/bin/fab -f {1}/fabfile node:{2},local check'.format(
-                    CONF.client.package_prefix, CONF._repo_dir, cluster, task)
-                status, output = commands.getstatusoutput(fabcmd)
+            fabcmd = '{0}/bin/fab -f {1}/fabfile node:{2},local check'.format(
+                CONF.client.package_prefix, CONF._repo_dir, cluster)
+            status, output = commands.getstatusoutput(fabcmd)
 
-                print output
+            print output
 
             pickle_file = '{0}/{1}/{2}/__cluster.pickle'.format(
                 CONF._repo_dir, CONF.node_dir, cluster)
