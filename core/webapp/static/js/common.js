@@ -36,7 +36,9 @@
     current: 0,
     USER: 0,
     NODE: 1,
-    CHAT: 2
+    CHAT: 2,
+    TASK: 3,
+    EVENT: 4
   };
 
   WARNING_STATUS_THRESHOLD = 10000;
@@ -847,6 +849,13 @@
       if (current_cluster_path === '') {
         return current_cluster_path = current_cluster;
       }
+    } else if (mode.current === mode.TASK) {
+      paths = location.pathname.split('task/');
+      current_page = 'task';
+      current_cluster_path = paths[1].slice(0, -1);
+      if (current_cluster_path === '') {
+        return current_cluster_path = current_cluster;
+      }
     } else if (mode.current === mode.CHAT) {
       paths = location.pathname.split('chat/');
       current_page = 'chat';
@@ -917,6 +926,11 @@
         tab = 1;
         $('#datamap-modal').modal();
       });
+    } else if (mode.current === mode.TASK) {
+      render_node_clusters(agent_clusters);
+      $('#task-table').tablesorter({
+        sortList: [[1, 1], [6, 1]]
+      });
     }
     return $('[data-toggle=popover]').popover();
   };
@@ -953,6 +967,13 @@
       node_cluster = JSON.parse(node_cluster.html());
     } else if (location.pathname.indexOf('/agent/') === 0) {
       mode.current = mode.AGENT;
+      agent_clusters = JSON.parse($('#agent_clusters').html());
+      node_cluster = JSON.parse(node_cluster.html());
+    } else if (location.pathname.indexOf('/task/') === 0) {
+      mode.current = mode.TASK;
+      agent_clusters = JSON.parse($('#agent_clusters').html());
+    } else if (location.pathname.indexOf('/event/') === 0) {
+      mode.current = mode.EVENT;
       agent_clusters = JSON.parse($('#agent_clusters').html());
       node_cluster = JSON.parse(node_cluster.html());
     } else if (location.pathname.indexOf('/chat/') === 0) {

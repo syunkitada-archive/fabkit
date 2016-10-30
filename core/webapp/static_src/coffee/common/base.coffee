@@ -22,6 +22,8 @@ mode = {
     USER: 0,
     NODE: 1,
     CHAT: 2,
+    TASK: 3,
+    EVENT: 4,
 }
 
 WARNING_STATUS_THRESHOLD = 10000
