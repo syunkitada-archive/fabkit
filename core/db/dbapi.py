@@ -119,6 +119,18 @@ class DBAPI():
                                      models.Task.active == active).all()
         return tasks
 
+    def cancel_my_tasks(self):
+        query = self.session.query(models.Task)
+        tasks = query.filter(models.Task.active,
+                             models.Task.owner == CONF.host).all()
+
+        with self.session.begin():
+            for task in tasks:
+                task.status = 'canceled'
+                task.active = False
+                LOG.info("Canceled {0}'s task: {1} {2}".format(
+                    task.owner, task.method, task.target))
+
     def get_request_tasks(self, method=None):
         query = self.session.query(models.Task)
         if method is None:
@@ -132,8 +144,8 @@ class DBAPI():
 
         return tasks
 
-    def update_task_status(self, current_status=None, status=None,
-                           task=None, method=None, target=None):
+    def update_task_status(self, current_status=None, status=None, active=None, msg=None,
+                           task=None, method=None, target=None, owner=None):
         query = self.session.query(models.Task)
         with self.session.begin():
             if task is None:
@@ -145,6 +157,13 @@ class DBAPI():
 
             if task is not None:
                 task.status = status
+                if owner is not None:
+                    task.owner = owner
+                if active is not None:
+                    task.active = active
+                if msg is not None:
+                    task.msg = msg
+
                 LOG.info('Updated task: {0} {1}'.format(method, target))
             else:
                 LOG.warn('Task not found: {0} {1}'.format(method, target))

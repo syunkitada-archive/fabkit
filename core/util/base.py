@@ -86,15 +86,26 @@ def sync_db(*args, **kwargs):
     else:
         prefix = '{0}/bin/'.format(sys.exec_prefix)
 
-    if len(args) == 0 or args[0] == 'all':
+    if len(args) > 0 and args[0] == 'generate':
+        msg = kwargs.get('m')
+        if msg is None:
+            msg = kwargs.get('msg')
+        if msg is None:
+            print 'Input messag. For example,\n$ fab syncdb:generate,m="update model"'
+            return
+
+        subprocess.call('cd {0} && {1}alembic revision --autogenerate -m "{2}"'.format(
+            CONF._sqlalchemy_dir, prefix, msg), shell=True)
+
+    else:
         subprocess.call('cd {0} && {1}alembic upgrade head'.format(
             CONF._sqlalchemy_dir, prefix), shell=True)
+
         subprocess.call("""cd {0} &&
 {1}python manage.py makemigrations --noinput;
 {1}python manage.py migrate --noinput;
         """.format(CONF._webapp_dir, prefix), shell=True)
 
-    if len(args) > 0 and args[0] == 'all':
         subprocess.call("""cd {0} &&
 echo "
 from django.contrib.auth.models import User, Group;
