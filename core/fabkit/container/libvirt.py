@@ -3,7 +3,7 @@
 import random
 import uuid
 import time
-from fabkit import filer, sudo, api, run, cmd
+from fabkit import filer, sudo, api, run
 from oslo_config import cfg
 import os
 
@@ -32,7 +32,8 @@ class Libvirt():
         self.services = [
             'libvirtd',
         ]
-        self.libvirt_dir = os.path.join(CONF._storage_dir, 'container', 'libvirt')
+        # self.libvirt_dir = os.path.join(CONF._storage_dir, 'container', 'libvirt')
+        self.libvirt_dir = os.path.join('/opt/fabkit', 'container', 'libvirt')
         self.template_dir = os.path.join(os.path.dirname(__file__), 'templates')
         self.instances_dir = os.path.join(self.libvirt_dir, 'instances')
         filer.mkdir(self.instances_dir)
@@ -50,8 +51,8 @@ class Libvirt():
             vm['image_path'] = image_path
             src_image_path = self.wget_src_image(vm)
             if not filer.exists(image_path):
-                cmd('cp {0} {1}'.format(src_image_path, image_path))
-                cmd('qemu-img resize {0} {1}G'.format(image_path, vm.get('disk_size', 10)))
+                sudo('cp {0} {1}'.format(src_image_path, image_path))
+                sudo('qemu-img resize {0} {1}G'.format(image_path, vm.get('disk_size', 10)))
 
             configiso_path = self.create_configiso(vm, instance_dir)
             vm['configiso_path'] = configiso_path
@@ -67,6 +68,7 @@ class Libvirt():
                      vm['mac'], vm['name'], vm['ip']))
 
             sudo('virsh define {0}'.format(domain_xml))
+            sudo('chown -R root:root {0}'.format(instance_dir))
             sudo('virsh start {0}'.format(vm['name']))
 
         for vm in data['libvirt_vms']:
@@ -124,13 +126,10 @@ class Libvirt():
             src_image_format = 'xz'
 
         if not filer.exists(src_image_path):
-            cmd('cd {0} && wget {1}'.format(images_dir, vm['src_image']))
+            sudo('cd {0} && wget {1}'.format(images_dir, vm['src_image']))
 
             if src_image_format == 'xz':
-                cmd('cd {0} && xz -d {1}'.format(src_image))
-
-        if not filer.exists(src_image_path):
-            cmd('cd {0} && wget {1}'.format(images_dir, vm['src_image']))
+                sudo('cd {0} && xz -d {1}'.format(images_dir, src_image))
 
         return src_image_path
 

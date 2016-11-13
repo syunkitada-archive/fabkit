@@ -3,12 +3,11 @@
 import os
 from fabkit import filer, sudo
 from oslo_config import cfg
-from fablib.base import SimpleBase
 
 CONF = cfg.CONF
 
 
-class Docker(SimpleBase):
+class Docker():
     def __init__(self):
         self.data_key = 'test_bootstrap'
         self.packages = {
