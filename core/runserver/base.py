@@ -3,8 +3,8 @@
 from fabkit import api, local
 import os
 from oslo_config import cfg
-from oslo_service import service
-from service import FabService
+from eventlet import wsgi
+import eventlet
 
 CONF = cfg.CONF
 
@@ -50,7 +50,11 @@ def runserver(*args, **kwargs):
 
         return
 
-    launcher = service.ProcessLauncher(CONF)
-    fabservice = FabService()
-    launcher.launch_service(fabservice)
-    launcher.wait()
+    from django.core.wsgi import get_wsgi_application
+    import pymysql
+    pymysql.install_as_MySQLdb()
+
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "web_conf.settings")
+    application = get_wsgi_application()
+
+    wsgi.server(eventlet.listen(('', 8080)), application)

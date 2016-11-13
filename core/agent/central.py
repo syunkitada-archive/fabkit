@@ -29,6 +29,8 @@ class CentralManager(periodic_task.PeriodicTasks):
         self.agentapi = agent.AgentAPI()
         self.load_jobs()
 
+        self.central_dbapi.cancel_my_tasks()
+
     def load_jobs(self):
         LOG.info('Load jobs')
         with open(CONF._job_yml) as f:
@@ -62,6 +64,8 @@ class CentralManager(periodic_task.PeriodicTasks):
     def check_task(self, context):
         if self.is_master():
             LOG.info('check_task')
+
+            # Get tasks
             requested_tasks = self.central_dbapi.get_tasks(status='requested')
             requested_task_map = {}
             for task in requested_tasks:
@@ -72,6 +76,12 @@ class CentralManager(periodic_task.PeriodicTasks):
             for task in queued_tasks:
                 queued_task_map[task.method + task.target] = task
 
+            processing_tasks = self.central_dbapi.get_tasks(status='processing')
+            processing_task_map = {}
+            for task in processing_tasks:
+                processing_task_map[task.method + task.target] = task
+
+            # request task to rpc queue
             for task in requested_tasks:
                 LOG.info('Requested task: {0}-{1}({2})'.format(
                     task.method, task.target, task.json_arg))
@@ -89,6 +99,7 @@ class CentralManager(periodic_task.PeriodicTasks):
                     self.central_dbapi.update_task_status(task=task, status='queued')
                     self.centralapi.job(arg=arg)
 
+            # create jobs
             current_time = datetime.datetime.utcnow()
             LOG.info('create_jobs')
             for category, jobs in self.job_map.items():
@@ -96,7 +107,8 @@ class CentralManager(periodic_task.PeriodicTasks):
                     enable_job = False
                     job_name = job['name']
                     key = 'job' + job_name
-                    if key not in queued_task_map and key not in requested_task_map:
+                    if key not in queued_task_map and key not in requested_task_map \
+                            and key not in processing_task_map:
                         last_job = self.central_dbapi.get_last_job('job', job_name)
                         if last_job is not None:
                             LOG.info('Last job {0} at {1}'.format(key, last_job.updated_at))
@@ -170,14 +182,30 @@ class CentralRPCAPI(rpc.BaseRPCAPI):
 
     def start_job(self, context, job):
         LOG.info('start job')
+        central_dbapi = dbapi.DBAPI()
+        central_dbapi.update_task_status(current_status='queued', owner=CONF.host,
+                                         status='processing', method='job', target=job['name'])
         cluster = job['cluster']
         result_map = client('job', cluster)
-        print '\n\n\nDEBUG start job'
-        print result_map
+        LOG.info(result_map)
+        all_result = 0
+        msg = ''
+        for fabscript, status in result_map['fabscript_map'].items():
+            result = status['status'] + status['task_status']
+            all_result += result
+            if result == 0:
+                msg += 'Success {0}.\n'.format(fabscript)
+            else:
+                msg += 'Failed {0}: status={1}, task_status={2}.\n'.format(
+                    fabscript, status['status'], status['task_status'])
 
-        central_dbapi = dbapi.DBAPI()
-        central_dbapi.update_task_status(current_status='queued',
-                                         status='completed', method='job', target=job['name'])
+        if all_result == 0:
+            central_dbapi.update_task_status(current_status='processing', active=False, msg=msg,
+                                             status='completed', method='job', target=job['name'])
+        else:
+            central_dbapi.update_task_status(current_status='processing', active=False, msg=msg,
+                                             status='error', method='job', target=job['name'])
+
         LOG.info('end job')
         return
 

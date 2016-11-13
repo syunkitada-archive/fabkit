@@ -121,3 +121,12 @@ $ pwd
 # sync db to head
 $ alembic upgrade head
 ```
+
+## fab command
+``` bash
+# update model
+$ fab sync_db:generate,m=hoge
+
+# sync db
+$ fab sync_db
+```

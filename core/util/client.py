@@ -1,4 +1,4 @@
-# coding: utf-8
+ # coding: utf-8
 
 import pickle
 import shutil
@@ -220,15 +220,23 @@ def client(*args, **kwargs):
 
         result_map = {}
 
-        print '\n\nDEBUG job cluster'
-        print job_cluster
-
         fabcmd = '{0}/bin/fab -f {1}/fabfile node:{2},yes job:local'.format(
             CONF.client.package_prefix, CONF._repo_dir, job_cluster)
+        LOG.info(fabcmd)
+
         # status, output = commands.getstatusoutput(fabcmd)
         process = subprocess.Popen(fabcmd.split(' '), stdout=subprocess.PIPE)
         for line in iter(process.stdout.readline, ''):
             sys.stdout.write(line)
+        result = process.wait()
+
+        pickle_file = '{0}/{1}/{2}/__cluster.pickle'.format(
+            CONF._repo_dir, CONF.node_dir, job_cluster)
+
+        with open(pickle_file) as f:
+            cluster_data = pickle.load(f)
+            result_map = cluster_data['__status']
+        print result_map
 
         return result_map
 

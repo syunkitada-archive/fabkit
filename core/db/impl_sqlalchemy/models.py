@@ -51,14 +51,15 @@ class Task(Base):
     # check, setup
     method = Column(String(255), nullable=False)
     json_arg = Column(String(500), nullable=False, default='{}')
+    owner = Column(String(255), default=None)
 
     target = Column(String(255), nullable=False, default='.*')
     # N: random wait(0-N s) on each node, 0<: serial
     pallalel = Column(Integer, nullable=False, default=0)
 
-    # requested, queued, completed
+    # requested, queued, completed, error, canceled
     status = Column(String(55), nullable=False, default='requested')
-    err_msg = Column(String(255), nullable=False, default='')
+    msg = Column(String(255), nullable=False, default='')
 
     active = Column(Boolean(), nullable=False, default=True)
 
