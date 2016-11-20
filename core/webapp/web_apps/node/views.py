@@ -26,7 +26,11 @@ def index(request, cluster=None):
     node_clusters.sort()
     node_clusters.insert(0, 'recent')
 
-    node_cluster = {}
+    node_cluster = {
+        '__status': {
+            'fabscript_map': {}
+        }
+    }
     datamap = {}
     readme_html = ''
 
@@ -36,8 +40,8 @@ def index(request, cluster=None):
     recent_clusters = node_meta['recent_clusters']
     for index, cl in enumerate(recent_clusters):
         cl = cl.replace('/', '__')
-        node_cluster = 'recent/{0}__{1}'.format(index, cl)
-        node_clusters.append(node_cluster)
+        recent_node_cluster = 'recent/{0}__{1}'.format(index, cl)
+        node_clusters.append(recent_node_cluster)
 
     if not cluster:
         cluster = 'recent/0'
