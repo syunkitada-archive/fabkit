@@ -34,9 +34,10 @@ render_all = ->
         render_node_clusters(node_clusters)
         render_node_cluster()
 
-        $('#node-table').tablesorter({
-            sortList: [[0, 1], [1, 0]]
-        })
+        if $('#nodes-tbody > tr').length != 0
+            $('#node-table').tablesorter({
+                sortList: [[0, 1], [1, 0]]
+            })
 
         render_datamap()
         bind_shown_tab_event()
