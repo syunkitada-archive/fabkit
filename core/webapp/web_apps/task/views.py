@@ -26,7 +26,7 @@ def index(request, cluster_name=None):
 
         cluster_dburl = database_map.get(cluster_name)
         cluster_dbapi = dbapi.DBAPI(cluster_dburl)
-        tasks = cluster_dbapi.get_tasks()
+        tasks = cluster_dbapi.get_all_tasks()
 
     agent_clusters = json.dumps(agent_clusters)
 
