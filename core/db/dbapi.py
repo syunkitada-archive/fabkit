@@ -119,6 +119,11 @@ class DBAPI():
                                      models.Task.active == active).all()
         return tasks
 
+    def get_all_tasks(self, limit=100):
+        query = self.session.query(models.Task)
+        tasks = query.order_by(desc(models.Task.created_at)).limit(limit).all()
+        return tasks
+
     def cancel_my_tasks(self):
         query = self.session.query(models.Task)
         tasks = query.filter(models.Task.active,

@@ -102,9 +102,7 @@ render_all = ->
     else if mode.current == mode.TASK
         render_node_clusters(agent_clusters)
 
-        $('#task-table').tablesorter({
-            sortList: [[1, 1], [6, 1]]
-        })
+        $('#task-table').tablesorter()
 
     $('[data-toggle=popover]').popover()
 

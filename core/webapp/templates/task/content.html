@@ -52,7 +52,13 @@
             {% for task in tasks %}
             <tr>
                 <td>{{ task.method }}</td>
+                {% if task.status == 'error' %}
+                <td class="danger">{{ task.status }}</td>
+                {% elif task.status == 'canceled' %}
+                <td class="warning">{{ task.status }}</td>
+                {% else %}
                 <td>{{ task.status }}</td>
+                {% endif %}
                 <td>{{ task.target }}</td>
                 <td>{{ task.json_arg }}</td>
                 <td>{{ task.err_msg }}</td>

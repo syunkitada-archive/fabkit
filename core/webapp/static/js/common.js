@@ -930,9 +930,7 @@
       });
     } else if (mode.current === mode.TASK) {
       render_node_clusters(agent_clusters);
-      $('#task-table').tablesorter({
-        sortList: [[1, 1], [6, 1]]
-      });
+      $('#task-table').tablesorter();
     }
     return $('[data-toggle=popover]').popover();
   };
