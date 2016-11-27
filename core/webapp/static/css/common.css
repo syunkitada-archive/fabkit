@@ -263,6 +263,10 @@ rect.parent { cursor: pointer; }
 text { pointer-events: none; }
 
 
+/*
+ * Table
+ * --------------------------------------------------
+ */
 
 // table-sorter
 table.tablesorter {}

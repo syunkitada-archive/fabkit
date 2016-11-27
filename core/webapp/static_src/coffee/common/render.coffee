@@ -101,7 +101,9 @@ render_all = ->
 
     else if mode.current == mode.TASK
         render_node_clusters(agent_clusters)
+        render_tasks()
 
+        $('#job-table').tablesorter()
         $('#task-table').tablesorter()
 
     $('[data-toggle=popover]').popover()
@@ -145,6 +147,7 @@ apps.init = ->
     else if location.pathname.indexOf('/task/') == 0
         mode.current = mode.TASK
         agent_clusters = JSON.parse($('#agent_clusters').html())
+        tasks = JSON.parse($('#json-tasks').html())
 
     else if location.pathname.indexOf('/event/') == 0
         mode.current = mode.EVENT
