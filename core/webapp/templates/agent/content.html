@@ -56,7 +56,14 @@
         </thead>
         <tbody>
             {% for agent in central_agents %}
+
+            {% if agent.status == 'active' %}
             <tr>
+            {% elif agent.status == 'down' %}
+            <tr class="danger">
+            {% else %}
+            <tr>
+            {% endif %}
                 <td>{{ agent.host }}</td>
                 <td>{{ agent.status }}</td>
                 <td>{{ agent.check_timestamp }}</td>

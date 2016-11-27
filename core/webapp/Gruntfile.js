@@ -18,6 +18,7 @@ module.exports = function(grunt) {
                         'static_src/coffee/common/render_clusters.coffee',
                         'static_src/coffee/common/render_user.coffee',
                         'static_src/coffee/common/render_node.coffee',
+                        'static_src/coffee/common/render_tasks.coffee',
                         'static_src/coffee/common/render.coffee',
                     ],
                 }

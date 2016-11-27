@@ -25,6 +25,9 @@ render_node_cluster = ->
         is_warning = false
         is_danger = false
 
+        if node.status == 'down'
+            is_danger = true
+
         sum_status = 0
         result_html = '<div>'
         for script, result of node.fabscript_map

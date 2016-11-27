@@ -4,6 +4,7 @@ import json
 from web_apps.chat.utils import get_comments, get_cluster
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 from oslo_config import cfg
 from db import dbapi
 
@@ -34,6 +35,29 @@ def index(request, cluster_name=None):
         comments = []
     else:
         comments = get_comments(get_cluster(cluster_name))
+
+    json_tasks = []
+    for task in tasks:
+        data = {
+            'owner': task.owner,
+            'method': task.method,
+            'status': task.status,
+            'target': task.target,
+            'json_arg': task.json_arg,
+            'msg': task.msg,
+            'updated_at': str(task.updated_at),
+            'created_at': str(task.created_at),
+        }
+
+        json_tasks.append(data)
+
+    if request.GET.get('query') == 'get_tasks':
+        data = {
+            'tasks': json_tasks,
+        }
+        return HttpResponse(json.dumps(data), content_type="application/json")
+
+    tasks = json.dumps(json_tasks)
 
     context = {
         'title': 'Agent: {0}'.format(cluster_name),

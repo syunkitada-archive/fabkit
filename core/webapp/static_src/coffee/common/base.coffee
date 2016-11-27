@@ -5,6 +5,7 @@ agents = []
 agent_cluster = {}
 agent_clusters = []
 fabscripts = []
+tasks = []
 datamap_tabs = ['status', 'relation']
 
 graph_links = []
@@ -41,3 +42,9 @@ marked.setOptions {
 }
 
 hljs.initHighlightingOnLoad()
+
+
+time = new Date().getTime()
+$(document.body).bind("mousemove keypress", (e) ->
+    time = new Date().getTime()
+)

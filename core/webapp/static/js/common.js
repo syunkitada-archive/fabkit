@@ -1,5 +1,5 @@
 (function() {
-  var WARNING_STATUS_THRESHOLD, agent_cluster, agent_clusters, agents, bind_shown_tab_event, change_chat_cluster, chat_cluster, chat_clusters, chat_comment, chat_socket, current_cluster_path, current_page, datamap_tabs, fabscripts, filter, graph_links, graph_nodes, mark_chat_text, mode, node_cluster, node_clusters, render_all, render_datamap, render_force_panel, render_node_cluster, render_node_clusters, render_partition_panel, render_table_panel, render_user, socket, update_pagedata, users,
+  var WARNING_STATUS_THRESHOLD, agent_cluster, agent_clusters, agents, bind_shown_tab_event, change_chat_cluster, chat_cluster, chat_clusters, chat_comment, chat_socket, current_cluster_path, current_page, datamap_tabs, fabscripts, filter, graph_links, graph_nodes, mark_chat_text, mode, node_cluster, node_clusters, render_all, render_datamap, render_force_panel, render_node_cluster, render_node_clusters, render_partition_panel, render_table_panel, render_tasks, render_user, socket, tasks, time, update_pagedata, users,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   users = [];
@@ -15,6 +15,8 @@
   agent_clusters = [];
 
   fabscripts = [];
+
+  tasks = [];
 
   datamap_tabs = ['status', 'relation'];
 
@@ -55,6 +57,12 @@
   });
 
   hljs.initHighlightingOnLoad();
+
+  time = new Date().getTime();
+
+  $(document.body).bind("mousemove keypress", function(e) {
+    return time = new Date().getTime();
+  });
 
   apps.log = function(msg) {
     if (apps.debug) {
@@ -722,6 +730,9 @@
       all_node_length++;
       is_warning = false;
       is_danger = false;
+      if (node.status === 'down') {
+        is_danger = true;
+      }
       sum_status = 0;
       result_html = '<div>';
       _ref = node.fabscript_map;
@@ -833,6 +844,74 @@
     };
   };
 
+  render_tasks = function() {
+    var all_node_length, arg, danger_node_length, fabscript_node_map, is_danger, is_processing, is_warning, job_map, jobs_tbody_html, node_class, processing_node_length, refresh, status_html, success_node_length, task, tasks_tbody_html, warning_node_length, _i, _len;
+    fabscript_node_map = {};
+    fabscripts = [];
+    all_node_length = 0;
+    processing_node_length = 0;
+    success_node_length = 0;
+    warning_node_length = 0;
+    danger_node_length = 0;
+    tasks_tbody_html = '';
+    jobs_tbody_html = '';
+    job_map = {};
+    for (_i = 0, _len = tasks.length; _i < _len; _i++) {
+      task = tasks[_i];
+      all_node_length++;
+      is_warning = false;
+      is_danger = false;
+      is_processing = false;
+      status_html = task.status;
+      if (task.status === 'error') {
+        is_danger = true;
+      } else if (task.status === 'processing') {
+        is_processing = true;
+        status_html = "<div class=\"progress\" style=\"margin: 0px;\">\n  <div class=\"progress-bar progress-bar-striped active\" role=\"progressbar\" aria-valuenow=\"100\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: 100%\">\n    " + task.status + "\n  </div>\n</div>";
+      }
+      if (is_danger) {
+        node_class = 'danger';
+        danger_node_length++;
+      } else if (is_warning) {
+        node_class = 'warning';
+        warning_node_length++;
+      } else if (is_processing) {
+        processing_node_length++;
+      } else {
+        node_class = '';
+        success_node_length++;
+      }
+      tasks_tbody_html += "<tr class=\"" + node_class + "\">\n    <td>" + task.method + "</td>\n    <td>" + task.target + "</td>\n    <td>" + task.owner + "</td>\n    <td>" + status_html + "</td>\n    <td>" + task.json_arg + "</td>\n    <td>" + task.msg + "</td>\n    <td>" + task.updated_at + "</td>\n    <td>" + task.created_at + "</td>\n</tr>";
+      if (!(task.target in job_map)) {
+        job_map[task.target] = task;
+        arg = JSON.parse(task.json_arg);
+        jobs_tbody_html += "<tr class=\"" + node_class + "\">\n    <td>" + task.target + "</td>\n    <td>" + task.owner + "</td>\n    <td>" + status_html + "</td>\n    <td>" + task.json_arg + "</td>\n    <td>" + task.msg + "</td>\n    <td>" + task.updated_at + "</td>\n    <td>" + task.created_at + "</td>\n</tr>";
+      }
+    }
+    console.log('DEBUG');
+    console.log(job_map);
+    $('#all-node-badge').html(all_node_length);
+    $('#success-node-badge').html(success_node_length);
+    $('#processing-node-badge').html(processing_node_length);
+    $('#warning-node-badge').html(warning_node_length);
+    $('#danger-node-badge').html(danger_node_length);
+    $('#tasks-tbody').html(tasks_tbody_html);
+    $('#jobs-tbody').html(jobs_tbody_html);
+    refresh = function() {
+      return $.ajax({
+        url: location.path_name,
+        data: {
+          'query': 'get_tasks'
+        },
+        success: function(data) {
+          tasks = data.tasks;
+          return render_tasks();
+        }
+      });
+    };
+    return setTimeout(refresh, 30000);
+  };
+
   update_pagedata = function() {
     var paths;
     if (mode.current === mode.NODE) {
@@ -930,6 +1009,8 @@
       });
     } else if (mode.current === mode.TASK) {
       render_node_clusters(agent_clusters);
+      render_tasks();
+      $('#job-table').tablesorter();
       $('#task-table').tablesorter();
     }
     return $('[data-toggle=popover]').popover();
@@ -972,6 +1053,7 @@
     } else if (location.pathname.indexOf('/task/') === 0) {
       mode.current = mode.TASK;
       agent_clusters = JSON.parse($('#agent_clusters').html());
+      tasks = JSON.parse($('#json-tasks').html());
     } else if (location.pathname.indexOf('/event/') === 0) {
       mode.current = mode.EVENT;
       agent_clusters = JSON.parse($('#agent_clusters').html());
