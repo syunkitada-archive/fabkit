@@ -56,6 +56,11 @@ class DBAPI():
         agents = query.filter().all()
         return agents
 
+    def get_events(self):
+        query = self.session.query(models.Event)
+        events = query.filter().all()
+        return events
+
     def check_agents(self):
         agents = self.get_agents()
 

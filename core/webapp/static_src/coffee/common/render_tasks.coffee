@@ -83,6 +83,7 @@ render_tasks = ->
             url: location.path_name,
             data: {'query': 'get_tasks'}
             success: (data) ->
+                console.log data
                 tasks = data.tasks
                 render_tasks()
         })
