@@ -904,6 +904,7 @@
           'query': 'get_tasks'
         },
         success: function(data) {
+          console.log(data);
           tasks = data.tasks;
           return render_tasks();
         }
@@ -924,6 +925,13 @@
     } else if (mode.current === mode.AGENT) {
       paths = location.pathname.split('agent/');
       current_page = 'agent';
+      current_cluster_path = paths[1].slice(0, -1);
+      if (current_cluster_path === '') {
+        return current_cluster_path = current_cluster;
+      }
+    } else if (mode.current === mode.EVENT) {
+      paths = location.pathname.split('event/');
+      current_page = 'event';
       current_cluster_path = paths[1].slice(0, -1);
       if (current_cluster_path === '') {
         return current_cluster_path = current_cluster;
@@ -1007,6 +1015,11 @@
         tab = 1;
         $('#datamap-modal').modal();
       });
+    } else if (mode.current === mode.EVENT) {
+      render_node_clusters(agent_clusters);
+      $('#event-table').tablesorter({
+        sortList: [[0, 1], [1, 0]]
+      });
     } else if (mode.current === mode.TASK) {
       render_node_clusters(agent_clusters);
       render_tasks();
@@ -1048,6 +1061,10 @@
       node_cluster = JSON.parse(node_cluster.html());
     } else if (location.pathname.indexOf('/agent/') === 0) {
       mode.current = mode.AGENT;
+      agent_clusters = JSON.parse($('#agent_clusters').html());
+      node_cluster = JSON.parse(node_cluster.html());
+    } else if (location.pathname.indexOf('/event/') === 0) {
+      mode.current = mode.EVENT;
       agent_clusters = JSON.parse($('#agent_clusters').html());
       node_cluster = JSON.parse(node_cluster.html());
     } else if (location.pathname.indexOf('/task/') === 0) {
