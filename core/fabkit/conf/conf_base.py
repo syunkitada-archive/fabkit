@@ -9,7 +9,6 @@ from oslo_db.options import database_opts
 
 from constant import (  # noqa
     INIFILE_NAME,
-    STDOUT_LOG_FILE_NAME,
     ALL_LOG_FILE_NAME,
     ERROR_LOG_FILE_NAME,
     DOC_DIR_NAME,
@@ -197,7 +196,6 @@ def init(repo_dir=None, log_file=None):
 
     CONF._all_log_file_name = ALL_LOG_FILE_NAME
     CONF._error_log_file_name = ERROR_LOG_FILE_NAME
-    CONF._stdout_log_file_name = STDOUT_LOG_FILE_NAME
     CONF._fabscript_yaml = FABSCRIPT_YAML
     CONF._yaml_extension = YAML_EXTENSION
     CONF._cluster_yaml = CLUSTER_YAML
