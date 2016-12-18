@@ -9,11 +9,8 @@ CONF = cfg.CONF
 
 def scp(from_path, to_path, is_local=True, is_receive=False, use_env_host=True):
     if is_receive:
-        target = CONF._remote_tmp_dir + from_path
-        target_dir = target.rsplit('/', 1)[0]
-        run('mkdir -p {0}'.format(target_dir))
         cmd = 'scp -P {0} -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" {1}@{2}:{3} {4}'.format(
-            api.env.port, api.env.user, api.env.host, target, to_path)
+            api.env.port, api.env.user, api.env.host, from_path, to_path)
 
         if CONF.user and CONF.password:
             result = expect(
