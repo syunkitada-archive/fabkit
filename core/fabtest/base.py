@@ -24,6 +24,12 @@ def test(target=None, t=None, cluster='.*', c=None, fabrun='.*', f=None,
     bootstrap = (not b == 'false') if b is not None else bootstrap
     fablib = l if l is not None else fablib
 
+    if target is None and fablib is None:
+        print 'Bad args.'
+        print 'Prease set test target (t=xxx) or fablib target (l=yyy).'
+        print test.__doc__
+        return
+
     sys.path.remove(CONF._repo_dir)
 
     FABTEST_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -85,7 +91,8 @@ def test(target=None, t=None, cluster='.*', c=None, fabrun='.*', f=None,
                 setup(f=fabrun)
 
     if fablib is None:
-        if target is None:
+        # Test fabkit
+        if target == 'all':
             suites = unittest.TestLoader().discover(CONF._unittests_dir,
                                                     pattern='test_*')
         else:
