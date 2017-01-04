@@ -104,7 +104,7 @@ def template(dest, mode='644', owner='root:root', data={},
     local_tmp_file = CONF._tmp_dir + '/' + env.host + '/' + tmp_path
 
     local_tmp_dir = local_tmp_file.rsplit('/', 1)[0]
-    mkdir(local_tmp_dir, is_local=True)
+    mkdir(local_tmp_dir, is_local=True, use_sudo=False)
 
     template = j2_env.get_template(src_file)
     if not env.is_test:
@@ -155,7 +155,11 @@ def template(dest, mode='644', owner='root:root', data={},
 def mkdir(dest, is_local=False, owner='root:root', mode='775', use_sudo=True):
     cmd_mkdir = 't={0} && mkdir -p $t'.format(dest)
     if is_local or env.is_local:
-        cmd(cmd_mkdir)
+        if use_sudo:
+            sudo("sh -c '{0} && chmod {1} $t && chown {2} $t'".format(cmd_mkdir, mode, owner))
+        else:
+            cmd(cmd_mkdir)
+
     elif use_sudo:
         sudo('{0} && chmod {1} $t && chown {2} $t'.format(cmd_mkdir, mode, owner))
     else:
