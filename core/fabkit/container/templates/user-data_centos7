@@ -11,8 +11,6 @@ gpasswd --add {{ user }} wheel
 gpasswd --add {{ user }} sudo
 echo '{{ user }}:{{ password }}' |chpasswd
 
-systemctl start sshd
-
 cat << EOT > /etc/sysconfig/network-scripts/ifcfg-eth0
 DEVICE=eth0
 ONBOOT=yes
