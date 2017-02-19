@@ -92,7 +92,7 @@ class Libvirt():
                      " --dport {0[1]} -j DNAT --to {1}:{0[0]}".format(
                          port, ip['ip']))
 
-        time.sleep(5)
+        time.sleep(60)
 
     def delete(self):
         data = self.data
