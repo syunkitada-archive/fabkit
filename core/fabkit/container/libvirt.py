@@ -86,13 +86,13 @@ class Libvirt():
                      " --dport {0[1]} -j DNAT --to {1}:{0[0]}".format(
                          port, vm['ip']))
 
-        for ip in data['iptables']:
+        for ip in data.get('iptables', {}):
             for port in ip.get('ports', []):
                 sudo("iptables -t nat -A PREROUTING -p tcp"
                      " --dport {0[1]} -j DNAT --to {1}:{0[0]}".format(
                          port, ip['ip']))
 
-        time.sleep(5)
+        time.sleep(60)
 
     def delete(self):
         data = self.data
@@ -107,6 +107,9 @@ class Libvirt():
             sudo('rm -rf {0}'.format(instance_dir))
 
     def stop(self):
+        pass
+
+    def start(self):
         pass
 
     def restart(self):

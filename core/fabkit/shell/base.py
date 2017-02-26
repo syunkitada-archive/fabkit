@@ -1,5 +1,6 @@
 # coding: utf-8
 
+import signal
 import commands
 import re
 import os
@@ -79,7 +80,14 @@ def sudo(cmd, retry_ttl=0, retry_interval=3, **kwargs):
     return result
 
 
-def local(cmd, retry_ttl=0, retry_interval=3, capture=True, **kwargs):
+def local(cmd, retry_ttl=0, retry_interval=3, capture=True, timeout=60, **kwargs):
+    def retry(*args, **kwargs):
+        log.info('failed cmd: {0}, ttl: {1}, sleep: {2}'.format(
+            cmd, retry_ttl, retry_interval))
+        if retry_ttl > 0:
+            time.sleep(retry_interval)
+            local(cmd, retry_ttl - 1, retry_interval, capture)
+
     log_cmd = 'local> ' + cmd
     api.env.cmd_history.append(log_cmd)
     log.info(log_cmd)
@@ -88,7 +96,12 @@ def local(cmd, retry_ttl=0, retry_interval=3, capture=True, **kwargs):
     if api.env.is_test:
         result = test_cmd(cmd)
     else:
-        result = api.local(cmd, capture=capture, **kwargs)
+        signal.signal(signal.SIGALRM, retry)
+        signal.alarm(timeout)
+        try:
+            result = api.local(cmd, capture=capture, **kwargs)
+        finally:
+            signal.alarm(0)
 
     result_msg = 'return> {0}'.format(result.return_code)
     log.info(result_msg)
@@ -114,7 +127,7 @@ interact
 '''.format(timeout, cmd, expect_cmd)
 
     if is_local:
-        return local(cmd)
+        return local(cmd, retry_ttl=1, timeout=timeout)
     else:
         if user is not None:
             return sudo(cmd, user=user)

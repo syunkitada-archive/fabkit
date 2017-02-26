@@ -8,6 +8,6 @@ Start Job.
 
 ## Examples
 ```
-% fab node:test/api job
+$ fab node:test/api job
 ```
 """

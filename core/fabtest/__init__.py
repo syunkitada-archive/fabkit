@@ -3,18 +3,32 @@
 from base import test
 
 test.__doc__ = """
-Test tasks.
+Test fabkit or fablib.
 
 ## Args
-* none
-  * test all tasks.
-* [task]
-  * test [task].
+* target, t
+  * Set test target(all or module) to test fabfile.
+* fablib, l
+  * Set fablib target to test fablib.
+* boostrap, b (default=true)
+  * Whether run bootstrap task, before test.
+* cluster, c (default=.*)
+  * Filter cluster under test by regular expression.
+* fabrun, f (default=.*)
+  * Filter fabrun under test by regular expression.
 
 ## Examples
 ```
-% fab test
+# test all module of fabkit
+$ fab test:t=all
 
-% fab test:node
+# test node module of fabkit
+$ fab test:t=node
+
+# test fablib/kubernetes.
+$ fab test:l=kubernetes
+
+# test fablib/openstack with no bootstrap.
+$ fab test:l=openstack,b=false
 ```
 """

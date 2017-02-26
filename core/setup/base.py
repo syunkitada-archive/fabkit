@@ -4,7 +4,6 @@ from fabkit import env, api, status, log, util
 import re
 from types import DictType
 import inspect
-from remote import run_remote
 from oslo_config import cfg
 
 CONF = cfg.CONF
@@ -30,7 +29,6 @@ def run_func(func_names=[], *args, **kwargs):
     is_filter = False
     env.is_test = False
     env.is_help = False
-    env.is_remote = False
     if len(args) > 0:
         if args[0] == 'test':
             env.is_test = True
@@ -38,45 +36,10 @@ def run_func(func_names=[], *args, **kwargs):
         elif args[0] == 'help':
             env.is_help = True
             args = args[1:]
-        elif args[0] == 'remote':
-            env.is_remote = True
-            args = args[1:]
     if 'f' in kwargs:
         fabrun_filter = kwargs['f'].split('+')
         fabrun_filter = [re.compile(f) for f in fabrun_filter]
         is_filter = True
-
-    env.is_remote = False
-    if env.is_remote:
-        env.remote_map = {}
-        remote_hosts = set()
-        tmp_runs = []
-        for i, run in enumerate(env.runs):
-            cluster = env.cluster_map[run['cluster']]
-            if 'remote' in cluster:
-                cluster = env.cluster_map[run['cluster']]
-                if 'remote' in cluster:
-                    cluster_remote = cluster['remote']
-                    remote = env.remote_map.get(cluster_remote['host'], {
-                        'clusters': [],
-                        'host_pattern': cluster['host_pattern'],
-                    })
-                    env.remote_map[cluster_remote['host']] = remote
-
-                    remote['clusters'].append(cluster['name'])
-                    remote_hosts.add(cluster_remote['host'])
-            else:
-                tmp_runs.append(run)
-
-        env.runs = tmp_runs
-        if len(remote_hosts) > 0:
-            env.func_names = func_names
-            env.hosts = list(remote_hosts)
-            results = api.execute(run_remote)
-            for host, result in results.items():
-                env.cluster_map.update(result)
-
-            util.dump_status()
 
     func_patterns = [re.compile(name) for name in func_names]
     host_filter = {}

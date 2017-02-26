@@ -9,6 +9,7 @@ from oslo_config import cfg
 from fabkit.conf import conf_base, conf_fabric, conf_web  # noqa
 from node import node  # noqa
 from setup import setup  # noqa
+from job import job  # noqa
 
 CONF = cfg.CONF
 
@@ -16,13 +17,19 @@ CONF = cfg.CONF
 @api.task
 @api.hosts('localhost')
 def test(target=None, t=None, cluster='.*', c=None, fabrun='.*', f=None,
-         bootstrap=True, b=None, fablib=None, l=None):
+         pipeline_pattern='.*', p='.*', fablib=None, l=None):
     target = t if t is not None else target
     cluster = c if c is not None else cluster
     re_cluster = re.compile(cluster)
     fabrun = f if f is not None else fabrun
-    bootstrap = (not b == 'false') if b is not None else bootstrap
     fablib = l if l is not None else fablib
+    pipeline_pattern = p if p is not None else pipeline_pattern
+
+    if target is None and fablib is None:
+        print 'Bad args.'
+        print 'Prease set test target (t=xxx) or fablib target (l=yyy).'
+        print test.__doc__
+        return
 
     sys.path.remove(CONF._repo_dir)
 
@@ -67,25 +74,24 @@ def test(target=None, t=None, cluster='.*', c=None, fabrun='.*', f=None,
     CONF._unittests_dir = os.path.join(FABTEST_DIR, 'unittests')
 
     if target is None or target == 'fab':
-        if bootstrap:
-            node('bootstrap/')
-            setup()
-
         CONF.user = CONF.test.user
         CONF.password = CONF.test.password
         conf_fabric.init()
 
+        env.forward_agent = False
         env.disable_known_hosts = True
 
         env.tasks.append('node:{0}'.format(cluster))
-        env.tasks.append('setup')
+        env.tasks.append("job:local,'{0}'".format(pipeline_pattern))
+
         for cluster in CONF.test.clusters:
             if re_cluster.search(cluster):
                 node(cluster, 'yes')
-                setup(f=fabrun)
+                job('local', pipeline_pattern, f=fabrun)
 
     if fablib is None:
-        if target is None:
+        # Test fabkit
+        if target == 'all':
             suites = unittest.TestLoader().discover(CONF._unittests_dir,
                                                     pattern='test_*')
         else:
