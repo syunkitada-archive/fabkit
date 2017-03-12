@@ -1,10 +1,10 @@
 # coding: utf-8
 
-from fabkit import api, local
+from fabkit import api
 import os
+import subprocess
 from oslo_config import cfg
-from eventlet import wsgi
-import eventlet
+import sys
 
 CONF = cfg.CONF
 
@@ -12,49 +12,84 @@ CONF = cfg.CONF
 @api.task
 @api.hosts('localhost')
 def runserver(*args, **kwargs):
-    len_args = len(args)
+    create_tls_cert()
+    npm_install()
+    run_nodejs()
+    run_grunt()
+    run_server()
+
+
+def local(cmd, cwd=None):
+    subprocess.call(cmd, shell=True, cwd=cwd)
+
+
+def create_tls_cert():
+    return
     certdir = os.path.join(CONF._storage_dir, 'cert')
     certfile = os.path.join(certdir, 'server.crt')
     csrfile = os.path.join(certdir, 'server.csr')
     keyfile_tmp = os.path.join(certdir, 'server.key.tmp')
     keyfile = os.path.join(certdir, 'server.key')
+    password = 'password'
 
-    if len_args > 0 and 'create_cert' in args:
-        if not os.path.exists(certdir):
-            os.mkdir(certdir)
+    if not os.path.exists(certdir):
+        os.mkdir(certdir)
 
-        print '\nCreate private key: {0}'.format(keyfile_tmp)
-        if not os.path.exists(keyfile_tmp):
-            local('openssl genrsa -aes128 -out {0} 4096'.format(keyfile_tmp))
-        else:
-            print '{0} is already exists.'.format(keyfile_tmp)
+    print '\nCreate private key: {0}'.format(keyfile_tmp)
+    if not os.path.exists(keyfile_tmp):
+        local('openssl genrsa -des3 -passout pass:{0} -out {1} 4096'.format(
+            password, keyfile_tmp))
+    else:
+        print '{0} is already exists.'.format(keyfile_tmp)
 
-        print '\nCreate CSR: {0}'.format(csrfile)
-        if not os.path.exists(csrfile):
-            local('openssl req -new -key {0} -sha256 -out {1}'.format(keyfile_tmp, csrfile))
-        else:
-            print '{0} is already exists.'.format(csrfile)
+    print '\nCreate Decryption private key: {0}'.format(keyfile)
+    if not os.path.exists(keyfile):
+        local('openssl rsa -passin pass:{0} -in {1} -out {2}'.format(
+            password, keyfile_tmp, keyfile))
+    else:
+        print '{0} is already exists.'.format(keyfile)
 
-        print '\nCreate SSL certificate (public key): {0}'.format(certfile)
-        if not os.path.exists(certfile):
-            local('openssl x509 -in {0} -days 365 -req -signkey {1} -sha256 -out {2}'.format(
-                csrfile, keyfile_tmp, certfile))
-        else:
-            print '{0} is already exists.'.format(certfile)
+    print '\nCreate CSR: {0}'.format(csrfile)
+    if not os.path.exists(csrfile):
+        local('openssl req -passin pass:{0} -new -key {1} -sha256 -out {2}'.format(
+            password, keyfile_tmp, csrfile))
+    else:
+        print '{0} is already exists.'.format(csrfile)
 
-        print '\nCreate Decryption private key: {0}'.format(keyfile)
-        if not os.path.exists(keyfile):
-            local('openssl rsa -in {0} -out {1}'.format(keyfile_tmp, keyfile))
-        else:
-            print '{0} is already exists.'.format(keyfile)
+    print '\nCreate SSL certificate (public key): {0}'.format(certfile)
+    if not os.path.exists(certfile):
+        local('openssl x509 -passin pass:{0} '
+              '-in {1} -days 365 -req -signkey {2} -sha256 -out {3}'.format(
+                  password, csrfile, keyfile_tmp, certfile))
+    else:
+        print '{0} is already exists.'.format(certfile)
 
-        return
 
-    from django.core.wsgi import get_wsgi_application
-    import pymysql
-    pymysql.install_as_MySQLdb()
+def npm_install():
+    cwd = os.path.join(CONF._webapp_dir, 'fabnode')
+    local('npm install', cwd)
 
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "web_conf.settings")
-    application = get_wsgi_application()
+    cwd = CONF._webapp_dir
+    local('npm install', cwd)
 
-    wsgi.server(eventlet.listen(('', 8080)), application)
+
+def run_nodejs():
+    cwd = os.path.join(CONF._webapp_dir, 'fabnode')
+    subprocess.Popen(['coffee', 'main.coffee'], cwd=cwd)
+
+
+def run_grunt():
+    cwd = CONF._webapp_dir
+    subprocess.Popen(['grunt'], cwd=cwd)
+
+
+def run_server():
+    cwd = CONF._webapp_dir
+
+    if sys.exec_prefix == '/usr':
+        prefix = ''
+    else:
+        prefix = '{0}/bin/'.format(sys.exec_prefix)
+
+    subprocess.call(['{0}python'.format(prefix), 'manage.py', 'runserver_plus',
+                     '0.0.0.0:{0}'.format(CONF.web.port)], cwd=cwd)

@@ -1,5 +1,5 @@
 http = require('http')
-
+fs = require('fs')
 
 config = null
 logger = null
