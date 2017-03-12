@@ -13,13 +13,14 @@ CONF = cfg.CONF
 @api.hosts('localhost')
 def runserver(*args, **kwargs):
     create_tls_cert()
+    npm_install()
     run_nodejs()
     run_grunt()
     run_server()
 
 
-def local(cmd):
-    subprocess.call(cmd, shell=True)
+def local(cmd, cwd=None):
+    subprocess.call(cmd, shell=True, cwd=cwd)
 
 
 def create_tls_cert():
@@ -62,6 +63,14 @@ def create_tls_cert():
                   password, csrfile, keyfile_tmp, certfile))
     else:
         print '{0} is already exists.'.format(certfile)
+
+
+def npm_install():
+    cwd = os.path.join(CONF._webapp_dir, 'fabnode')
+    local('npm install', cwd)
+
+    cwd = CONF._webapp_dir
+    local('npm install', cwd)
 
 
 def run_nodejs():
