@@ -346,7 +346,17 @@ def dump_datamap(data_map):
         if os.path.exists(datamap_json):
             with open(datamap_json, 'r') as f:
                 tmp_map_data = yaml.load(f)
-                tmp_map_data['data'].update(map_data['data'])
+                if tmp_map_data['type'] == 'table':
+                    new_data = map_data['data']
+                    keys = [d['!!host'] for d in new_data]
+                    for d in tmp_map_data['data']:
+                        if d['!!host'] not in keys:
+                            new_data.append(d)
+                            keys.append(d['!!host'])
+                    tmp_map_data['data'] = new_data
+                else:
+                    tmp_map_data['data'].update(map_data['data'])
+
                 map_data = tmp_map_data
 
         with open(datamap_json, 'w') as f:

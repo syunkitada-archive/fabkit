@@ -68,10 +68,12 @@ render_table_panel = (panel_id, map) ->
         tbody_html += '</tr>'
 
     table_html = """
-    <table id="datamap-table" class="table table-striped table-bordered tablesorter">
-        <thead id="datamap-thead"><tr>#{thead_html}</tr></thead>
-        <tbody id="datamap-tbody">#{tbody_html}</tbody>
-    </table>
+    <div class="table-responsive">
+        <table id="datamap-table" class="table table-striped table-bordered tablesorter">
+            <thead id="datamap-thead"><tr>#{thead_html}</tr></thead>
+            <tbody id="datamap-tbody">#{tbody_html}</tbody>
+        </table>
+    </div>
     """
     $("##{panel_id}").html(table_html)
     $('#datamap-table').tablesorter({

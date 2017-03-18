@@ -578,7 +578,7 @@
       }
       tbody_html += '</tr>';
     }
-    table_html = "<table id=\"datamap-table\" class=\"table table-striped table-bordered tablesorter\">\n    <thead id=\"datamap-thead\"><tr>" + thead_html + "</tr></thead>\n    <tbody id=\"datamap-tbody\">" + tbody_html + "</tbody>\n</table>";
+    table_html = "<div class=\"table-responsive\">\n    <table id=\"datamap-table\" class=\"table table-striped table-bordered tablesorter\">\n        <thead id=\"datamap-thead\"><tr>" + thead_html + "</tr></thead>\n        <tbody id=\"datamap-tbody\">" + tbody_html + "</tbody>\n    </table>\n</div>";
     $("#" + panel_id).html(table_html);
     return $('#datamap-table').tablesorter({
       sortList: [[0, 0]]
