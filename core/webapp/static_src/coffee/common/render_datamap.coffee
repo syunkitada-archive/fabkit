@@ -74,8 +74,28 @@ render_table_panel = (panel_id, map) ->
             <tbody id="datamap-tbody">#{tbody_html}</tbody>
         </table>
     </div>
+    <div id="myDiv" style="width: 100%"></div>
     """
     $("##{panel_id}").html(table_html)
     $('#datamap-table').tablesorter({
         sortList: [[0, 0]]
     })
+
+    trace1 = {
+      x: [1, 2, 3, 4],
+      y: [10, 15, 13, 17],
+      type: 'scatter'
+    }
+
+    trace2 = {
+      x: [1, 2, 3, 4],
+      y: [16, 5, 11, 9],
+      type: 'scatter'
+    }
+
+    data = [trace1, trace2]
+
+    Plotly.newPlot('myDiv', data)
+
+    $(window).resize(() ->
+    )

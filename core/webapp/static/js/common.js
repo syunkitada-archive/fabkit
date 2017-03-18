@@ -539,7 +539,7 @@
   };
 
   render_table_panel = function(panel_id, map) {
-    var index, table_html, tbody_html, td, tds, th, thead_html, ths, tr, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1;
+    var data, index, table_html, tbody_html, td, tds, th, thead_html, ths, tr, trace1, trace2, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1;
     thead_html = '';
     ths = [];
     tbody_html = '';
@@ -578,11 +578,24 @@
       }
       tbody_html += '</tr>';
     }
-    table_html = "<div class=\"table-responsive\">\n    <table id=\"datamap-table\" class=\"table table-striped table-bordered tablesorter\">\n        <thead id=\"datamap-thead\"><tr>" + thead_html + "</tr></thead>\n        <tbody id=\"datamap-tbody\">" + tbody_html + "</tbody>\n    </table>\n</div>";
+    table_html = "<div class=\"table-responsive\">\n    <table id=\"datamap-table\" class=\"table table-striped table-bordered tablesorter\">\n        <thead id=\"datamap-thead\"><tr>" + thead_html + "</tr></thead>\n        <tbody id=\"datamap-tbody\">" + tbody_html + "</tbody>\n    </table>\n</div>\n<div id=\"myDiv\" style=\"width: 100%\"></div>";
     $("#" + panel_id).html(table_html);
-    return $('#datamap-table').tablesorter({
+    $('#datamap-table').tablesorter({
       sortList: [[0, 0]]
     });
+    trace1 = {
+      x: [1, 2, 3, 4],
+      y: [10, 15, 13, 17],
+      type: 'scatter'
+    };
+    trace2 = {
+      x: [1, 2, 3, 4],
+      y: [16, 5, 11, 9],
+      type: 'scatter'
+    };
+    data = [trace1, trace2];
+    Plotly.newPlot('myDiv', data);
+    return $(window).resize(function() {});
   };
 
   render_node_clusters = function(clusters) {
