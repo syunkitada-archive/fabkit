@@ -129,10 +129,10 @@ class Libvirt():
             src_image_format = 'xz'
 
         if not filer.exists(src_image_path):
-            sudo('cd {0} && wget {1}'.format(images_dir, vm['src_image']))
+            sudo('sh -c "cd {0} && wget {1}"'.format(images_dir, vm['src_image']))
 
             if src_image_format == 'xz':
-                sudo('cd {0} && xz -d {1}'.format(images_dir, src_image))
+                sudo('sh -c "cd {0} && xz -d {1}"'.format(images_dir, src_image))
 
         return src_image_path
 

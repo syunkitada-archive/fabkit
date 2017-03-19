@@ -1,5 +1,5 @@
 (function() {
-  var WARNING_STATUS_THRESHOLD, agent_cluster, agent_clusters, agents, bind_shown_tab_event, change_chat_cluster, chat_cluster, chat_clusters, chat_comment, chat_socket, current_cluster_path, current_page, datamap_tabs, fabscripts, filter, graph_links, graph_nodes, mark_chat_text, mode, node_cluster, node_clusters, render_all, render_datamap, render_force_panel, render_node_cluster, render_node_clusters, render_partition_panel, render_table_panel, render_tasks, render_user, socket, tasks, time, update_pagedata, users,
+  var WARNING_STATUS_THRESHOLD, agent_cluster, agent_clusters, agents, bind_shown_tab_event, change_chat_cluster, chat_cluster, chat_clusters, chat_comment, chat_socket, current_cluster_path, current_page, datamap_tabs, fabscripts, filter, graph_links, graph_nodes, mark_chat_text, mode, node_cluster, node_clusters, render_all, render_datamap, render_force_panel, render_line_chart_panel, render_node_cluster, render_node_clusters, render_partition_panel, render_table_panel, render_tasks, render_user, socket, tasks, time, update_pagedata, users,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   users = [];
@@ -533,6 +533,10 @@
           render_partition_panel(panel_id, map);
         } else if (map.type === 'force') {
           render_force_panel(panel_id, map);
+        } else if (map.type === 'line-chart') {
+          render_line_chart_panel(panel_id, map);
+        } else {
+          console.log(map);
         }
       }
     });
@@ -578,11 +582,72 @@
       }
       tbody_html += '</tr>';
     }
-    table_html = "<table id=\"datamap-table\" class=\"table table-striped table-bordered tablesorter\">\n    <thead id=\"datamap-thead\"><tr>" + thead_html + "</tr></thead>\n    <tbody id=\"datamap-tbody\">" + tbody_html + "</tbody>\n</table>";
+    table_html = "<div class=\"table-responsive\">\n    <table id=\"datamap-table\" class=\"table table-striped table-bordered tablesorter\">\n        <thead id=\"datamap-thead\"><tr>" + thead_html + "</tr></thead>\n        <tbody id=\"datamap-tbody\">" + tbody_html + "</tbody>\n    </table>\n</div>";
     $("#" + panel_id).html(table_html);
     return $('#datamap-table').tablesorter({
       sortList: [[0, 0]]
     });
+  };
+
+  render_line_chart_panel = function(panel_id, map) {
+    var d, data, graph_id, index, table_html, tbody_html, td, tds, th, thead_html, ths, tr, trace, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1, _ref2;
+    thead_html = '';
+    ths = [];
+    tbody_html = '';
+    _ref = map.data;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      tr = _ref[_i];
+      for (th in tr) {
+        td = tr[th];
+        if (ths.indexOf(th) === -1) {
+          ths.push(th);
+        }
+      }
+    }
+    ths.sort();
+    for (_j = 0, _len1 = ths.length; _j < _len1; _j++) {
+      th = ths[_j];
+      th = th.replace(/^![!0-9]/, '');
+      thead_html += "<th>" + th + "</th>";
+    }
+    _ref1 = map.data;
+    for (_k = 0, _len2 = _ref1.length; _k < _len2; _k++) {
+      tr = _ref1[_k];
+      tds = [];
+      for (th in tr) {
+        td = tr[th];
+        index = ths.indexOf(th);
+        if (index === -1) {
+          index = ths.length - 1;
+        }
+        tds[index] = td;
+      }
+      tbody_html += '<tr>';
+      for (_l = 0, _len3 = tds.length; _l < _len3; _l++) {
+        td = tds[_l];
+        tbody_html += "<td>" + td + "</td>";
+      }
+      tbody_html += '</tr>';
+    }
+    graph_id = "" + panel_id + "-graph";
+    table_html = "<div id=\"" + graph_id + "\" style=\"width: 100%\"></div>";
+    $("#" + panel_id).html(table_html);
+    data = [];
+    console.log(map);
+    _ref2 = map.data;
+    for (_m = 0, _len4 = _ref2.length; _m < _len4; _m++) {
+      d = _ref2[_m];
+      trace = {
+        x: d.x,
+        y: d.y,
+        type: 'scatter',
+        name: d['!!host']
+      };
+      data.push(trace);
+    }
+    console.log(data);
+    Plotly.newPlot(graph_id, data, map.layout);
+    return $(window).resize(function() {});
   };
 
   render_node_clusters = function(clusters) {

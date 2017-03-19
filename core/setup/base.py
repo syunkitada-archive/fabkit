@@ -184,12 +184,27 @@ def run_func(func_names=[], *args, **kwargs):
 
                         tmp_data_map = result.get('data_map')
                         if tmp_data_map is not None:
+                            print tmp_data_map
                             for map_name, tmp_map_data in tmp_data_map.items():
                                 if tmp_map_data['type'] == 'table':
                                     map_data = data_map.get(map_name, {
                                         'name': map_name,
                                         'type': 'table',
                                         'data': [],
+                                    })
+
+                                    tmp_data = {'!!host': host}
+                                    tmp_data.update(tmp_map_data['data'])
+                                    map_data['data'].append(tmp_data)
+                                    data_map[map_name] = map_data
+
+                                elif tmp_map_data['type'] == 'line-chart':
+                                    map_data = data_map.get(map_name, {
+                                        'name': map_name,
+                                        'type': 'line-chart',
+                                        'data': [],
+                                        'ex_data': tmp_map_data['ex_data'],
+                                        'layout': tmp_map_data['layout'],
                                     })
 
                                     tmp_data = {'!!host': host}

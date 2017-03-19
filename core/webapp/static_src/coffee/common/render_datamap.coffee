@@ -35,6 +35,10 @@ bind_shown_tab_event = ->
                 render_partition_panel(panel_id, map)
             else if map.type == 'force'
                 render_force_panel(panel_id, map)
+            else if map.type == 'line-chart'
+                render_line_chart_panel(panel_id, map)
+            else
+                console.log map
 
         return)
 
@@ -68,12 +72,68 @@ render_table_panel = (panel_id, map) ->
         tbody_html += '</tr>'
 
     table_html = """
-    <table id="datamap-table" class="table table-striped table-bordered tablesorter">
-        <thead id="datamap-thead"><tr>#{thead_html}</tr></thead>
-        <tbody id="datamap-tbody">#{tbody_html}</tbody>
-    </table>
+    <div class="table-responsive">
+        <table id="datamap-table" class="table table-striped table-bordered tablesorter">
+            <thead id="datamap-thead"><tr>#{thead_html}</tr></thead>
+            <tbody id="datamap-tbody">#{tbody_html}</tbody>
+        </table>
+    </div>
     """
     $("##{panel_id}").html(table_html)
     $('#datamap-table').tablesorter({
         sortList: [[0, 0]]
     })
+
+
+render_line_chart_panel = (panel_id, map) ->
+    thead_html = ''
+    ths = []
+    tbody_html = ''
+    for tr in map.data
+        for th, td of tr
+            if ths.indexOf(th) == -1
+                ths.push(th)
+
+    ths.sort()
+    for th in ths
+        th = th.replace(/^![!0-9]/, '')
+        thead_html += "<th>#{th}</th>"
+
+    for tr in map.data
+        tds = []
+        for th, td of tr
+            index = ths.indexOf(th)
+            if index == -1
+                index = ths.length - 1
+            tds[index] = td
+
+        tbody_html += '<tr>'
+        for td in tds
+            tbody_html += "<td>#{td}</td>"
+
+        tbody_html += '</tr>'
+
+    graph_id = "#{panel_id}-graph"
+    table_html = """
+    <div id="#{graph_id}" style="width: 100%"></div>
+    """
+    $("##{panel_id}").html(table_html)
+
+    data = []
+    console.log map
+    for d in map.data
+        trace = {
+            x: d.x,
+            y: d.y,
+            type: 'scatter',
+            name: d['!!host'],
+        }
+
+        data.push(trace)
+
+    console.log data
+
+    Plotly.newPlot(graph_id, data, map.layout)
+
+    $(window).resize(() ->
+    )
