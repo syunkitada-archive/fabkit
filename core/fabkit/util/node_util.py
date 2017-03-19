@@ -349,11 +349,19 @@ def dump_datamap(data_map):
                 if tmp_map_data['type'] in ['table', 'line-chart']:
                     new_data = map_data['data']
                     keys = [d['!!host'] for d in new_data]
+                    ex_keys = [d['name'] for d in map_data.get('ex_data', [])]
                     for d in tmp_map_data['data']:
+                        if d['!!host'] in ex_keys:
+                            continue
+
                         if d['!!host'] not in keys:
                             new_data.append(d)
                             keys.append(d['!!host'])
                     tmp_map_data['data'] = new_data
+
+                    if tmp_map_data['type'] == 'line-chart':
+                        tmp_map_data['ex_data'] = map_data['ex_data']
+                        tmp_map_data['layout'] = map_data['layout']
 
                 else:
                     tmp_map_data['data'].update(map_data['data'])
@@ -372,10 +380,11 @@ def dump_datamap(data_map):
                 if ex['y'] == 'sum(y)':
                     y = [0] * len(data[0]['y'])
                     for i, yd in enumerate(y):
+                        sum = 0
                         for d in data:
-                            yd += d['y'][i]
+                            sum += d['y'][i]
 
-                        y[i] = yd
+                        y[i] = sum
 
                 tmp = {
                     '!!host': ex['name'],

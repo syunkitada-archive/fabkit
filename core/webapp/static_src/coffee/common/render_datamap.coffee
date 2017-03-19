@@ -86,33 +86,6 @@ render_table_panel = (panel_id, map) ->
 
 
 render_line_chart_panel = (panel_id, map) ->
-    thead_html = ''
-    ths = []
-    tbody_html = ''
-    for tr in map.data
-        for th, td of tr
-            if ths.indexOf(th) == -1
-                ths.push(th)
-
-    ths.sort()
-    for th in ths
-        th = th.replace(/^![!0-9]/, '')
-        thead_html += "<th>#{th}</th>"
-
-    for tr in map.data
-        tds = []
-        for th, td of tr
-            index = ths.indexOf(th)
-            if index == -1
-                index = ths.length - 1
-            tds[index] = td
-
-        tbody_html += '<tr>'
-        for td in tds
-            tbody_html += "<td>#{td}</td>"
-
-        tbody_html += '</tr>'
-
     graph_id = "#{panel_id}-graph"
     table_html = """
     <div id="#{graph_id}" style="width: 100%"></div>
@@ -120,7 +93,6 @@ render_line_chart_panel = (panel_id, map) ->
     $("##{panel_id}").html(table_html)
 
     data = []
-    console.log map
     for d in map.data
         trace = {
             x: d.x,
@@ -131,9 +103,4 @@ render_line_chart_panel = (panel_id, map) ->
 
         data.push(trace)
 
-    console.log data
-
     Plotly.newPlot(graph_id, data, map.layout)
-
-    $(window).resize(() ->
-    )
