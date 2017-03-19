@@ -35,6 +35,10 @@ bind_shown_tab_event = ->
                 render_partition_panel(panel_id, map)
             else if map.type == 'force'
                 render_force_panel(panel_id, map)
+            else if map.type == 'line-chart'
+                render_line_chart_panel(panel_id, map)
+            else
+                console.log map
 
         return)
 
@@ -74,28 +78,62 @@ render_table_panel = (panel_id, map) ->
             <tbody id="datamap-tbody">#{tbody_html}</tbody>
         </table>
     </div>
-    <div id="myDiv" style="width: 100%"></div>
     """
     $("##{panel_id}").html(table_html)
     $('#datamap-table').tablesorter({
         sortList: [[0, 0]]
     })
 
-    trace1 = {
-      x: [1, 2, 3, 4],
-      y: [10, 15, 13, 17],
-      type: 'scatter'
-    }
 
-    trace2 = {
-      x: [1, 2, 3, 4],
-      y: [16, 5, 11, 9],
-      type: 'scatter'
-    }
+render_line_chart_panel = (panel_id, map) ->
+    thead_html = ''
+    ths = []
+    tbody_html = ''
+    for tr in map.data
+        for th, td of tr
+            if ths.indexOf(th) == -1
+                ths.push(th)
 
-    data = [trace1, trace2]
+    ths.sort()
+    for th in ths
+        th = th.replace(/^![!0-9]/, '')
+        thead_html += "<th>#{th}</th>"
 
-    Plotly.newPlot('myDiv', data)
+    for tr in map.data
+        tds = []
+        for th, td of tr
+            index = ths.indexOf(th)
+            if index == -1
+                index = ths.length - 1
+            tds[index] = td
+
+        tbody_html += '<tr>'
+        for td in tds
+            tbody_html += "<td>#{td}</td>"
+
+        tbody_html += '</tr>'
+
+    graph_id = "#{panel_id}-graph"
+    table_html = """
+    <div id="#{graph_id}" style="width: 100%"></div>
+    """
+    $("##{panel_id}").html(table_html)
+
+    data = []
+    console.log map
+    for d in map.data
+        trace = {
+            x: d.x,
+            y: d.y,
+            type: 'scatter',
+            name: d['!!host'],
+        }
+
+        data.push(trace)
+
+    console.log data
+
+    Plotly.newPlot(graph_id, data, map.layout)
 
     $(window).resize(() ->
     )

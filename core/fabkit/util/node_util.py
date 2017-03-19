@@ -346,7 +346,7 @@ def dump_datamap(data_map):
         if os.path.exists(datamap_json):
             with open(datamap_json, 'r') as f:
                 tmp_map_data = yaml.load(f)
-                if tmp_map_data['type'] == 'table':
+                if tmp_map_data['type'] in ['table', 'line-chart']:
                     new_data = map_data['data']
                     keys = [d['!!host'] for d in new_data]
                     for d in tmp_map_data['data']:
@@ -354,10 +354,43 @@ def dump_datamap(data_map):
                             new_data.append(d)
                             keys.append(d['!!host'])
                     tmp_map_data['data'] = new_data
+
                 else:
                     tmp_map_data['data'].update(map_data['data'])
 
                 map_data = tmp_map_data
+
+        if map_data['type'] == 'line-chart':
+            data = map_data['data']
+            ex_data = map_data.get('ex_data', [])
+            new_data = []
+            for ex in ex_data:
+                x = []
+                y = []
+                if ex['x'] == 'data_0_x':
+                    x = data[0]['x']
+                if ex['y'] == 'sum(y)':
+                    y = [0] * len(data[0]['y'])
+                    for i, yd in enumerate(y):
+                        for d in data:
+                            yd += d['y'][i]
+
+                        y[i] = yd
+
+                tmp = {
+                    '!!host': ex['name'],
+                    'x': x,
+                    'y': y,
+                }
+                new_data.append(tmp)
+
+            keys = [d['!!host'] for d in new_data]
+            for data in map_data['data']:
+                if data['!!host'] not in keys:
+                    new_data.append(data)
+                    keys.append(data['!!host'])
+
+            map_data['data'] = new_data
 
         with open(datamap_json, 'w') as f:
             yaml.dump(map_data, f)
