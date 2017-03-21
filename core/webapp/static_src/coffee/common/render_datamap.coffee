@@ -86,9 +86,44 @@ render_table_panel = (panel_id, map) ->
 
 
 render_line_chart_panel = (panel_id, map) ->
+    thead_html = ''
+    ths = []
+    tbody_html = ''
+
+    yaxis = map.layout.yaxis.title
+    xaxis = map.layout.xaxis.title
+    tds = []
+    ths.push()
+    for d, i in map.data
+        th = yaxis + '_' + d['!!host']
+        ths.push(th)
+        if i == 0
+            for x in d.x
+                tds.push([x])
+
+        for y, i in d.y
+            tds[i].push(y)
+
+    ths.splice(0, 0, xaxis)
+    for th in ths
+        th = th.replace(/^![!0-9]/, '')
+        thead_html += "<th>#{th}</th>"
+
+    for td in tds
+        tbody_html += "<tr>"
+        for t in td
+            tbody_html += "<td>#{t}</td>"
+        tbody_html += "</tr>"
+
     graph_id = "#{panel_id}-graph"
     table_html = """
     <div id="#{graph_id}" style="width: 100%"></div>
+    <div class="table-responsive">
+        <table id="datamap-table" class="table table-striped table-bordered tablesorter">
+            <thead id="datamap-thead"><tr>#{thead_html}</tr></thead>
+            <tbody id="datamap-tbody">#{tbody_html}</tbody>
+        </table>
+    </div>
     """
     $("##{panel_id}").html(table_html)
 
