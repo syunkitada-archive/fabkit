@@ -590,14 +590,54 @@
   };
 
   render_line_chart_panel = function(panel_id, map) {
-    var d, data, graph_id, table_html, trace, _i, _len, _ref;
+    var d, data, graph_id, i, t, table_html, tbody_html, td, tds, th, thead_html, ths, trace, x, xaxis, y, yaxis, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _len6, _m, _n, _o, _ref, _ref1, _ref2, _ref3;
+    thead_html = '';
+    ths = [];
+    tbody_html = '';
+    yaxis = map.layout.yaxis.title;
+    xaxis = map.layout.xaxis.title;
+    tds = [];
+    ths.push();
+    _ref = map.data;
+    for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+      d = _ref[i];
+      th = yaxis + '_' + d['!!host'];
+      ths.push(th);
+      if (i === 0) {
+        _ref1 = d.x;
+        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+          x = _ref1[_j];
+          tds.push([x]);
+        }
+      }
+      _ref2 = d.y;
+      for (i = _k = 0, _len2 = _ref2.length; _k < _len2; i = ++_k) {
+        y = _ref2[i];
+        tds[i].push(y);
+      }
+    }
+    ths.splice(0, 0, xaxis);
+    for (_l = 0, _len3 = ths.length; _l < _len3; _l++) {
+      th = ths[_l];
+      th = th.replace(/^![!0-9]/, '');
+      thead_html += "<th>" + th + "</th>";
+    }
+    for (_m = 0, _len4 = tds.length; _m < _len4; _m++) {
+      td = tds[_m];
+      tbody_html += "<tr>";
+      for (_n = 0, _len5 = td.length; _n < _len5; _n++) {
+        t = td[_n];
+        tbody_html += "<td>" + t + "</td>";
+      }
+      tbody_html += "</tr>";
+    }
     graph_id = "" + panel_id + "-graph";
-    table_html = "<div id=\"" + graph_id + "\" style=\"width: 100%\"></div>";
+    table_html = "<div id=\"" + graph_id + "\" style=\"width: 100%\"></div>\n<div class=\"table-responsive\">\n    <table id=\"datamap-table\" class=\"table table-striped table-bordered tablesorter\">\n        <thead id=\"datamap-thead\"><tr>" + thead_html + "</tr></thead>\n        <tbody id=\"datamap-tbody\">" + tbody_html + "</tbody>\n    </table>\n</div>";
     $("#" + panel_id).html(table_html);
     data = [];
-    _ref = map.data;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      d = _ref[_i];
+    _ref3 = map.data;
+    for (_o = 0, _len6 = _ref3.length; _o < _len6; _o++) {
+      d = _ref3[_o];
       trace = {
         x: d.x,
         y: d.y,
