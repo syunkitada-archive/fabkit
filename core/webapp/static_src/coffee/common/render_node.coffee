@@ -1,5 +1,4 @@
 render_node_cluster = ->
-    console.log 'Test'
     $('#markdown').html(marked($('#markdown').text()))
 
     fabscript_node_map = {}
@@ -146,3 +145,29 @@ render_node_cluster = ->
             'links': links,
         }
     }
+
+    console_url = "/node/#{current_cluster}/get_console/"
+
+    refresh_console = () ->
+        $.getJSON(console_url, (data) ->
+            console.log data
+            text = """``` bash
+#{data.console_log}
+```"""
+            $('#console').html(marked(text))
+
+            table = '<div class="table-responsive"><table class="table table-striped table-bordered">'
+            for key, value of data.stats
+                lines = value.split('\n')
+                table += "<tr>"
+                for line in lines
+                    column = line.split(',')
+                    table += '<td>' + column.join('</td><td>') + '</td></tr>'
+
+            table += '</table></div>'
+            $('#stats').html(table)
+        )
+
+        setTimeout(refresh_console, 10000)
+
+    refresh_console()

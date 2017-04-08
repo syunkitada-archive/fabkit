@@ -27,11 +27,20 @@
             <button class="btn btn-default" type="button" data-toggle="modal" data-target="#chat-modal" aria-expanded="false" aria-controls="collapse-readme">
                 <span class="glyphicon glyphicon-volume-up"></span>
                 Chat</button>
+            <button class="btn btn-default" type="button" data-toggle="collapse" data-target="#collapse-console" aria-expanded="false" aria-controls="collapse-console">
+                <span class="glyphicon glyphicon-expand"></span>
+                OBSERVE</button>
             <button class="btn btn-default" type="button" data-toggle="collapse" data-target="#collapse-readme" aria-expanded="false" aria-controls="collapse-readme">
                 <span class="glyphicon glyphicon-list-alt"></span>
                 README</button>
         </div>
     </div>
+</div>
+<div class="collapse" id="collapse-console">
+    <div id="console"></div>
+
+    <input type="text" class="form-control" id="" placeholder="metrics">
+    <div id="stats"></div>
 </div>
 <div class="collapse" id="collapse-readme">
     <div id="markdown" class="well readme">{{ readme_html|safe }}</div>

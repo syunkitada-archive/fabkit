@@ -753,8 +753,7 @@
   };
 
   render_node_cluster = function() {
-    var all_node_length, danger_node_length, data, fabscript, fabscript_map, fabscript_node_map, fabscript_status_map, host, i, index, is_danger, is_warning, links, name, node, node_class, node_map, nodes, nodes_tbody_html, require, result, result_html, script, status, success_node_length, sum_status, target, tmp_fabscript, tmp_node, warning_node_length, _i, _len, _ref, _ref1;
-    console.log('Test');
+    var all_node_length, console_url, danger_node_length, data, fabscript, fabscript_map, fabscript_node_map, fabscript_status_map, host, i, index, is_danger, is_warning, links, name, node, node_class, node_map, nodes, nodes_tbody_html, refresh_console, require, result, result_html, script, status, success_node_length, sum_status, target, tmp_fabscript, tmp_node, warning_node_length, _i, _len, _ref, _ref1;
     $('#markdown').html(marked($('#markdown').text()));
     fabscript_node_map = {};
     node_map = node_cluster.__status.node_map;
@@ -898,7 +897,7 @@
         });
       }
     }
-    return node_cluster.datamap.relation = {
+    node_cluster.datamap.relation = {
       'name': 'relation',
       'type': 'force',
       'data': {
@@ -906,6 +905,31 @@
         'links': links
       }
     };
+    console_url = "/node/" + current_cluster + "/get_console/";
+    refresh_console = function() {
+      $.getJSON(console_url, function(data) {
+        var column, key, line, lines, table, text, value, _j, _len1, _ref2;
+        console.log(data);
+        text = "``` bash\n" + data.console_log + "\n```";
+        $('#console').html(marked(text));
+        table = '<div class="table-responsive"><table class="table table-striped table-bordered">';
+        _ref2 = data.stats;
+        for (key in _ref2) {
+          value = _ref2[key];
+          lines = value.split('\n');
+          table += "<tr>";
+          for (_j = 0, _len1 = lines.length; _j < _len1; _j++) {
+            line = lines[_j];
+            column = line.split(',');
+            table += '<td>' + column.join('</td><td>') + '</td></tr>';
+          }
+        }
+        table += '</table></div>';
+        return $('#stats').html(table);
+      });
+      return setTimeout(refresh_console, 10000);
+    };
+    return refresh_console();
   };
 
   render_tasks = function() {
