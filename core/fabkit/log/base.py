@@ -56,3 +56,11 @@ def error(msg, host=None):
 
 def critical(msg, host=None):
     get_logger(host).critical(msg)
+
+
+def console(msg, host=None):
+    if host is None:
+        host = env.host
+
+    with open(env.console_file, "a") as f:
+        f.write("{0}: {1}  \n".format(host, msg))

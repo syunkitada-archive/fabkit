@@ -4,9 +4,9 @@ import os
 import logging
 from logging.handlers import RotatingFileHandler
 from oslo_config import cfg
+from fabkit import env
 
 CONF = cfg.CONF
-tee = None
 
 
 def init_logger(cluster_name):
@@ -30,3 +30,7 @@ def init_logger(cluster_name):
     error_file_rotaiting_handler.setFormatter(CONF._logger_formatter)
     error_file_rotaiting_handler.setLevel(logging.ERROR)
     root_logger.addHandler(error_file_rotaiting_handler)
+
+    env.console_file = os.path.join(CONF._node_dir, cluster_name, "__console.log")
+    with open(env.console_file, "w") as f:
+        f.write("Init {0} console.log\n".format(cluster_name))
