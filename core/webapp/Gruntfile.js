@@ -12,6 +12,7 @@ module.exports = function(grunt) {
                         'static_src/coffee/common/logger.coffee',
                         'static_src/coffee/common/filter.coffee',
                         'static_src/coffee/common/chat.coffee',
+                        'static_src/coffee/common/render_monitor.coffee',
                         'static_src/coffee/common/render_partition.coffee',
                         'static_src/coffee/common/render_force.coffee',
                         'static_src/coffee/common/render_datamap.coffee',

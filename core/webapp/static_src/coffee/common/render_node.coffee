@@ -150,22 +150,7 @@ render_node_cluster = ->
 
     refresh_console = () ->
         $.getJSON(console_url, (data) ->
-            console.log data
-            text = """``` bash
-#{data.console_log}
-```"""
-            $('#console').html(marked(text))
-
-            table = '<div class="table-responsive"><table class="table table-striped table-bordered">'
-            for key, value of data.stats
-                lines = value.split('\n')
-                table += "<tr>"
-                for line in lines
-                    column = line.split(',')
-                    table += '<td>' + column.join('</td><td>') + '</td></tr>'
-
-            table += '</table></div>'
-            $('#stats').html(table)
+            render_monitor(data)
         )
 
         setTimeout(refresh_console, 10000)

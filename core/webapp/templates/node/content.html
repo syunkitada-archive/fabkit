@@ -27,20 +27,40 @@
             <button class="btn btn-default" type="button" data-toggle="modal" data-target="#chat-modal" aria-expanded="false" aria-controls="collapse-readme">
                 <span class="glyphicon glyphicon-volume-up"></span>
                 Chat</button>
-            <button class="btn btn-default" type="button" data-toggle="collapse" data-target="#collapse-console" aria-expanded="false" aria-controls="collapse-console">
+            <button class="btn btn-default" type="button" data-toggle="collapse" data-target="#collapse-monitor" aria-expanded="false" aria-controls="collapse-monitor">
                 <span class="glyphicon glyphicon-expand"></span>
-                OBSERVE</button>
+                MONITOR</button>
             <button class="btn btn-default" type="button" data-toggle="collapse" data-target="#collapse-readme" aria-expanded="false" aria-controls="collapse-readme">
                 <span class="glyphicon glyphicon-list-alt"></span>
                 README</button>
         </div>
     </div>
 </div>
+<!--
 <div class="collapse" id="collapse-console">
-    <div id="console"></div>
+-->
+<div id="collapse-monitor">
+    <div class="row">
+        <div class="col-xs-4">
+            <input type="text" class="form-control" id="monitor-stats-table-filter" placeholder=".csv" value=".csv">
+        </div>
+        <div class="col-xs-4">
+            <input type="text" class="form-control" id="monitor-stats-graph-filter" placeholder="csw,int,io_read,io_writ,disk_read,disk_writ,net_recv,net_send" value="csw,int,io_read,io_writ,disk_read,disk_writ,net_recv,net_send">
+        </div>
+        <div class="col-xs-4">
+            <button class="btn btn-default" type="button" data-toggle="collapse" data-target="#monitor-console" aria-expanded="false" aria-controls="monitor-console">
+                <span class="glyphicon glyphicon-phone"></span>
+                CONSOLE</button>
+        </div>
+    </div>
+    <p>
+       Example table-filter: wrk,csv<br>
+       Example graph-fileter: csw,int,io_read,io_writ,disk_read,disk_writ,net_recv,net_send
+    </p>
 
-    <input type="text" class="form-control" id="" placeholder="metrics">
-    <div id="stats"></div>
+    <div class="collapse" id="monitor-console"></div>
+    <div id="monitor-stats-graph" class="row"></div>
+    <div id="monitor-stats-table"></div>
 </div>
 <div class="collapse" id="collapse-readme">
     <div id="markdown" class="well readme">{{ readme_html|safe }}</div>
