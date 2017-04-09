@@ -1,5 +1,5 @@
 (function() {
-  var WARNING_STATUS_THRESHOLD, agent_cluster, agent_clusters, agents, bind_shown_tab_event, change_chat_cluster, chat_cluster, chat_clusters, chat_comment, chat_socket, current_cluster_path, current_page, datamap_tabs, fabscripts, filter, graph_links, graph_nodes, mark_chat_text, mode, node_cluster, node_clusters, render_all, render_datamap, render_force_panel, render_line_chart_panel, render_node_cluster, render_node_clusters, render_partition_panel, render_table_panel, render_tasks, render_user, socket, tasks, time, update_pagedata, users,
+  var WARNING_STATUS_THRESHOLD, agent_cluster, agent_clusters, agents, bind_shown_tab_event, change_chat_cluster, chat_cluster, chat_clusters, chat_comment, chat_socket, current_cluster_path, current_page, datamap_tabs, fabscripts, filter, graph_links, graph_nodes, mark_chat_text, mode, node_cluster, node_clusters, render_all, render_datamap, render_force_panel, render_line_chart_panel, render_monitor, render_monitor_graph, render_node_cluster, render_node_clusters, render_partition_panel, render_table_panel, render_tasks, render_user, socket, tasks, time, update_pagedata, users,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   users = [];
@@ -337,6 +337,199 @@
     update_pagedata();
     apps.log("change_chat_cluster " + current_cluster);
     return chat_socket.emit('join_to_cluster', current_cluster);
+  };
+
+  render_monitor = function(data) {
+    var c, columns, dstat, dstat_stats_map, graph, graph_filter, graphs, i, is_dstat, key, line, line_index, lines, stat, stat_html, stat_k, stat_name, stat_v, stats, stats_graph_html, stats_table_html, t, table_filter, table_html, tables, text, value, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _len6, _m, _n, _o, _ref, _ref1, _ref2, _results;
+    console.log(data);
+    text = "``` bash\n" + data.console_log + "\n```";
+    $('#monitor-console').html(marked(text));
+    table_filter = $('#monitor-stats-table-filter').val();
+    tables = [];
+    if (table_filter.length !== 0) {
+      _ref = table_filter.split(',');
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        filter = _ref[_i];
+        tables.push(filter);
+      }
+    }
+    graph_filter = $('#monitor-stats-graph-filter').val();
+    if (graph_filter.length === 0) {
+      graphs = [];
+    } else {
+      graphs = graph_filter.split(',');
+    }
+    stats_table_html = '';
+    dstat_stats_map = {
+      int: [],
+      csw: [],
+      io_read: [],
+      io_writ: [],
+      disk_read: [],
+      disk_writ: [],
+      net_recv: [],
+      net_send: []
+    };
+    _ref1 = data.stats;
+    for (key in _ref1) {
+      value = _ref1[key];
+      stat_html = "<div><h3>" + key + "</h3>";
+      table_html = '<div class="table-responsive"><table class="table table-striped table-bordered">';
+      lines = value.split('\n');
+      table_html += "<tr>";
+      is_dstat = false;
+      if (key.indexOf('_dstat.csv') > 0) {
+        is_dstat = true;
+      }
+      dstat = {
+        int: {},
+        csw: {},
+        io_read: {},
+        io_writ: {},
+        disk_read: {},
+        disk_writ: {},
+        net_recv: {},
+        net_send: {}
+      };
+      for (line_index = _j = 0, _len1 = lines.length; _j < _len1; line_index = ++_j) {
+        line = lines[line_index];
+        columns = line.split(',');
+        table_html += '<td>' + columns.join('</td><td>') + '</td></tr>';
+        if (is_dstat && line_index === 0) {
+          for (i = _k = 0, _len2 = columns.length; _k < _len2; i = ++_k) {
+            c = columns[i];
+            if (c.indexOf('net/') > 0) {
+              dstat.net_recv[c] = {
+                index: i,
+                name: key + c + '.recv',
+                type: 'scatter',
+                x: [],
+                y: []
+              };
+              dstat.net_send[c] = {
+                index: i + 1,
+                name: key + c + '.send',
+                type: 'scatter',
+                x: [],
+                y: []
+              };
+            } else if (c.indexOf('io/') > 0) {
+              dstat.io_read[c] = {
+                index: i,
+                name: key + c + '.read',
+                type: 'scatter',
+                x: [],
+                y: []
+              };
+              dstat.io_writ[c] = {
+                index: i + 1,
+                name: key + c + '.writ',
+                type: 'scatter',
+                x: [],
+                y: []
+              };
+            } else if (c.indexOf('dsk/') > 0) {
+              dstat.disk_read[c] = {
+                index: i,
+                name: key + c + '.read',
+                type: 'scatter',
+                x: [],
+                y: []
+              };
+              dstat.disk_writ[c] = {
+                index: i + 1,
+                name: key + c + '.writ',
+                type: 'scatter',
+                x: [],
+                y: []
+              };
+            }
+          }
+        }
+        if (is_dstat && line_index === 1) {
+          for (i = _l = 0, _len3 = columns.length; _l < _len3; i = ++_l) {
+            c = columns[i];
+            if (c.indexOf('int') > 0) {
+              dstat.int[c] = {
+                index: i,
+                name: key + c,
+                type: 'scatter',
+                x: [],
+                y: []
+              };
+            }
+            if (c.indexOf('csw') > 0) {
+              dstat.csw[c] = {
+                index: i,
+                name: key + c,
+                type: 'scatter',
+                x: [],
+                y: []
+              };
+            }
+          }
+        }
+        if (is_dstat && line_index > 1) {
+          for (stat_name in dstat) {
+            stat = dstat[stat_name];
+            for (stat_k in stat) {
+              stat_v = stat[stat_k];
+              stat_v.x.push(columns[0].split(' ')[1]);
+              stat_v.y.push(columns[stat_v.index]);
+            }
+          }
+        }
+      }
+      table_html += '</table></div>';
+      stat_html += table_html + '</div>';
+      for (_m = 0, _len4 = tables.length; _m < _len4; _m++) {
+        t = tables[_m];
+        if (key.indexOf(t) >= 0) {
+          stats_table_html += stat_html;
+          break;
+        }
+      }
+      for (stat_name in dstat_stats_map) {
+        stats = dstat_stats_map[stat_name];
+        _ref2 = dstat[stat_name];
+        for (stat_k in _ref2) {
+          stat_v = _ref2[stat_k];
+          stats.push(stat_v);
+        }
+      }
+    }
+    $('#monitor-stats-table').html(stats_table_html);
+    stats_graph_html = "";
+    for (_n = 0, _len5 = graphs.length; _n < _len5; _n++) {
+      graph = graphs[_n];
+      stats_graph_html += "<div class=\"col-xs-6\"><div id=\"" + graph + "\"></div></div>";
+    }
+    $('#monitor-stats-graph').html(stats_graph_html);
+    console.log(dstat_stats_map);
+    _results = [];
+    for (_o = 0, _len6 = graphs.length; _o < _len6; _o++) {
+      graph = graphs[_o];
+      _results.push(render_monitor_graph(graph, dstat_stats_map[graph]));
+    }
+    return _results;
+  };
+
+  render_monitor_graph = function(title, stats) {
+    var layout;
+    layout = {
+      'title': title,
+      'xaxis': {
+        'title': 'timestamp',
+        'showgrid': false,
+        'zeroline': true
+      },
+      'yaxis': {
+        'title': title,
+        'showline': false,
+        'zeroline': true
+      }
+    };
+    return Plotly.newPlot(title, stats, layout);
   };
 
   render_partition_panel = function(panel_id, map) {
@@ -753,8 +946,7 @@
   };
 
   render_node_cluster = function() {
-    var all_node_length, danger_node_length, data, fabscript, fabscript_map, fabscript_node_map, fabscript_status_map, host, i, index, is_danger, is_warning, links, name, node, node_class, node_map, nodes, nodes_tbody_html, require, result, result_html, script, status, success_node_length, sum_status, target, tmp_fabscript, tmp_node, warning_node_length, _i, _len, _ref, _ref1;
-    console.log('Test');
+    var all_node_length, console_url, danger_node_length, data, fabscript, fabscript_map, fabscript_node_map, fabscript_status_map, host, i, index, is_danger, is_warning, links, name, node, node_class, node_map, nodes, nodes_tbody_html, refresh_console, require, result, result_html, script, status, success_node_length, sum_status, target, tmp_fabscript, tmp_node, warning_node_length, _i, _len, _ref, _ref1;
     $('#markdown').html(marked($('#markdown').text()));
     fabscript_node_map = {};
     node_map = node_cluster.__status.node_map;
@@ -898,7 +1090,7 @@
         });
       }
     }
-    return node_cluster.datamap.relation = {
+    node_cluster.datamap.relation = {
       'name': 'relation',
       'type': 'force',
       'data': {
@@ -906,6 +1098,14 @@
         'links': links
       }
     };
+    console_url = "/node/" + current_cluster + "/get_console/";
+    refresh_console = function() {
+      $.getJSON(console_url, function(data) {
+        return render_monitor(data);
+      });
+      return setTimeout(refresh_console, 10000);
+    };
+    return refresh_console();
   };
 
   render_tasks = function() {

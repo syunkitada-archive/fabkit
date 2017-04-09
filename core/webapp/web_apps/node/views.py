@@ -7,6 +7,7 @@ import json
 from web_apps.chat.utils import get_comments, get_cluster
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 from oslo_config import cfg
 from web_lib import util
 
@@ -109,3 +110,30 @@ def index(request, cluster=None):
         return render(request, 'node/content.html', context)
 
     return render(request, 'node/index.html', context)
+
+
+@login_required
+def get_console(request, cluster=None):
+    console = 'None'
+    if cluster is not None:
+        stats_dir = os.path.join(CONF._node_dir, cluster, 'stats')
+        console_file = os.path.join(CONF._node_dir, cluster, '__console.log')
+        if os.path.exists(console_file):
+            with open(console_file) as f:
+                console = f.read()
+
+        if os.path.exists(stats_dir):
+            stats = {}
+            for root, dirs, files in os.walk(stats_dir):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    with open(file_path, 'r') as f:
+                        data = f.read()
+                        stats[file] = data
+
+    data = json.dumps({
+        'console_log': console,
+        'stats': stats,
+    })
+
+    return HttpResponse(data)

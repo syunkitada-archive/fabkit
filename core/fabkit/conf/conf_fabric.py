@@ -67,3 +67,4 @@ def init():
     CONF._remote_dir = os.path.join('/home', env.user, CONF.remote_dir)
     CONF._remote_storage_dir = os.path.join(CONF._remote_dir, 'storage')
     CONF._remote_tmp_dir = os.path.join(CONF._remote_storage_dir, 'tmp')
+    CONF._remote_stats_dir = os.path.join(CONF._remote_storage_dir, 'stats')
