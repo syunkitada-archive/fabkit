@@ -1,6 +1,6 @@
 <title>{{ title }}</title>
 
-<div class="col-xs-6 col-sm-3 sidebar-offcanvas" role="navigation">
+<div class="col-xs-6 col-sm-3 sidebar-offcanvas" role="navigation" id="sidebar-wrapper-wrapper">
     <div class="sidebar-wrapper col-xs-6 col-sm-3">
         <div class="sidebar" id="sidebar">
             {% block sidebar %}{% endblock %}
@@ -8,7 +8,7 @@
     </div>
 </div>
 
-<div class="col-xs-12 col-sm-9 col-sm-offset-3 main">
+<div class="col-xs-12 col-sm-9 col-sm-offset-3 main" id="main-content-wrapper-wrapper">
     <div class="row main-content-wrapper">
         <div class="main-content">
           {% block page_title %}

@@ -72,6 +72,16 @@ render_all = ->
             $('#datamap-modal').modal()
             return)
 
+        $('#hide-sidebar').on('click', ->
+            $('#sidebar-wrapper-wrapper').toggle()
+            $('#main-content-wrapper-wrapper').toggleClass('col-sm-9')
+            $('#main-content-wrapper-wrapper').toggleClass('col-sm-offset-3')
+        )
+
+        $('#monitor-update').on('click', ->
+            refresh_monitor()
+        )
+
     else if mode.current == mode.AGENT
         render_node_clusters(agent_clusters)
         render_node_cluster()

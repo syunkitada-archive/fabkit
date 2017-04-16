@@ -145,14 +145,3 @@ render_node_cluster = ->
             'links': links,
         }
     }
-
-    console_url = "/node/#{current_cluster}/get_console/"
-
-    refresh_console = () ->
-        $.getJSON(console_url, (data) ->
-            render_monitor(data)
-        )
-
-        setTimeout(refresh_console, 10000)
-
-    refresh_console()
