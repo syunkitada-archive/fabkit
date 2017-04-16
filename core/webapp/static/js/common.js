@@ -1,5 +1,5 @@
 (function() {
-  var WARNING_STATUS_THRESHOLD, agent_cluster, agent_clusters, agents, bind_shown_tab_event, change_chat_cluster, chat_cluster, chat_clusters, chat_comment, chat_socket, current_cluster_path, current_page, datamap_tabs, fabscripts, filter, graph_links, graph_nodes, mark_chat_text, mode, node_cluster, node_clusters, render_all, render_datamap, render_force_panel, render_line_chart_panel, render_monitor, render_monitor_graph, render_node_cluster, render_node_clusters, render_partition_panel, render_table_panel, render_tasks, render_user, socket, tasks, time, update_pagedata, users,
+  var WARNING_STATUS_THRESHOLD, agent_cluster, agent_clusters, agents, bind_shown_tab_event, change_chat_cluster, chat_cluster, chat_clusters, chat_comment, chat_socket, current_cluster_path, current_page, datamap_tabs, fabscripts, filter, graph_links, graph_nodes, mark_chat_text, mode, node_cluster, node_clusters, refresh_monitor, render_all, render_datamap, render_force_panel, render_line_chart_panel, render_monitor, render_monitor_chart, render_monitor_graph, render_node_cluster, render_node_clusters, render_partition_panel, render_table_panel, render_tasks, render_user, socket, tasks, time, update_pagedata, users,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   users = [];
@@ -339,8 +339,24 @@
     return chat_socket.emit('join_to_cluster', current_cluster);
   };
 
+  refresh_monitor = function(is_auto_refresh) {
+    var console_url;
+    if (is_auto_refresh == null) {
+      is_auto_refresh = false;
+    }
+    console_url = "/node/" + current_cluster + "/get_console/";
+    return $.getJSON(console_url, function(data) {
+      var refresh_interval;
+      render_monitor(data);
+      if (is_auto_refresh) {
+        refresh_interval = parseInt($('#monitor-refresh-interval').val()) * 1000;
+        return setTimeout(refresh_monitor, refresh_interval, is_auto_refresh = is_auto_refresh);
+      }
+    });
+  };
+
   render_monitor = function(data) {
-    var c, columns, dstat, dstat_stats_map, graph, graph_filter, graphs, i, is_dstat, key, line, line_index, lines, stat, stat_html, stat_k, stat_name, stat_v, stats, stats_graph_html, stats_table_html, t, table_filter, table_html, tables, text, value, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _len6, _m, _n, _o, _ref, _ref1, _ref2, _results;
+    var c, canvas_width, columns, div_class, dstat, dstat_stats_map, graph, graph_filter, graphs, height, i, is_dstat, key, line, line_index, lines, max_line, stat, stat_html, stat_k, stat_name, stat_v, stats, stats_graph_html, stats_graph_width, stats_table_html, t, table_filter, table_html, tables, text, value, x, y, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _len6, _m, _n, _o, _p, _ref, _ref1, _ref2, _results;
     console.log(data);
     text = "``` bash\n" + data.console_log + "\n```";
     $('#monitor-console').html(marked(text));
@@ -404,14 +420,16 @@
                 name: key + c + '.recv',
                 type: 'scatter',
                 x: [],
-                y: []
+                y: [],
+                chart_data: []
               };
               dstat.net_send[c] = {
                 index: i + 1,
                 name: key + c + '.send',
                 type: 'scatter',
                 x: [],
-                y: []
+                y: [],
+                chart_data: []
               };
             } else if (c.indexOf('io/') > 0) {
               dstat.io_read[c] = {
@@ -419,14 +437,16 @@
                 name: key + c + '.read',
                 type: 'scatter',
                 x: [],
-                y: []
+                y: [],
+                chart_data: []
               };
               dstat.io_writ[c] = {
                 index: i + 1,
                 name: key + c + '.writ',
                 type: 'scatter',
                 x: [],
-                y: []
+                y: [],
+                chart_data: []
               };
             } else if (c.indexOf('dsk/') > 0) {
               dstat.disk_read[c] = {
@@ -434,14 +454,16 @@
                 name: key + c + '.read',
                 type: 'scatter',
                 x: [],
-                y: []
+                y: [],
+                chart_data: []
               };
               dstat.disk_writ[c] = {
                 index: i + 1,
                 name: key + c + '.writ',
                 type: 'scatter',
                 x: [],
-                y: []
+                y: [],
+                chart_data: []
               };
             }
           }
@@ -455,7 +477,8 @@
                 name: key + c,
                 type: 'scatter',
                 x: [],
-                y: []
+                y: [],
+                chart_data: []
               };
             }
             if (c.indexOf('csw') > 0) {
@@ -464,7 +487,8 @@
                 name: key + c,
                 type: 'scatter',
                 x: [],
-                y: []
+                y: [],
+                chart_data: []
               };
             }
           }
@@ -474,8 +498,14 @@
             stat = dstat[stat_name];
             for (stat_k in stat) {
               stat_v = stat[stat_k];
-              stat_v.x.push(columns[0].split(' ')[1]);
-              stat_v.y.push(columns[stat_v.index]);
+              x = columns[0];
+              y = columns[stat_v.index];
+              stat_v.x.push(x);
+              stat_v.y.push(y);
+              stat_v.chart_data.push({
+                x: x,
+                y: y
+              });
             }
           }
         }
@@ -499,19 +529,128 @@
       }
     }
     $('#monitor-stats-table').html(stats_table_html);
+    height = 300;
+    stats_graph_width = $('#monitor-stats-graph').width();
+    lines = 1;
+    div_class = 'col-xs-12';
+    if (stats_graph_width >= 1600) {
+      lines = 3;
+      div_class = 'col-xs-4';
+    } else if (stats_graph_width >= 1200) {
+      lines = 2;
+      div_class = 'col-xs-6';
+    } else if (stats_graph_width >= 800) {
+      lines = 1;
+      div_class = 'col-xs-6';
+    }
+    canvas_width = Math.floor(stats_graph_width / lines);
     stats_graph_html = "";
-    for (_n = 0, _len5 = graphs.length; _n < _len5; _n++) {
-      graph = graphs[_n];
-      stats_graph_html += "<div class=\"col-xs-6\"><div id=\"" + graph + "\"></div></div>";
+    for (i = _n = 0; 0 <= lines ? _n < lines : _n > lines; i = 0 <= lines ? ++_n : --_n) {
+      stats_graph_html += "<div id=\"graph-row" + i + "\" class=\"" + div_class + "\"></div>";
     }
     $('#monitor-stats-graph').html(stats_graph_html);
+    console.log($('#graph-row1'));
+    line_index = 0;
+    max_line = lines - 1;
+    for (_o = 0, _len5 = graphs.length; _o < _len5; _o++) {
+      graph = graphs[_o];
+      console.log($("#graph-row" + line_index));
+      $("#graph-row" + line_index).append("<div><canvas id=\"" + graph + "\" style=\"width: " + canvas_width + "px; height: 200px;\"></canvas><div id=\"" + graph + "-legend\"></div></div>");
+      if (line_index === max_line) {
+        line_index = 0;
+      } else {
+        line_index += 1;
+      }
+    }
+    window.chart_map = {};
     console.log(dstat_stats_map);
     _results = [];
-    for (_o = 0, _len6 = graphs.length; _o < _len6; _o++) {
-      graph = graphs[_o];
-      _results.push(render_monitor_graph(graph, dstat_stats_map[graph]));
+    for (_p = 0, _len6 = graphs.length; _p < _len6; _p++) {
+      graph = graphs[_p];
+      _results.push(render_monitor_chart(graph, dstat_stats_map[graph]));
     }
     return _results;
+  };
+
+  render_monitor_chart = function(id, stats) {
+    var color, colors, colors_index, colors_max_index, ctx, datasets, myChart, options, stat, _i, _len;
+    console.log("DEBUG");
+    console.log(stats);
+    datasets = [];
+    colors = ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)', 'rgba(75, 192, 192, 0.2)', 'rgba(153, 102, 255, 0.2)', 'rgba(255, 159, 64, 0.2)'];
+    colors_index = 0;
+    colors_max_index = colors.length - 1;
+    for (_i = 0, _len = stats.length; _i < _len; _i++) {
+      stat = stats[_i];
+      color = colors[colors_index];
+      datasets.push({
+        label: stat.name,
+        data: stat.chart_data,
+        backgroundColor: color
+      });
+      if (colors_index === colors_max_index) {
+        colors_index = 0;
+      } else {
+        colors_index += 1;
+      }
+    }
+    window.apps.updateDataset = function(e, id, datasetIndex) {
+      var ci, index, meta;
+      console.log('DEBUG legend');
+      index = datasetIndex;
+      ci = window.chart_map[id];
+      meta = ci.getDatasetMeta(index);
+      if (meta.hidden === null) {
+        meta.hidden = true;
+      } else {
+        meta.hidden = null;
+      }
+      return ci.update();
+    };
+    options = {
+      title: {
+        display: true,
+        text: id
+      },
+      scales: {
+        xAxes: [
+          {
+            type: "time"
+          }
+        ]
+      },
+      responsive: true,
+      legend: {
+        display: false
+      },
+      legendCallback: function(chart) {
+        var data, i, text, _j, _len1, _ref;
+        console.log(chart.data);
+        console.log(chart);
+        text = [];
+        text.push('<ul class=\"chart-legend\">');
+        _ref = chart.data.datasets;
+        for (i = _j = 0, _len1 = _ref.length; _j < _len1; i = ++_j) {
+          data = _ref[i];
+          console.log(data.backgroundColor);
+          text.push("<li class=\"chart-legend-label-text\" onclick=\"apps.updateDataset(event, '" + id + "', " + chart.legend.legendItems[i].datasetIndex + ")\">");
+          text.push("<span style=\"background-color: " + data.backgroundColor + "\">" + data.label + "</span>");
+          text.push('</li>');
+        }
+        text.push('</ul>');
+        return text.join("");
+      }
+    };
+    ctx = $("#" + id);
+    myChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        datasets: datasets
+      },
+      options: options
+    });
+    window.chart_map[id] = myChart;
+    return $("#" + id + "-legend").html(myChart.generateLegend());
   };
 
   render_monitor_graph = function(title, stats) {
@@ -527,6 +666,9 @@
         'title': title,
         'showline': false,
         'zeroline': true
+      },
+      legend: {
+        orientation: "h"
       }
     };
     return Plotly.newPlot(title, stats, layout);
@@ -946,7 +1088,7 @@
   };
 
   render_node_cluster = function() {
-    var all_node_length, console_url, danger_node_length, data, fabscript, fabscript_map, fabscript_node_map, fabscript_status_map, host, i, index, is_danger, is_warning, links, name, node, node_class, node_map, nodes, nodes_tbody_html, refresh_console, require, result, result_html, script, status, success_node_length, sum_status, target, tmp_fabscript, tmp_node, warning_node_length, _i, _len, _ref, _ref1;
+    var all_node_length, danger_node_length, data, fabscript, fabscript_map, fabscript_node_map, fabscript_status_map, host, i, index, is_danger, is_warning, links, name, node, node_class, node_map, nodes, nodes_tbody_html, require, result, result_html, script, status, success_node_length, sum_status, target, tmp_fabscript, tmp_node, warning_node_length, _i, _len, _ref, _ref1;
     $('#markdown').html(marked($('#markdown').text()));
     fabscript_node_map = {};
     node_map = node_cluster.__status.node_map;
@@ -1098,14 +1240,7 @@
         'links': links
       }
     };
-    console_url = "/node/" + current_cluster + "/get_console/";
-    refresh_console = function() {
-      $.getJSON(console_url, function(data) {
-        return render_monitor(data);
-      });
-      return setTimeout(refresh_console, 10000);
-    };
-    return refresh_console();
+    return refresh_monitor(true);
   };
 
   render_tasks = function() {
@@ -1250,6 +1385,14 @@
       $('#show-relationmap').on('click', function() {
         tab = 1;
         $('#datamap-modal').modal();
+      });
+      $('#hide-sidebar').on('click', function() {
+        $('#sidebar-wrapper-wrapper').toggle();
+        $('#main-content-wrapper-wrapper').toggleClass('col-sm-9');
+        return $('#main-content-wrapper-wrapper').toggleClass('col-sm-offset-3');
+      });
+      $('#monitor-update').on('click', function() {
+        return refresh_monitor();
       });
     } else if (mode.current === mode.AGENT) {
       render_node_clusters(agent_clusters);
