@@ -25,7 +25,7 @@ class Observer():
         dstat_csv = CONF._remote_stats_dir + '/dstat.csv'
         dstat_out = CONF._remote_stats_dir + '/dstat.out'
         sudo("rm -rf {0}".format(dstat_csv))
-        sudo("sh -c 'dstat -tTlpyirdfmsgn --output {0} > {1} &'".format(dstat_csv, dstat_out), pty=False)
+        sudo("sh -c 'dstat -tTlpyirdfmsgn --tcp --socket --vm --lock --aio --fs --ipc --output {0} > {1} &'".format(dstat_csv, dstat_out), pty=False)
 
     def stop(self):
         sudo("pkill dstat")

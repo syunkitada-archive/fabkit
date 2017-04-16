@@ -145,5 +145,3 @@ render_node_cluster = ->
             'links': links,
         }
     }
-
-    refresh_monitor(true)

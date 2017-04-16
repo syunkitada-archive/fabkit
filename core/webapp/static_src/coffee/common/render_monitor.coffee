@@ -1,4 +1,5 @@
 refresh_monitor = (is_auto_refresh=false) ->
+    console.log 'refresh_monitor'
     console_url = "/node/#{current_cluster}/get_console/"
     $.getJSON(console_url, (data) ->
         render_monitor(data)
@@ -9,7 +10,9 @@ refresh_monitor = (is_auto_refresh=false) ->
     )
 
 render_monitor = (data) ->
+    console.log 'Render data'
     console.log data
+
     text = """``` bash
 #{data.console_log}
 ```"""
@@ -31,14 +34,19 @@ render_monitor = (data) ->
     stats_table_html = ''
 
     dstat_stats_map = {
+        procs: [],
         int: [],
         csw: [],
+        mem: [],
+        vm: [],
         io_read: [],
         io_writ: [],
         disk_read: [],
         disk_writ: [],
         net_recv: [],
         net_send: [],
+        tcp_sockets: [],
+        sockets: [],
     }
 
     for key, value of data.stats
@@ -52,14 +60,19 @@ render_monitor = (data) ->
             is_dstat = true
 
         dstat = {
+            procs: {},
             int: {},
             csw: {},
+            mem: {},
+            vm: {},
             io_read: {},
             io_writ: {},
             disk_read: {},
             disk_writ: {},
             net_recv: {},
             net_send: {},
+            tcp_sockets: {},
+            sockets: {},
         }
         for line, line_index in lines
             columns = line.split(',')
@@ -71,6 +84,22 @@ render_monitor = (data) ->
                         dstat.net_recv[c] = {index: i  , name: key + c + '.recv', type: 'scatter', x: [], y: [], chart_data: []}
                         dstat.net_send[c] = {index: i+1, name: key + c + '.send', type: 'scatter', x: [], y: [], chart_data: []}
 
+                    else if c.indexOf('procs') > 0
+                        dstat.procs['run'] = {index: i  , name: key + c + '.run', type: 'scatter', x: [], y: [], chart_data: []}
+                        dstat.procs['blk'] = {index: i+1, name: key + c + '.blk', type: 'scatter', x: [], y: [], chart_data: []}
+                        dstat.procs['new'] = {index: i+2, name: key + c + '.new', type: 'scatter', x: [], y: [], chart_data: []}
+
+                    else if c.indexOf('memory usage') > 0
+                        dstat.mem['used'] = {index: i  , name: key + c + '.used', type: 'scatter', x: [], y: [], chart_data: []}
+                        dstat.mem['buff'] = {index: i+1, name: key + c + '.buff', type: 'scatter', x: [], y: [], chart_data: []}
+                        dstat.mem['cach'] = {index: i+2, name: key + c + '.cach', type: 'scatter', x: [], y: [], chart_data: []}
+                        dstat.mem['free'] = {index: i+3, name: key + c + '.free', type: 'scatter', x: [], y: [], chart_data: []}
+                    else if c.indexOf('virtual memory') > 0
+                        dstat.vm['majpf'] = {index: i  , name: key + c + '.majpf', type: 'scatter', x: [], y: [], chart_data: []}
+                        dstat.vm['minpf'] = {index: i+1, name: key + c + '.minpf', type: 'scatter', x: [], y: [], chart_data: []}
+                        dstat.vm['alloc'] = {index: i+2, name: key + c + '.alloc', type: 'scatter', x: [], y: [], chart_data: []}
+                        dstat.vm['free']  = {index: i+3, name: key + c + '.free',  type: 'scatter', x: [], y: [], chart_data: []}
+
                     else if c.indexOf('io/') > 0
                         dstat.io_read[c] = {index: i  , name: key + c + '.read', type: 'scatter', x: [], y: [], chart_data: []}
                         dstat.io_writ[c] = {index: i+1, name: key + c + '.writ', type: 'scatter', x: [], y: [], chart_data: []}
@@ -78,6 +107,20 @@ render_monitor = (data) ->
                     else if c.indexOf('dsk/') > 0
                         dstat.disk_read[c] = {index: i  , name: key + c + '.read', type: 'scatter', x: [], y: [], chart_data: []}
                         dstat.disk_writ[c] = {index: i+1, name: key + c + '.writ', type: 'scatter', x: [], y: [], chart_data: []}
+
+                    else if c.indexOf('tcp sockets') > 0
+                        dstat.tcp_sockets['lis'] = {index: i  , name: key + c + '.lis', type: 'scatter', x: [], y: [], chart_data: []}
+                        dstat.tcp_sockets['act'] = {index: i+1, name: key + c + '.act', type: 'scatter', x: [], y: [], chart_data: []}
+                        dstat.tcp_sockets['syn'] = {index: i+2, name: key + c + '.syn', type: 'scatter', x: [], y: [], chart_data: []}
+                        dstat.tcp_sockets['tim'] = {index: i+3, name: key + c + '.tim', type: 'scatter', x: [], y: [], chart_data: []}
+                        dstat.tcp_sockets['clo'] = {index: i+4, name: key + c + '.clo', type: 'scatter', x: [], y: [], chart_data: []}
+
+                    else if c.indexOf('sockets') > 0
+                        dstat.sockets['tot'] = {index: i  , name: key + c + '.tot', type: 'scatter', x: [], y: [], chart_data: []}
+                        dstat.sockets['tcp'] = {index: i+1, name: key + c + '.tcp', type: 'scatter', x: [], y: [], chart_data: []}
+                        dstat.sockets['udp'] = {index: i+2, name: key + c + '.udp', type: 'scatter', x: [], y: [], chart_data: []}
+                        dstat.sockets['raw'] = {index: i+3, name: key + c + '.raw', type: 'scatter', x: [], y: [], chart_data: []}
+                        dstat.sockets['frg'] = {index: i+4, name: key + c + '.frg', type: 'scatter', x: [], y: [], chart_data: []}
 
             if is_dstat and line_index == 1
                 for c, i in columns
@@ -90,7 +133,10 @@ render_monitor = (data) ->
                 for stat_name, stat of dstat
                     for stat_k, stat_v of stat
                         # x = columns[0].split(' ')[1]
-                        x = columns[0]
+                        tmp_x = columns[0].split(' ')
+                        tmp_x2 = tmp_x[0].split('-')
+                        x = "#{tmp_x2[1]}-#{tmp_x2[0]} #{tmp_x[1]}"
+
                         y = columns[stat_v.index]
                         stat_v.x.push(x)
                         stat_v.y.push(y)
@@ -137,12 +183,9 @@ render_monitor = (data) ->
 
     $('#monitor-stats-graph').html(stats_graph_html)
 
-    console.log $('#graph-row1')
-
     line_index = 0
     max_line = lines - 1
     for graph in graphs
-        console.log $("#graph-row#{line_index}")
         $("#graph-row#{line_index}").append("<div><canvas id=\"#{graph}\" style=\"width: #{canvas_width}px; height: 200px;\"></canvas><div id=\"#{graph}-legend\"></div></div>")
         # $("#graph-row#{line_index}").append("<div><div id=\"#{graph}\"></div></div>")
 
@@ -153,23 +196,20 @@ render_monitor = (data) ->
 
     window.chart_map = {}
 
-    console.log dstat_stats_map
     for graph in graphs
         render_monitor_chart(graph, dstat_stats_map[graph])
         # render_monitor_graph(graph, dstat_stats_map[graph])
 
 
 render_monitor_chart = (id, stats)->
-    console.log "DEBUG"
-    console.log stats
     datasets = []
     colors = [
-        'rgba(255, 99, 132, 0.2)',
-        'rgba(54, 162, 235, 0.2)',
-        'rgba(255, 206, 86, 0.2)',
-        'rgba(75, 192, 192, 0.2)',
-        'rgba(153, 102, 255, 0.2)',
-        'rgba(255, 159, 64, 0.2)'
+        'rgba(255, 99, 132, 0.5)',
+        'rgba(54, 162, 235, 0.5)',
+        'rgba(255, 206, 86, 0.5)',
+        'rgba(75, 192, 192, 0.5)',
+        'rgba(153, 102, 255, 0.5)',
+        'rgba(255, 159, 64, 0.5)'
     ]
     colors_index = 0
     colors_max_index = colors.length - 1
@@ -178,7 +218,8 @@ render_monitor_chart = (id, stats)->
         datasets.push({
           label: stat.name,
           data: stat.chart_data,
-          backgroundColor: color,
+          borderColor: color,
+          fill: false,
         })
 
         if colors_index == colors_max_index
@@ -187,7 +228,6 @@ render_monitor_chart = (id, stats)->
             colors_index += 1
 
     window.apps.updateDataset = (e, id, datasetIndex) ->
-        console.log 'DEBUG legend'
         index = datasetIndex
         ci = window.chart_map[id]
         meta = ci.getDatasetMeta(index)
@@ -203,6 +243,9 @@ render_monitor_chart = (id, stats)->
             display: true,
             text: id,
         },
+        # tooltips: {
+        #   mode: 'label'
+        # },
         scales: {
             xAxes: [{
                 type: "time",
@@ -213,15 +256,12 @@ render_monitor_chart = (id, stats)->
             display: false,
         },
         legendCallback: (chart) ->
-            console.log(chart.data)
-            console.log chart
             text = []
 
             text.push('<ul class=\"chart-legend\">')
             for data, i in chart.data.datasets
-                console.log data.backgroundColor
                 text.push("<li class=\"chart-legend-label-text\" onclick=\"apps.updateDataset(event, '#{id}', #{chart.legend.legendItems[i].datasetIndex})\">")
-                text.push("<span style=\"background-color: #{data.backgroundColor}\">#{data.label}</span>")
+                text.push("<span style=\"background-color: #{data.borderColor}\">#{data.label}</span>")
                 text.push('</li>')
 
             text.push('</ul>')
@@ -229,6 +269,8 @@ render_monitor_chart = (id, stats)->
             return text.join("")
 
     }
+
+    console.log(datasets)
 
     ctx = $("##{id}")
     myChart = new Chart(ctx, {

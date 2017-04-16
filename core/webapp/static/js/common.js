@@ -344,6 +344,7 @@
     if (is_auto_refresh == null) {
       is_auto_refresh = false;
     }
+    console.log('refresh_monitor');
     console_url = "/node/" + current_cluster + "/get_console/";
     return $.getJSON(console_url, function(data) {
       var refresh_interval;
@@ -356,7 +357,8 @@
   };
 
   render_monitor = function(data) {
-    var c, canvas_width, columns, div_class, dstat, dstat_stats_map, graph, graph_filter, graphs, height, i, is_dstat, key, line, line_index, lines, max_line, stat, stat_html, stat_k, stat_name, stat_v, stats, stats_graph_html, stats_graph_width, stats_table_html, t, table_filter, table_html, tables, text, value, x, y, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _len6, _m, _n, _o, _p, _ref, _ref1, _ref2, _results;
+    var c, canvas_width, columns, div_class, dstat, dstat_stats_map, graph, graph_filter, graphs, height, i, is_dstat, key, line, line_index, lines, max_line, stat, stat_html, stat_k, stat_name, stat_v, stats, stats_graph_html, stats_graph_width, stats_table_html, t, table_filter, table_html, tables, text, tmp_x, tmp_x2, value, x, y, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _len5, _len6, _m, _n, _o, _p, _ref, _ref1, _ref2, _results;
+    console.log('Render data');
     console.log(data);
     text = "``` bash\n" + data.console_log + "\n```";
     $('#monitor-console').html(marked(text));
@@ -377,14 +379,19 @@
     }
     stats_table_html = '';
     dstat_stats_map = {
+      procs: [],
       int: [],
       csw: [],
+      mem: [],
+      vm: [],
       io_read: [],
       io_writ: [],
       disk_read: [],
       disk_writ: [],
       net_recv: [],
-      net_send: []
+      net_send: [],
+      tcp_sockets: [],
+      sockets: []
     };
     _ref1 = data.stats;
     for (key in _ref1) {
@@ -398,14 +405,19 @@
         is_dstat = true;
       }
       dstat = {
+        procs: {},
         int: {},
         csw: {},
+        mem: {},
+        vm: {},
         io_read: {},
         io_writ: {},
         disk_read: {},
         disk_writ: {},
         net_recv: {},
-        net_send: {}
+        net_send: {},
+        tcp_sockets: {},
+        sockets: {}
       };
       for (line_index = _j = 0, _len1 = lines.length; _j < _len1; line_index = ++_j) {
         line = lines[line_index];
@@ -426,6 +438,97 @@
               dstat.net_send[c] = {
                 index: i + 1,
                 name: key + c + '.send',
+                type: 'scatter',
+                x: [],
+                y: [],
+                chart_data: []
+              };
+            } else if (c.indexOf('procs') > 0) {
+              dstat.procs['run'] = {
+                index: i,
+                name: key + c + '.run',
+                type: 'scatter',
+                x: [],
+                y: [],
+                chart_data: []
+              };
+              dstat.procs['blk'] = {
+                index: i + 1,
+                name: key + c + '.blk',
+                type: 'scatter',
+                x: [],
+                y: [],
+                chart_data: []
+              };
+              dstat.procs['new'] = {
+                index: i + 2,
+                name: key + c + '.new',
+                type: 'scatter',
+                x: [],
+                y: [],
+                chart_data: []
+              };
+            } else if (c.indexOf('memory usage') > 0) {
+              dstat.mem['used'] = {
+                index: i,
+                name: key + c + '.used',
+                type: 'scatter',
+                x: [],
+                y: [],
+                chart_data: []
+              };
+              dstat.mem['buff'] = {
+                index: i + 1,
+                name: key + c + '.buff',
+                type: 'scatter',
+                x: [],
+                y: [],
+                chart_data: []
+              };
+              dstat.mem['cach'] = {
+                index: i + 2,
+                name: key + c + '.cach',
+                type: 'scatter',
+                x: [],
+                y: [],
+                chart_data: []
+              };
+              dstat.mem['free'] = {
+                index: i + 3,
+                name: key + c + '.free',
+                type: 'scatter',
+                x: [],
+                y: [],
+                chart_data: []
+              };
+            } else if (c.indexOf('virtual memory') > 0) {
+              dstat.vm['majpf'] = {
+                index: i,
+                name: key + c + '.majpf',
+                type: 'scatter',
+                x: [],
+                y: [],
+                chart_data: []
+              };
+              dstat.vm['minpf'] = {
+                index: i + 1,
+                name: key + c + '.minpf',
+                type: 'scatter',
+                x: [],
+                y: [],
+                chart_data: []
+              };
+              dstat.vm['alloc'] = {
+                index: i + 2,
+                name: key + c + '.alloc',
+                type: 'scatter',
+                x: [],
+                y: [],
+                chart_data: []
+              };
+              dstat.vm['free'] = {
+                index: i + 3,
+                name: key + c + '.free',
                 type: 'scatter',
                 x: [],
                 y: [],
@@ -465,6 +568,88 @@
                 y: [],
                 chart_data: []
               };
+            } else if (c.indexOf('tcp sockets') > 0) {
+              dstat.tcp_sockets['lis'] = {
+                index: i,
+                name: key + c + '.lis',
+                type: 'scatter',
+                x: [],
+                y: [],
+                chart_data: []
+              };
+              dstat.tcp_sockets['act'] = {
+                index: i + 1,
+                name: key + c + '.act',
+                type: 'scatter',
+                x: [],
+                y: [],
+                chart_data: []
+              };
+              dstat.tcp_sockets['syn'] = {
+                index: i + 2,
+                name: key + c + '.syn',
+                type: 'scatter',
+                x: [],
+                y: [],
+                chart_data: []
+              };
+              dstat.tcp_sockets['tim'] = {
+                index: i + 3,
+                name: key + c + '.tim',
+                type: 'scatter',
+                x: [],
+                y: [],
+                chart_data: []
+              };
+              dstat.tcp_sockets['clo'] = {
+                index: i + 4,
+                name: key + c + '.clo',
+                type: 'scatter',
+                x: [],
+                y: [],
+                chart_data: []
+              };
+            } else if (c.indexOf('sockets') > 0) {
+              dstat.sockets['tot'] = {
+                index: i,
+                name: key + c + '.tot',
+                type: 'scatter',
+                x: [],
+                y: [],
+                chart_data: []
+              };
+              dstat.sockets['tcp'] = {
+                index: i + 1,
+                name: key + c + '.tcp',
+                type: 'scatter',
+                x: [],
+                y: [],
+                chart_data: []
+              };
+              dstat.sockets['udp'] = {
+                index: i + 2,
+                name: key + c + '.udp',
+                type: 'scatter',
+                x: [],
+                y: [],
+                chart_data: []
+              };
+              dstat.sockets['raw'] = {
+                index: i + 3,
+                name: key + c + '.raw',
+                type: 'scatter',
+                x: [],
+                y: [],
+                chart_data: []
+              };
+              dstat.sockets['frg'] = {
+                index: i + 4,
+                name: key + c + '.frg',
+                type: 'scatter',
+                x: [],
+                y: [],
+                chart_data: []
+              };
             }
           }
         }
@@ -498,7 +683,9 @@
             stat = dstat[stat_name];
             for (stat_k in stat) {
               stat_v = stat[stat_k];
-              x = columns[0];
+              tmp_x = columns[0].split(' ');
+              tmp_x2 = tmp_x[0].split('-');
+              x = "" + tmp_x2[1] + "-" + tmp_x2[0] + " " + tmp_x[1];
               y = columns[stat_v.index];
               stat_v.x.push(x);
               stat_v.y.push(y);
@@ -549,12 +736,10 @@
       stats_graph_html += "<div id=\"graph-row" + i + "\" class=\"" + div_class + "\"></div>";
     }
     $('#monitor-stats-graph').html(stats_graph_html);
-    console.log($('#graph-row1'));
     line_index = 0;
     max_line = lines - 1;
     for (_o = 0, _len5 = graphs.length; _o < _len5; _o++) {
       graph = graphs[_o];
-      console.log($("#graph-row" + line_index));
       $("#graph-row" + line_index).append("<div><canvas id=\"" + graph + "\" style=\"width: " + canvas_width + "px; height: 200px;\"></canvas><div id=\"" + graph + "-legend\"></div></div>");
       if (line_index === max_line) {
         line_index = 0;
@@ -563,7 +748,6 @@
       }
     }
     window.chart_map = {};
-    console.log(dstat_stats_map);
     _results = [];
     for (_p = 0, _len6 = graphs.length; _p < _len6; _p++) {
       graph = graphs[_p];
@@ -574,10 +758,8 @@
 
   render_monitor_chart = function(id, stats) {
     var color, colors, colors_index, colors_max_index, ctx, datasets, myChart, options, stat, _i, _len;
-    console.log("DEBUG");
-    console.log(stats);
     datasets = [];
-    colors = ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)', 'rgba(75, 192, 192, 0.2)', 'rgba(153, 102, 255, 0.2)', 'rgba(255, 159, 64, 0.2)'];
+    colors = ['rgba(255, 99, 132, 0.5)', 'rgba(54, 162, 235, 0.5)', 'rgba(255, 206, 86, 0.5)', 'rgba(75, 192, 192, 0.5)', 'rgba(153, 102, 255, 0.5)', 'rgba(255, 159, 64, 0.5)'];
     colors_index = 0;
     colors_max_index = colors.length - 1;
     for (_i = 0, _len = stats.length; _i < _len; _i++) {
@@ -586,7 +768,8 @@
       datasets.push({
         label: stat.name,
         data: stat.chart_data,
-        backgroundColor: color
+        borderColor: color,
+        fill: false
       });
       if (colors_index === colors_max_index) {
         colors_index = 0;
@@ -596,7 +779,6 @@
     }
     window.apps.updateDataset = function(e, id, datasetIndex) {
       var ci, index, meta;
-      console.log('DEBUG legend');
       index = datasetIndex;
       ci = window.chart_map[id];
       meta = ci.getDatasetMeta(index);
@@ -625,22 +807,20 @@
       },
       legendCallback: function(chart) {
         var data, i, text, _j, _len1, _ref;
-        console.log(chart.data);
-        console.log(chart);
         text = [];
         text.push('<ul class=\"chart-legend\">');
         _ref = chart.data.datasets;
         for (i = _j = 0, _len1 = _ref.length; _j < _len1; i = ++_j) {
           data = _ref[i];
-          console.log(data.backgroundColor);
           text.push("<li class=\"chart-legend-label-text\" onclick=\"apps.updateDataset(event, '" + id + "', " + chart.legend.legendItems[i].datasetIndex + ")\">");
-          text.push("<span style=\"background-color: " + data.backgroundColor + "\">" + data.label + "</span>");
+          text.push("<span style=\"background-color: " + data.borderColor + "\">" + data.label + "</span>");
           text.push('</li>');
         }
         text.push('</ul>');
         return text.join("");
       }
     };
+    console.log(datasets);
     ctx = $("#" + id);
     myChart = new Chart(ctx, {
       type: 'line',
@@ -1232,7 +1412,7 @@
         });
       }
     }
-    node_cluster.datamap.relation = {
+    return node_cluster.datamap.relation = {
       'name': 'relation',
       'type': 'force',
       'data': {
@@ -1240,7 +1420,6 @@
         'links': links
       }
     };
-    return refresh_monitor(true);
   };
 
   render_tasks = function() {
