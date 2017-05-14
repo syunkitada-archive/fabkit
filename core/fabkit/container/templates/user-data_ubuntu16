@@ -19,7 +19,7 @@ INTERFACE=`ip a | grep '2: ' | awk '{print $2}' | sed 's/:$//'`
 cat << EOT > /etc/network/interfaces.d/0-${INTERFACE}.cfg
 auto ${INTERFACE}
 iface ${INTERFACE} inet static
-    address {{ vm.ip }}
+    address {{ vm.ports.0.ip }}
     netmask {{ netmask }}
     gateway {{ gateway }}
     nameserver {{ gateway }}
@@ -30,6 +30,12 @@ sed -i "s/.*${INTERFACE}.*//g" /etc/network/interfaces.d/*-cloud-init.cfg
 ip addr flush ${INTERFACE}
 service networking restart
 
-echo "{{ vm.ip }} `hostname`" >> /etc/hosts
+cat << EOT > /etc/resolv.conf
+{% for nameserver in vm.nameservers %}
+nameserver {{ nameserver }}
+{% endfor %}
+EOT
+
+echo "{{ vm.ports.0.ip }} `hostname`" >> /etc/hosts
 sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
 service ssh restart

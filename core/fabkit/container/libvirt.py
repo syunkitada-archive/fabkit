@@ -57,15 +57,34 @@ class Libvirt():
             configiso_path = self.create_configiso(vm, instance_dir)
             vm['configiso_path'] = configiso_path
 
-            vm['mac'] = self.get_random_mac()
+            alias_index = 0
+            pci_slot_num = 2
+            for port in vm['ports']:
+                mac = self.get_random_mac()
+                port['mac'] = mac
+                port['tap'] = 'tap{0}'.format(mac.replace(':', ''))
+
+                port['pci_slot'] = '0x0{0}'.format(pci_slot_num)
+                pci_slot_num += 1
+
+                port['alias_name'] = 'net{0}'.format(alias_index)
+                alias_index += 1
+
+            vm['memballoon'] = {
+                'pci_slot': '0x0{0}'.format(pci_slot_num)
+            }
 
             domain_xml = self.create_domain_xml(vm, instance_dir)
 
             sudo("sed -i 's/^Defaults.*requiretty/# Defaults requiretty/' /etc/sudoers")
 
-            sudo("virsh net-update default add ip-dhcp-host "
-                 "\"<host mac='{0}' name='{1}' ip='{2}' />\"".format(
-                     vm['mac'], vm['name'], vm['ip']))
+            for port in vm['ports']:
+                if port['ip'] == 'none':
+                    continue
+
+                sudo("virsh net-update default add ip-dhcp-host "
+                     "\"<host mac='{0}' name='{1}' ip='{2}' />\"".format(
+                         port['mac'], vm['name'], port['ip']))
 
             sudo('virsh define {0}'.format(domain_xml))
             sudo('chown -R root:root {0}'.format(instance_dir))
@@ -74,17 +93,12 @@ class Libvirt():
         for vm in data['libvirt_vms']:
             while True:
                 with api.warn_only():
-                    if run('nmap -p 22 {0} | grep open'.format(vm['ip'])):
+                    if run('nmap -p 22 {0} | grep open'.format(vm['ports'][0]['ip'])):
                         break
                     time.sleep(5)
 
         sudo("iptables -R FORWARD 1 -o virbr0 -s 0.0.0.0/0"
              " -d 192.168.122.0/255.255.255.0 -j ACCEPT")
-        for vm in data['libvirt_vms']:
-            for port in vm.get('ports', []):
-                sudo("iptables -t nat -A PREROUTING -p tcp"
-                     " --dport {0[1]} -j DNAT --to {1}:{0[0]}".format(
-                         port, vm['ip']))
 
         for ip in data.get('iptables', {}):
             for port in ip.get('ports', []):
@@ -98,8 +112,13 @@ class Libvirt():
         data = self.data
         for i, vm in enumerate(data['libvirt_vms']):
             with api.warn_only():
-                sudo("virsh net-update default delete ip-dhcp-host \"`virsh net-dumpxml default"
-                     " | grep '{0}' | sed -e 's/^ *//'`\"".format(vm['ip']))
+                for port in vm['ports']:
+                    if port['ip'] == 'none':
+                        continue
+
+                    sudo("virsh net-update default delete ip-dhcp-host \"`virsh net-dumpxml default"
+                         " | grep '{0}' | sed -e 's/^ *//'`\"".format(port['ip']))
+
                 sudo('virsh list | grep {0} && virsh destroy {0}'.format(vm['name']))
                 sudo('virsh list --all | grep {0} && virsh undefine {0}'.format(vm['name']))
 
@@ -163,7 +182,6 @@ class Libvirt():
 
     def create_domain_xml(self, vm, instance_dir):
         vm['uuid'] = str(uuid.uuid1())
-        vm['tap'] = 'tap{0}'.format(vm['mac'].replace(':', ''))
 
         domain_xml = '{0}/domain.xml'.format(instance_dir)
         src_domain_xml = os.path.join(self.template_dir, 'domain.xml')
