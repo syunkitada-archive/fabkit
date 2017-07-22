@@ -5,6 +5,7 @@ import itertools
 import subprocess
 import sys
 from fabkit import api, util
+from pdns import pdnsapi
 from oslo_config import generator, cfg
 from oslo_messaging._drivers import amqp
 from oslo_messaging._drivers import impl_rabbit
@@ -101,6 +102,9 @@ def sync_db(*args, **kwargs):
         subprocess.call('cd {0} && {1}alembic upgrade head'.format(
             CONF._sqlalchemy_dir, prefix), shell=True)
 
+        subprocess.call('cd {0} && {1}alembic upgrade head'.format(
+            CONF._pdns_sqlalchemy_dir, prefix), shell=True)
+
         subprocess.call("""cd {0} &&
 {1}python manage.py makemigrations --noinput;
 {1}python manage.py migrate --noinput;
@@ -141,3 +145,16 @@ except ObjectDoesNotExist:
                    username=CONF.client.username, password=CONF.client.password,
                    group=CONF.client.group),
             shell=True)
+
+
+@api.task
+def create_dns_domain(name):
+    pdns = pdnsapi.PdnsAPI()
+    pdns.create_domain(name)
+
+
+@api.task
+def create_dns_record(name, domain_name, type, content):
+    pdns = pdnsapi.PdnsAPI()
+    if type == 'A':
+        pdns.create_record(name, domain_name, type, content)

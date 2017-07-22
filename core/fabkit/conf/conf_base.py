@@ -166,6 +166,7 @@ CONF.register_opts(node_logger_opts, group='node_logger')
 CONF.register_opts(client_opts, group='client')
 CONF.register_opts(agent_opts, group='agent')
 CONF.register_opts(database_opts, group='database')
+CONF.register_opts(database_opts, group='pdns_database')
 
 
 def init(repo_dir=None, log_file=None):
@@ -181,6 +182,7 @@ def init(repo_dir=None, log_file=None):
     CONF._fabfile_dir = os.path.join(repo_dir, 'fabfile')
     CONF._conf_dir = os.path.join(repo_dir, 'conf')
     CONF._sqlalchemy_dir = os.path.join(CONF._fabfile_dir, 'core', 'db', 'impl_sqlalchemy')
+    CONF._pdns_sqlalchemy_dir = os.path.join(CONF._fabfile_dir, 'core', 'pdns', 'impl_sqlalchemy')
     CONF._webapp_dir = os.path.join(CONF._fabfile_dir, 'core', 'webapp')
     CONF._storage_dir = complement_path(CONF.storage_dir)
     CONF._webapp_storage_dir = os.path.join(CONF._storage_dir, 'webapp')
