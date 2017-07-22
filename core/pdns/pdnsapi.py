@@ -66,7 +66,7 @@ class PdnsAPI():
         record = query.filter(models.Records.name == name).one()
         return record
 
-    def get_records(self):
+    def get_records(self, domain_id):
         query = self.session.query(models.Records)
         records = query.all()
         return records

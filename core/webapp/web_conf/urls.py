@@ -35,5 +35,6 @@ urlpatterns = patterns(
     url(r'^node/', include('web_apps.node.urls', namespace='node')),
     url(r'^user/', include('web_apps.user.urls', namespace='user')),
     url(r'^chat/', include('web_apps.chat.urls', namespace='chat')),
+    url(r'^dns/', include('web_apps.dns.urls', namespace='dns')),
     url(r'^', include('web_apps.home.urls', namespace='home')),
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

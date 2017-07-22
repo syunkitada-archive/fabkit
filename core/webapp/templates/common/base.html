@@ -50,6 +50,8 @@
                         <a class="pjax" href="{% url 'event:index' %}">Event</a></li>
                     <li class="{% if namespace == 'chat' %}active{% endif %}">
                         <a class="pjax" href="{% url 'chat:index' %}">Chat</a></li>
+                    <li class="{% if namespace == 'dns' %}active{% endif %}">
+                        <a class="pjax" href="{% url 'dns:index' %}">DNS</a></li>
                     <li class="{% if namespace == 'user' %}active{% endif %}">
                         <a class="pjax" href="{% url 'user:index' %}">User</a></li>
                 </ul>
