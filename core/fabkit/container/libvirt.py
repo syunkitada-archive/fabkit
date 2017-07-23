@@ -5,6 +5,8 @@ import uuid
 import time
 from fabkit import filer, sudo, api, run
 from oslo_config import cfg
+from netaddr import IPNetwork
+from pdns import pdnsapi
 import os
 
 CONF = cfg.CONF
@@ -37,15 +39,54 @@ class Libvirt():
         self.template_dir = os.path.join(os.path.dirname(__file__), 'templates')
         self.instances_dir = os.path.join(self.libvirt_dir, 'instances')
         filer.mkdir(self.instances_dir)
+        self.pdns = pdnsapi.PdnsAPI()
 
     def create(self):
         data = self.data
         sudo('modprobe kvm')
         sudo('modprobe kvm_intel')
 
+        network = CONF.network.libvirt_net.split(':')
+        bridge = network[0]
+        brctl_show = sudo('brctl show')
+        if brctl_show.find(bridge) == -1:
+            sudo('brctl addbr {0}'.format(bridge))
+
+        ip_network = IPNetwork(network[1])
+        gateway_ip = '{0}/{1}'.format(ip_network.ip + 1, ip_network.prefixlen)
+        dhcp_ip = '{0}/{1}'.format(ip_network.ip + 2, ip_network.prefixlen)
+        bridge_info = sudo('ip addr show dev {0}'.format(bridge))
+        if bridge_info.find(gateway_ip) == -1:
+            sudo('ip addr add {0} dev {1}'.format(gateway_ip, bridge))
+        if bridge_info.find('DOWN') != -1:
+            sudo('ip link set {0} up'.format(bridge))
+
+        ip_netns = sudo('ip netns show')
+        dhcp_netns = 'dhcp-{0}'.format(bridge)
+        dhcp_veth_br = 'ns-{0}'.format(bridge)
+        dhcp_veth = 'veth-{0}'.format(bridge)
+        if ip_netns.find(dhcp_netns):
+            sudo('ip netns add {0}'.format(dhcp_netns))
+
+        if brctl_show.find(dhcp_veth_br) == -1:
+            sudo('ip link add {0} type veth peer name {1}'.format(dhcp_veth_br, dhcp_veth))
+            sudo('brctl addif {0} {1}'.format(bridge, dhcp_veth_br))
+            sudo('ip link set {0} up'.format(dhcp_veth_br))
+            sudo('ip link set {0} netns {1}'.format(dhcp_veth, dhcp_netns))
+            sudo('ip netns exec {0} ip addr add dev {1} {2}'.format(dhcp_netns, dhcp_veth, dhcp_ip))
+            sudo('ip netns exec {0} ip link set {1} up'.format(dhcp_netns, dhcp_veth))
+
+        ss_ln = sudo('ip netns exec {0} ss -ln'.format(dhcp_netns))
+        if ss_ln.find('*:67') == -1:
+            sudo('ip netns exec {0} dnsmasq -p 0 --dhcp-range 172.16.100.3,172.16.100.254,12h'.format(  # noqa
+                dhcp_netns, ip_network[3], ip_network[-2]))
+
         for i, vm in enumerate(data['libvirt_vms']):
             instance_dir = os.path.join(self.instances_dir, vm['name'])
             filer.mkdir(instance_dir)
+
+            vm['bridge'] = bridge
+            vm['hostname'] = '{0}.{1}'.format(vm['name'], CONF.network.domain)
 
             image_path = '{0}/vm.img'.format(instance_dir)
             vm['image_path'] = image_path
@@ -82,23 +123,25 @@ class Libvirt():
                 if port['ip'] == 'none':
                     continue
 
-                sudo("virsh net-update default add ip-dhcp-host "
-                     "\"<host mac='{0}' name='{1}' ip='{2}' />\"".format(
-                         port['mac'], vm['name'], port['ip']))
+                # sudo("virsh net-update {3} add ip-dhcp-host "
+                #      "\"<host mac='{0}' name='{1}' ip='{2}' />\"".format(
+                #          port['mac'], vm['name'], port['ip'], bridge))
 
             sudo('virsh define {0}'.format(domain_xml))
             sudo('chown -R root:root {0}'.format(instance_dir))
             sudo('virsh start {0}'.format(vm['name']))
 
         for vm in data['libvirt_vms']:
+            self.pdns.create_record(vm['name'], CONF.network.domain, 'A', vm['ports'][0]['ip'])
+
             while True:
                 with api.warn_only():
                     if run('nmap -p 22 {0} | grep open'.format(vm['ports'][0]['ip'])):
                         break
                     time.sleep(5)
 
-        sudo("iptables -R FORWARD 1 -o virbr0 -s 0.0.0.0/0"
-             " -d 192.168.122.0/255.255.255.0 -j ACCEPT")
+        sudo("iptables -R FORWARD 1 -o {0} -s 0.0.0.0/0"
+             " -d {1}/{2} -j ACCEPT".format(bridge, ip_network.ip, ip_network.netmask))
 
         for ip in data.get('iptables', {}):
             for port in ip.get('ports', []):
@@ -112,12 +155,13 @@ class Libvirt():
         data = self.data
         for i, vm in enumerate(data['libvirt_vms']):
             with api.warn_only():
+                self.pdns.delete_record('{0}.{1}'.format(vm['name'], CONF.network.domain))
                 for port in vm['ports']:
                     if port['ip'] == 'none':
                         continue
 
-                    sudo("virsh net-update default delete ip-dhcp-host \"`virsh net-dumpxml default"
-                         " | grep '{0}' | sed -e 's/^ *//'`\"".format(port['ip']))
+                    # sudo("virsh net-update default delete ip-dhcp-host \"`virsh net-dumpxml default"
+                    #      " | grep '{0}' | sed -e 's/^ *//'`\"".format(port['ip']))
 
                 sudo('virsh list | grep {0} && virsh destroy {0}'.format(vm['name']))
                 sudo('virsh list --all | grep {0} && virsh undefine {0}'.format(vm['name']))

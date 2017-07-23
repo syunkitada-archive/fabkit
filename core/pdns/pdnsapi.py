@@ -1,12 +1,9 @@
 # coding: utf-8
 
-import datetime
 from oslo_config import cfg
 from oslo_db.sqlalchemy import session as db_session
 from sqlalchemy.orm import exc
-from sqlalchemy import desc
 from impl_sqlalchemy import models
-from fabkit import util
 from oslo_log import log as logging
 
 CONF = cfg.CONF
@@ -59,7 +56,7 @@ class PdnsAPI():
         query = self.session.query(models.Records)
 
         with self.session.begin():
-            query.filter(models.Records.name == name)
+            query.filter(models.Records.name == name).delete()
 
     def get_record(self, name):
         query = self.session.query(models.Records)
@@ -68,7 +65,7 @@ class PdnsAPI():
 
     def get_records(self, domain_id):
         query = self.session.query(models.Records)
-        records = query.all()
+        records = query.filter(models.Records.domain_id == domain_id)
         return records
 
     def create_record(self, name, domain_name, type, content, ttl=120, prio=None):
@@ -79,11 +76,12 @@ class PdnsAPI():
 
             except exc.NoResultFound:
                 domain = self.get_domain(domain_name)
-                record = models.Records(domain_id=domain.id, name=name, content=content, type=type, ttl=ttl, prio=prio)
+                record = models.Records(domain_id=domain.id, name=name, content=content, type=type,
+                                        ttl=ttl, prio=prio)
                 self.session.add(record)
 
     def delete_record(self, name):
         query = self.session.query(models.Records)
 
         with self.session.begin():
-            query.filter(models.Records.name == name)
+            query.filter(models.Records.name == name).delete()

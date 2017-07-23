@@ -21,7 +21,18 @@ NETMASK={{ netmask }}
 GATEWAY={{ gateway }}
 IPV6INIT=no
 EOT
+
+cat << EOT > /etc/sysconfig/network
+HOSTNAME={{ vm.hostname }}
+EOT
+
+hostname {{ vm.hostname }}
+
 systemctl restart network
+
+cat << EOT > /etc/resolv.conf
+nameserver {{ gateway }}
+EOT
 
 sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
 systemctl restart sshd

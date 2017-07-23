@@ -157,6 +157,15 @@ agent_opts = [
                help='delete_event_interval'),
 ]
 
+network_opts = [
+    cfg.StrOpt('libvirt_net',
+               default='br-local:172.16.100.0/24',
+               help='libvirt_net'),
+    cfg.StrOpt('domain',
+               default='example.com',
+               help='hostname suffix domain'),
+]
+
 
 CONF.register_opts(default_opts)
 CONF.register_opts(cluster_opts, group='cluster')
@@ -167,6 +176,7 @@ CONF.register_opts(client_opts, group='client')
 CONF.register_opts(agent_opts, group='agent')
 CONF.register_opts(database_opts, group='database')
 CONF.register_opts(database_opts, group='pdns_database')
+CONF.register_opts(network_opts, group='network')
 
 
 def init(repo_dir=None, log_file=None):

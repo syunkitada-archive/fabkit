@@ -32,5 +32,8 @@ sudo sed -i 's/^dns=dnsmasq/#&/' /etc/NetworkManager/NetworkManager.conf
 sudo service network-manager restart
 sudo service networking restart
 
+virsh net-destroy default
+virsh net-autostart --network default --disable
+
 sudo killall dnsmasq
 ```
