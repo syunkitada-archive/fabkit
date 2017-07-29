@@ -61,6 +61,8 @@ class Libvirt():
         if bridge_info.find('DOWN') != -1:
             sudo('ip link set {0} up'.format(bridge))
 
+        network_seg = "{0}/{1}".format(ip_network.ip, ip_network.netmask)
+
         ip_netns = sudo('ip netns show')
         dhcp_netns = 'dhcp-{0}'.format(bridge)
         dhcp_veth_br = 'ns-{0}'.format(bridge)
@@ -131,6 +133,23 @@ class Libvirt():
             sudo('chown -R root:root {0}'.format(instance_dir))
             sudo('virsh start {0}'.format(vm['name']))
 
+        sudo("iptables -R FORWARD 1 -o {0} -s {1}"
+             " -d 0.0.0.0/0 -j ACCEPT".format(bridge, network_seg))
+
+        sudo("iptables -R FORWARD 1 -s 0.0.0.0/0"
+             " -d {0} -j ACCEPT".format(network_seg))
+
+        sudo("iptables -t nat -A POSTROUTING -p TCP -s {0} ! -d {0} -j MASQUERADE --to-ports 1024-65535".format(
+            network_seg))
+        sudo("iptables -t nat -A POSTROUTING -p UDP -s {0} ! -d {0} -j MASQUERADE --to-ports 1024-65535".format(
+            network_seg))
+        sudo("iptables -t nat -A POSTROUTING -s {0} ! -d {0} -j MASQUERADE".format(
+            network_seg))
+        sudo("iptables -t nat -A POSTROUTING -s {0} -d 255.255.255.255 -j RETURN".format(
+            network_seg))
+        sudo("iptables -t nat -A POSTROUTING -s {0} -d base-address.mcast.net/24 -j RETURN".format(
+            network_seg))
+
         for vm in data['libvirt_vms']:
             self.pdns.create_record(vm['name'], CONF.network.domain, 'A', vm['ports'][0]['ip'])
 
@@ -139,9 +158,6 @@ class Libvirt():
                     if run('nmap -p 22 {0} | grep open'.format(vm['ports'][0]['ip'])):
                         break
                     time.sleep(5)
-
-        sudo("iptables -R FORWARD 1 -o {0} -s 0.0.0.0/0"
-             " -d {1}/{2} -j ACCEPT".format(bridge, ip_network.ip, ip_network.netmask))
 
         for ip in data.get('iptables', {}):
             for port in ip.get('ports', []):
