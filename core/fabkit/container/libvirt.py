@@ -1,5 +1,6 @@
 # cording: utf-8
 
+import re
 import random
 import uuid
 import time
@@ -133,22 +134,25 @@ class Libvirt():
             sudo('chown -R root:root {0}'.format(instance_dir))
             sudo('virsh start {0}'.format(vm['name']))
 
-        sudo("iptables -R FORWARD 1 -o {0} -s {1}"
-             " -d 0.0.0.0/0 -j ACCEPT".format(bridge, network_seg))
+        nat_table = sudo("iptables -t nat -L")
+        if nat_table.find(network_seg) == -1:
+            # sudo("iptables -R FORWARD 1 -o {0} -s {1}"
+            #      " -d 0.0.0.0/0 -j ACCEPT".format(bridge, network_seg))
+            sudo("iptables -t filter -A FORWARD -s 0.0.0.0/0 -d {0} -j ACCEPT".format(network_seg))
+            sudo("iptables -t filter -A FORWARD -d 0.0.0.0/0 -s {0} -j ACCEPT".format(network_seg))
 
-        sudo("iptables -R FORWARD 1 -s 0.0.0.0/0"
-             " -d {0} -j ACCEPT".format(network_seg))
-
-        sudo("iptables -t nat -A POSTROUTING -p TCP -s {0} ! -d {0} -j MASQUERADE --to-ports 1024-65535".format(
-            network_seg))
-        sudo("iptables -t nat -A POSTROUTING -p UDP -s {0} ! -d {0} -j MASQUERADE --to-ports 1024-65535".format(
-            network_seg))
-        sudo("iptables -t nat -A POSTROUTING -s {0} ! -d {0} -j MASQUERADE".format(
-            network_seg))
-        sudo("iptables -t nat -A POSTROUTING -s {0} -d 255.255.255.255 -j RETURN".format(
-            network_seg))
-        sudo("iptables -t nat -A POSTROUTING -s {0} -d base-address.mcast.net/24 -j RETURN".format(
-            network_seg))
+        nat_table = sudo("iptables -t nat -L")
+        if nat_table.find(network_seg) == -1:
+            sudo("iptables -t nat -A POSTROUTING -p TCP -s {0} ! -d {0} -j MASQUERADE --to-ports 1024-65535".format(
+                network_seg))
+            sudo("iptables -t nat -A POSTROUTING -p UDP -s {0} ! -d {0} -j MASQUERADE --to-ports 1024-65535".format(
+                network_seg))
+            sudo("iptables -t nat -A POSTROUTING -s {0} ! -d {0} -j MASQUERADE".format(
+                network_seg))
+            sudo("iptables -t nat -A POSTROUTING -s {0} -d 255.255.255.255 -j RETURN".format(
+                network_seg))
+            sudo("iptables -t nat -A POSTROUTING -s {0} -d base-address.mcast.net/24 -j RETURN".format(
+                network_seg))
 
         for vm in data['libvirt_vms']:
             self.pdns.create_record(vm['name'], CONF.network.domain, 'A', vm['ports'][0]['ip'])
