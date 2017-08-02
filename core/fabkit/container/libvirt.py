@@ -79,10 +79,13 @@ class Libvirt():
             sudo('ip netns exec {0} ip addr add dev {1} {2}'.format(dhcp_netns, dhcp_veth, dhcp_ip))
             sudo('ip netns exec {0} ip link set {1} up'.format(dhcp_netns, dhcp_veth))
 
-        ss_ln = sudo('ip netns exec {0} ss -ln'.format(dhcp_netns))
+        # ss_ln = sudo('ip netns exec {0} ss -ln'.format(dhcp_netns))
+        # if ss_ln.find('*:67') == -1:
+        #     sudo('ip netns exec {0} dnsmasq -p 0 --dhcp-range 172.16.100.3,172.16.100.254,12h'.format(  # noqa
+        #         dhcp_netns, ip_network[3], ip_network[-2]))
+        ss_ln = sudo('ss -ln'.format(dhcp_netns))
         if ss_ln.find('*:67') == -1:
-            sudo('ip netns exec {0} dnsmasq -p 0 --dhcp-range 172.16.100.3,172.16.100.254,12h'.format(  # noqa
-                dhcp_netns, ip_network[3], ip_network[-2]))
+            sudo('dnsmasq -p 0 --dhcp-range=172.16.100.3,172.16.100.254')
 
         for i, vm in enumerate(data['libvirt_vms']):
             instance_dir = os.path.join(self.instances_dir, vm['name'])
@@ -140,6 +143,7 @@ class Libvirt():
             #      " -d 0.0.0.0/0 -j ACCEPT".format(bridge, network_seg))
             sudo("iptables -t filter -A FORWARD -s 0.0.0.0/0 -d {0} -j ACCEPT".format(network_seg))
             sudo("iptables -t filter -A FORWARD -d 0.0.0.0/0 -s {0} -j ACCEPT".format(network_seg))
+
 
         nat_table = sudo("iptables -t nat -L")
         if nat_table.find(network_seg) == -1:
