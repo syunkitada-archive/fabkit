@@ -31,6 +31,12 @@ def get(key_path):
     return databag[splited_key[1]]
 
 
+def exists(key_path):
+    splited_key = key_path.rsplit('.', 1)
+    databag = get_databag(key_path)
+    return (splited_key[1] in databag)
+
+
 def get_databag(key_path):
     key, data_file = __get_key_file(key_path)
 

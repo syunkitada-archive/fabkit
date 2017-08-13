@@ -25,8 +25,7 @@ EOT
 cat << EOT > /etc/sysconfig/network
 HOSTNAME={{ vm.hostname }}
 EOT
-
-hostname {{ vm.hostname }}
+hostnamectl set-hostname {{ vm.hostname }}
 
 systemctl restart network
 

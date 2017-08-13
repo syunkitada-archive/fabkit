@@ -5,6 +5,7 @@ from fabric import api
 env = api.env
 parallel = api.parallel
 serial = api.serial
+put = api.put
 
 from shell import *  # noqa
 from system import Observer, Package, Service, user, group  # noqa
