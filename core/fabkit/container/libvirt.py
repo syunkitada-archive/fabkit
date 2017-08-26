@@ -61,7 +61,7 @@ class Libvirt():
             sudo('ip addr add {0} dev {1}'.format(gateway_ip, bridge))
         if bridge_info.find('DOWN') != -1:
             sudo('ip link set {0} up'.format(bridge))
-            sudo('ip route add 10.0.0.0/8 dev {0}'.format(bridge))
+            sudo('ip route add 10.0.0.0/8 via {0}'.format(ip_network.ip + 1))
 
         network_seg = "{0}/{1}".format(ip_network.ip, ip_network.netmask)
 
