@@ -38,9 +38,10 @@ class Package():
                 self.result = run('dpkg -l {0} | grep "^ii *{1}"'.format(package_name, version))
                 if not self.result.return_code == 0:
                     if self.path:
-                        self.result = sudo('apt-get install {0} -y {1}'.format(self.path, option))
+                        self.result = sudo('RUNLEVEL=1 apt-get install {0} -y {1}'.format(
+                            self.path, option))
                     else:
-                        self.result = sudo('apt-get install {0} -y {1}'.format(
+                        self.result = sudo('RUNLEVEL=1 apt-get install {0} -y {1}'.format(
                             self.package_name, option))
             else:
                 self.unsupport()
