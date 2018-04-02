@@ -11,7 +11,6 @@ from util import client
 from oslo_service import periodic_task
 from oslo_config import cfg
 from oslo_log import log as logging
-from oslo_serialization import jsonutils
 import oslo_messaging as messaging
 
 CONF = cfg.CONF

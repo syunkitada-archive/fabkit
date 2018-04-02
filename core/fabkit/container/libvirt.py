@@ -145,7 +145,6 @@ class Libvirt():
             sudo("iptables -t filter -A FORWARD -s 0.0.0.0/0 -d {0} -j ACCEPT".format(network_seg))
             sudo("iptables -t filter -A FORWARD -d 0.0.0.0/0 -s {0} -j ACCEPT".format(network_seg))
 
-
         nat_table = sudo("iptables -t nat -L")
         if nat_table.find(network_seg) == -1:
             sudo("iptables -t nat -A POSTROUTING -p TCP -s {0} ! -d {0} -j MASQUERADE --to-ports 1024-65535".format(
@@ -170,6 +169,8 @@ class Libvirt():
 
         for ip in data.get('iptables', {}):
             for port in ip.get('ports', []):
+                if ip['ip'] == 'none':
+                    continue
                 sudo("iptables -t nat -A PREROUTING -p tcp"
                      " --dport {0[1]} -j DNAT --to {1}:{0[0]}".format(
                          port, ip['ip']))
@@ -185,11 +186,10 @@ class Libvirt():
                     if port['ip'] == 'none':
                         continue
 
-                    # sudo("virsh net-update default delete ip-dhcp-host \"`virsh net-dumpxml default"
-                    #      " | grep '{0}' | sed -e 's/^ *//'`\"".format(port['ip']))
-
-                sudo('virsh list | grep {0} && virsh destroy {0}'.format(vm['name']))
-                sudo('virsh list --all | grep {0} && virsh undefine {0}'.format(vm['name']))
+                if sudo('virsh list | grep {0}'.format(vm['name'])).return_code == 0:
+                    sudo('virsh destroy {0}'.format(vm['name']))
+                if sudo('virsh list --all | grep {0}'.format(vm['name'])).return_code == 0:
+                    sudo('virsh undefine {0}'.format(vm['name']))
 
             instance_dir = os.path.join(self.instances_dir, vm['name'])
             sudo('rm -rf {0}'.format(instance_dir))

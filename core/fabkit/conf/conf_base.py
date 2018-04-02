@@ -29,6 +29,9 @@ default_opts = [
     cfg.StrOpt('databag_dir',
                default='databag',
                help='databag dir'),
+    cfg.StrOpt('filebag_dir',
+               default='filebag',
+               help='filebag dir'),
     cfg.StrOpt('node_dir',
                default='nodes',
                help='node dir'),
@@ -198,6 +201,7 @@ def init(repo_dir=None, log_file=None):
     CONF._webapp_storage_dir = os.path.join(CONF._storage_dir, 'webapp')
     CONF._handler_dir = complement_path(CONF.handler_dir)
     CONF._databag_dir = complement_path(CONF.databag_dir)
+    CONF._filebag_dir = complement_path(CONF.filebag_dir)
     CONF._tmp_dir = os.path.join(CONF._storage_dir, 'tmp')
     CONF._log_dir = os.path.join(CONF._storage_dir, 'log')
     CONF._node_dir = complement_path(CONF.node_dir)
