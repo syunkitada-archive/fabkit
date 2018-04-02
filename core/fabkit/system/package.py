@@ -27,17 +27,25 @@ class Package():
                             self.package_name, option))
 
             elif env.node['package_manager'] == 'apt':
-                self.result = run('dpkg -l {0} | grep "^ii "'.format(self.package_name))
+                splited_name = self.package_name.split('=')
+                if len(splited_name) > 1:
+                    package_name = splited_name[0]
+                    version = splited_name[1]
+                else:
+                    package_name = self.package_name
+                    version = ''
+
+                self.result = run('dpkg -l {0} | grep "^ii *{1}"'.format(package_name, version))
                 if not self.result.return_code == 0:
                     if self.path:
-                        self.result = sudo('apt-get install {0} -y {1}'.format(self.path, option))
+                        self.result = sudo('RUNLEVEL=1 apt-get install {0} -y {1}'.format(
+                            self.path, option))
                     else:
-                        self.result = sudo('apt-get install {0} -y {1}'.format(
+                        self.result = sudo('RUNLEVEL=1 apt-get install {0} -y {1}'.format(
                             self.package_name, option))
             else:
                 self.unsupport()
 
-        print self.result
         if self.result.return_code != 0:
             msg = 'Failed install {0}.'.format(self.package_name)
             log.error(msg)

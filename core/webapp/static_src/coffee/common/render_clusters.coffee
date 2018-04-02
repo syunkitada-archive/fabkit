@@ -1,5 +1,7 @@
 render_node_clusters = (clusters)->
     update_pagedata()
+    console.log "DEBUG testaaa"
+    console.log clusters
 
     clusters_html = $("""<div class="panel-group" id="accordion">
             </div>""")

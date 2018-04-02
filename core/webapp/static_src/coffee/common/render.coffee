@@ -34,6 +34,13 @@ update_pagedata = ->
         if current_cluster_path == ''
             current_cluster_path = 'all'
 
+    else if mode.current == mode.DNS
+        paths = location.pathname.split('dns/')
+        current_page = 'dns'
+        current_cluster_path = paths[1].slice(0, -1)
+        if current_cluster_path == ''
+            current_cluster_path = 'all'
+
 render_all = ->
     if mode.current == mode.USER
         render_user()
@@ -51,7 +58,6 @@ render_all = ->
 
         tab = 0
         $('#datamap-modal').on('shown.bs.modal', ->
-            console.log 'shown'
             $("#map-#{datamap_tabs[tab]}").tab('show')
             return)
 
@@ -95,7 +101,6 @@ render_all = ->
 
         tab = 0
         $('#datamap-modal').on('shown.bs.modal', ->
-            console.log 'shown'
             $("#map-#{datamap_tabs[tab]}").tab('show')
             return)
 
@@ -129,6 +134,14 @@ render_all = ->
 
         $('#job-table').tablesorter()
         $('#task-table').tablesorter()
+
+    else if mode.current == mode.DNS
+        render_node_clusters(dns_domains)
+        render_dns_records(dns_records)
+
+        $('#dns-record-table').tablesorter(
+            sortList: [[0, 0], [1, 0]]
+        )
 
     $('[data-toggle=popover]').popover()
 
@@ -182,6 +195,11 @@ apps.init = ->
         mode.current = mode.EVENT
         agent_clusters = JSON.parse($('#agent_clusters').html())
         node_cluster = JSON.parse(node_cluster.html())
+
+    else if location.pathname.indexOf('/dns/') == 0
+        mode.current = mode.DNS
+        dns_records = JSON.parse($('#json-dns-records').html())
+        dns_domains = JSON.parse($('#json-dns-domains').html())
 
     else if location.pathname.indexOf('/chat/') == 0
         mode.current = mode.CHAT

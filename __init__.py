@@ -44,4 +44,4 @@ from runserver import runserver  # noqa
 from agent import agent, agent_central, agent_manager  # noqa
 from fabtest import test  # noqa
 from doc import doc  # noqa
-from util import genconfig, sync_fablib, client, sync_db  # noqa
+from util import genconfig, sync_fablib, client, sync_db, create_dns_domain, create_dns_record  # noqa

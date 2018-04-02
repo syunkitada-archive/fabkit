@@ -6,6 +6,8 @@ agent_cluster = {}
 agent_clusters = []
 fabscripts = []
 tasks = []
+dns_domains = []
+dns_records = []
 datamap_tabs = ['status', 'relation']
 
 graph_links = []
@@ -25,6 +27,7 @@ mode = {
     CHAT: 2,
     TASK: 3,
     EVENT: 4,
+    DNS: 5,
 }
 
 WARNING_STATUS_THRESHOLD = 10000

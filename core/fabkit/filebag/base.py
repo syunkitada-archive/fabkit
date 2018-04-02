@@ -3,13 +3,21 @@
 import re
 import os
 import yaml
-from fabkit import cmd
+from fabkit import cmd, sudo, api
 from oslo_config import cfg
 
 CONF = cfg.CONF
 
 
-def set(key_path, value):
+def set(key_path, file):
+    tmp_file = '{0}{1}'.format(CONF.remote_tmp_dir, file)
+    local_file = '{0}{1}'.format(CONF._filebag_dir, key_path)
+    sudo('mkdir -p {0}'.format(os.path.direname(tmp_file)))
+    sudo('cp {0} {1}'.format(file, tmp_file))
+    sudo('chmod 666 {0}'.format(tmp_file))
+    api.get(tmp_file, '/tmp/authkey')
+    sudo('rm {0}'.format(tmp_file))
+
     key, data_file = __get_key_file(key_path)
     data_dir = os.path.dirname(data_file)
 

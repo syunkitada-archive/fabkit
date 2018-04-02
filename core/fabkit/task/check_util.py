@@ -6,6 +6,7 @@ from fabkit import api, env, run, cmd, status, log
 
 
 re_ubuntu = re.compile('Ubuntu')
+re_ubuntu16 = re.compile('Ubuntu 16.*')
 re_centos = re.compile('CentOS')
 re_centos7 = re.compile('CentOS 7.*')
 
@@ -124,11 +125,15 @@ def set_os():
             re_search = re.search('PRETTY_NAME="(.+)"', result)
             os = re_search.group(1)
             env.node['os'] = os
-            if re_ubuntu.match(os):
+            if re_ubuntu16.match(os):
+                env.node['package_manager'] = 'apt'
+                env.node['service_manager'] = 'systemd'
+                env.node['init_manager'] = 'systemd'
+            elif re_ubuntu.match(os):
                 env.node['package_manager'] = 'apt'
                 env.node['service_manager'] = 'service'
                 env.node['init_manager'] = 'update-rc.d'
-            if re_centos.match(os):
+            elif re_centos.match(os):
                 env.node['package_manager'] = 'yum'
                 env.node['service_manager'] = 'systemd'
                 env.node['init_manager'] = 'systemd'

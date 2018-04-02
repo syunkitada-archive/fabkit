@@ -67,9 +67,6 @@ render_tasks = ->
                 <td>#{task.created_at}</td>
             </tr>"""
 
-    console.log 'DEBUG'
-    console.log job_map
-
     $('#all-node-badge').html(all_node_length)
     $('#success-node-badge').html(success_node_length)
     $('#processing-node-badge').html(processing_node_length)

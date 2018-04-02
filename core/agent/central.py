@@ -17,7 +17,6 @@ from util import client
 
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
-eventlet.monkey_patch()
 
 
 class CentralManager(periodic_task.PeriodicTasks):
@@ -167,6 +166,7 @@ class CentralRPCAPI(rpc.BaseRPCAPI):
     def __init__(self):
         target = messaging.Target(topic='central', version='2.0', server='server1')
         self.central_dbapi = dbapi.DBAPI()
+        eventlet.monkey_patch
         super(CentralRPCAPI, self).__init__('central', target)
 
     def hello(self, context, arg):

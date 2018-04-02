@@ -25,6 +25,8 @@ iface ${INTERFACE} inet static
     nameserver {{ gateway }}
 EOT
 
+hostnamectl set-hostname {{ vm.hostname }}
+
 sed -i "s/.*${INTERFACE}.*//g" /etc/network/interfaces.d/*-cloud-init.cfg
 
 ip addr flush ${INTERFACE}

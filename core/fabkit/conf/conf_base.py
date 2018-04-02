@@ -29,6 +29,9 @@ default_opts = [
     cfg.StrOpt('databag_dir',
                default='databag',
                help='databag dir'),
+    cfg.StrOpt('filebag_dir',
+               default='filebag',
+               help='filebag dir'),
     cfg.StrOpt('node_dir',
                default='nodes',
                help='node dir'),
@@ -157,6 +160,15 @@ agent_opts = [
                help='delete_event_interval'),
 ]
 
+network_opts = [
+    cfg.StrOpt('libvirt_net',
+               default='br-local:172.16.100.0/24',
+               help='libvirt_net'),
+    cfg.StrOpt('domain',
+               default='example.com',
+               help='hostname suffix domain'),
+]
+
 
 CONF.register_opts(default_opts)
 CONF.register_opts(cluster_opts, group='cluster')
@@ -166,6 +178,8 @@ CONF.register_opts(node_logger_opts, group='node_logger')
 CONF.register_opts(client_opts, group='client')
 CONF.register_opts(agent_opts, group='agent')
 CONF.register_opts(database_opts, group='database')
+CONF.register_opts(database_opts, group='pdns_database')
+CONF.register_opts(network_opts, group='network')
 
 
 def init(repo_dir=None, log_file=None):
@@ -181,11 +195,13 @@ def init(repo_dir=None, log_file=None):
     CONF._fabfile_dir = os.path.join(repo_dir, 'fabfile')
     CONF._conf_dir = os.path.join(repo_dir, 'conf')
     CONF._sqlalchemy_dir = os.path.join(CONF._fabfile_dir, 'core', 'db', 'impl_sqlalchemy')
+    CONF._pdns_sqlalchemy_dir = os.path.join(CONF._fabfile_dir, 'core', 'pdns', 'impl_sqlalchemy')
     CONF._webapp_dir = os.path.join(CONF._fabfile_dir, 'core', 'webapp')
     CONF._storage_dir = complement_path(CONF.storage_dir)
     CONF._webapp_storage_dir = os.path.join(CONF._storage_dir, 'webapp')
     CONF._handler_dir = complement_path(CONF.handler_dir)
     CONF._databag_dir = complement_path(CONF.databag_dir)
+    CONF._filebag_dir = complement_path(CONF.filebag_dir)
     CONF._tmp_dir = os.path.join(CONF._storage_dir, 'tmp')
     CONF._log_dir = os.path.join(CONF._storage_dir, 'log')
     CONF._node_dir = complement_path(CONF.node_dir)

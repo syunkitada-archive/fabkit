@@ -8,7 +8,7 @@
     <partition>/machine</partition>
   </resource>
   <os>
-    <type arch='x86_64' machine='pc-i440fx-trusty'>hvm</type>
+    <type arch='x86_64'>hvm</type>
     <boot dev='hd'/>
   </os>
   <features>
@@ -59,7 +59,7 @@
     <interface type='bridge'>
       <driver name='vhost' queues='{{ port.queues }}'/>
       <mac address='{{ port.mac }}'/>
-      <source bridge='virbr0'/>
+      <source bridge='{{ bridge }}'/>
       <target dev='{{ port.tap }}'/>
       <model type='{{ port.type }}'/>
       <alias name='{{ port.alias_name }}'/>

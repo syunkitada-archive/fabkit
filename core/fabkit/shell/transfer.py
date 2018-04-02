@@ -35,15 +35,7 @@ def scp(from_path, to_path, is_local=True, is_receive=False, use_env_host=True):
 
             run('mkdir -p {0}'.format(tmp_target_dir))
             cmd += tmp_target
-
-            if CONF.user and CONF.password:
-                result = expect(
-                    cmd,
-                    [['* password:', '{0}\\n'.format(CONF.password)]],
-                    is_local=is_local)
-
-            else:
-                result = local(cmd)
+            result = api.put(from_path, tmp_target)
 
             sudo('cp {0} {1}'.format(tmp_target, to_path))
             return result

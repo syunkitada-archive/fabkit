@@ -1,5 +1,5 @@
 (function() {
-  var WARNING_STATUS_THRESHOLD, agent_cluster, agent_clusters, agents, bind_shown_tab_event, change_chat_cluster, chat_cluster, chat_clusters, chat_comment, chat_socket, current_cluster_path, current_page, datamap_tabs, fabscripts, filter, graph_links, graph_nodes, mark_chat_text, mode, node_cluster, node_clusters, refresh_monitor, render_all, render_datamap, render_force_panel, render_line_chart_panel, render_monitor, render_monitor_chart, render_monitor_graph, render_node_cluster, render_node_clusters, render_partition_panel, render_table_panel, render_tasks, render_user, socket, tasks, time, update_pagedata, users,
+  var WARNING_STATUS_THRESHOLD, agent_cluster, agent_clusters, agents, bind_shown_tab_event, change_chat_cluster, chat_cluster, chat_clusters, chat_comment, chat_socket, current_cluster_path, current_page, datamap_tabs, dns_domains, dns_records, fabscripts, filter, graph_links, graph_nodes, mark_chat_text, mode, node_cluster, node_clusters, refresh_monitor, render_all, render_datamap, render_dns_records, render_force_panel, render_line_chart_panel, render_monitor, render_monitor_chart, render_monitor_graph, render_node_cluster, render_node_clusters, render_partition_panel, render_table_panel, render_tasks, render_user, socket, tasks, time, update_pagedata, users,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   users = [];
@@ -17,6 +17,10 @@
   fabscripts = [];
 
   tasks = [];
+
+  dns_domains = [];
+
+  dns_records = [];
 
   datamap_tabs = ['status', 'relation'];
 
@@ -40,7 +44,8 @@
     NODE: 1,
     CHAT: 2,
     TASK: 3,
-    EVENT: 4
+    EVENT: 4,
+    DNS: 5
   };
 
   WARNING_STATUS_THRESHOLD = 10000;
@@ -1167,6 +1172,8 @@
   render_node_clusters = function(clusters) {
     var clusters_html, expand_clusters;
     update_pagedata();
+    console.log("DEBUG testaaa");
+    console.log(clusters);
     clusters_html = $("<div class=\"panel-group\" id=\"accordion\">\n</div>");
     expand_clusters = function(html, clusters, root_cluster) {
       var active, cluster, cluster_name, collapse_body, collapse_body_id, collapse_head_id, collapse_id, collapse_panel_id, name, parent_id, show, splited_cluster, tmp_clusters, tmp_name, tmp_root_cluster, _i, _len, _results;
@@ -1466,8 +1473,6 @@
         jobs_tbody_html += "<tr class=\"" + node_class + "\">\n    <td>" + task.target + "</td>\n    <td>" + task.owner + "</td>\n    <td>" + status_html + "</td>\n    <td>" + task.json_arg + "</td>\n    <td>" + task.msg + "</td>\n    <td>" + task.updated_at + "</td>\n    <td>" + task.created_at + "</td>\n</tr>";
       }
     }
-    console.log('DEBUG');
-    console.log(job_map);
     $('#all-node-badge').html(all_node_length);
     $('#success-node-badge').html(success_node_length);
     $('#processing-node-badge').html(processing_node_length);
@@ -1489,6 +1494,16 @@
       });
     };
     return setTimeout(refresh, 30000);
+  };
+
+  render_dns_records = function() {
+    var record, records_tbody_html, _i, _len;
+    records_tbody_html = "";
+    for (_i = 0, _len = dns_records.length; _i < _len; _i++) {
+      record = dns_records[_i];
+      records_tbody_html += "<tr>\n    <td>" + record.name + "</td>\n    <td>" + record.type + "</td>\n    <td>" + record.content + "</td>\n    <td>" + record.ttl + "</td>\n</tr>";
+    }
+    return $('#dns-records-tbody').html(records_tbody_html);
   };
 
   update_pagedata = function() {
@@ -1528,6 +1543,13 @@
       if (current_cluster_path === '') {
         return current_cluster_path = 'all';
       }
+    } else if (mode.current === mode.DNS) {
+      paths = location.pathname.split('dns/');
+      current_page = 'dns';
+      current_cluster_path = paths[1].slice(0, -1);
+      if (current_cluster_path === '') {
+        return current_cluster_path = 'all';
+      }
     }
   };
 
@@ -1547,7 +1569,6 @@
       bind_shown_tab_event();
       tab = 0;
       $('#datamap-modal').on('shown.bs.modal', function() {
-        console.log('shown');
         $("#map-" + datamap_tabs[tab]).tab('show');
       });
       $('#show-datamap').on('click', function() {
@@ -1583,7 +1604,6 @@
       bind_shown_tab_event();
       tab = 0;
       $('#datamap-modal').on('shown.bs.modal', function() {
-        console.log('shown');
         $("#map-" + datamap_tabs[tab]).tab('show');
       });
       $('#show-datamap').on('click', function() {
@@ -1611,6 +1631,12 @@
       render_tasks();
       $('#job-table').tablesorter();
       $('#task-table').tablesorter();
+    } else if (mode.current === mode.DNS) {
+      render_node_clusters(dns_domains);
+      render_dns_records(dns_records);
+      $('#dns-record-table').tablesorter({
+        sortList: [[0, 0], [1, 0]]
+      });
     }
     return $('[data-toggle=popover]').popover();
   };
@@ -1661,6 +1687,10 @@
       mode.current = mode.EVENT;
       agent_clusters = JSON.parse($('#agent_clusters').html());
       node_cluster = JSON.parse(node_cluster.html());
+    } else if (location.pathname.indexOf('/dns/') === 0) {
+      mode.current = mode.DNS;
+      dns_records = JSON.parse($('#json-dns-records').html());
+      dns_domains = JSON.parse($('#json-dns-domains').html());
     } else if (location.pathname.indexOf('/chat/') === 0) {
       mode.current = mode.CHAT;
     }

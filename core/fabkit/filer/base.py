@@ -20,8 +20,9 @@ def create_src_file(dest, src_str):
 
     local_tmp_file = os.path.join(CONF._tmp_dir, env.host, 'src_files', dest)
 
-    if not os.path.exists(local_tmp_file):
-        os.makedirs(os.path.dirname(local_tmp_file))
+    dir_path = os.path.dirname(local_tmp_file)
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
 
     with open(local_tmp_file, 'w') as f:
         f.write(src_str)
@@ -61,8 +62,8 @@ def __get_src_file(dest, src_dirname, src=None, src_file=None):
 
 def file(dest, mode='644', owner='root:root', src=None, src_file=None, src_str=None,
          override=False):
-    if src_str:
-        src = create_src_file(dest, src_str)
+    if src_str is not None:
+        src_file = create_src_file(dest, src_str)
 
     is_updated = False
     with api.warn_only():

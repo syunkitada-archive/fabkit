@@ -71,6 +71,7 @@ INSTALLED_APPS = (
     'web_apps.node',
     'web_apps.agent',
     'web_apps.chat',
+    'web_apps.dns',
     'web_lib',
 )
 
