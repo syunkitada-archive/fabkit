@@ -1,6 +1,5 @@
 # cording: utf-8
 
-import re
 import random
 import uuid
 import time
@@ -101,6 +100,11 @@ class Libvirt():
             if not filer.exists(image_path):
                 sudo('cp {0} {1}'.format(src_image_path, image_path))
                 sudo('qemu-img resize {0} {1}G'.format(image_path, vm.get('disk_size', 10)))
+            if 'disk_cache' not in vm:
+                vm['disk_cache'] = 'none'
+            elif vm['disk_cache'] not in ['none', 'writethrough', 'writeback',
+                                          'directsync', 'unsafe', 'default']:
+                raise Exception('Invalid disk_cache: {0}'.format(vm['disk_cache']))
 
             configiso_path = self.create_configiso(vm, instance_dir)
             vm['configiso_path'] = configiso_path
