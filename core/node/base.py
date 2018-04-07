@@ -106,3 +106,96 @@ def node(*options):
 
             else:
                 exit()
+
+
+@api.task
+@api.hosts('localhost')
+def nodestr(query=None, fubruns=None, run_option=None, cluster_data=None):
+    # init env
+    env.cmd_history = []  # for debug
+    env.last_runs = []
+    env.node = {}
+    env.node_map = {}
+    env.fabscript = {}
+    env.fabscript_map = {}
+    env.cluster = {}
+    env.cluster_map = {}
+    CONF._node_dir = CONF._tmp_node_dir
+
+    if query is None or query in ['recent', 'r', 'error', 'e']:
+        with open(CONF._node_meta_pickle) as f:
+            node_meta = pickle.load(f)
+        recent_clusters = node_meta['recent_clusters']
+        if len(recent_clusters) == 0:
+            print 'There are no recent clusters'
+            return 0
+
+        if fubruns is None:
+            index = 0
+        else:
+            index = int(fubruns)
+        cluster = recent_clusters[index]
+
+        cluster_dir = os.path.join(CONF._node_dir, cluster)
+        cluster_yaml = os.path.join(cluster_dir, '__cluster.yml')
+        cluster_pickle = os.path.join(cluster_dir, '__cluster.pickle')
+
+        node_cluster = None
+        if os.path.exists(cluster_pickle):
+            with open(cluster_pickle) as f:
+                node_cluster = pickle.load(f)
+        elif os.path.exists(cluster_yaml):
+            with open(cluster_yaml) as f:
+                node_cluster = yaml.load(f)
+            with open(cluster_pickle, 'w') as f:
+                pickle.dump(node_cluster, f)
+
+        if query is not None and query in ['error', 'e']:
+            is_only_error = True
+        else:
+            is_only_error = False
+
+        util.print_cluster(cluster, node_cluster, is_only_error)
+        return 0
+
+    is_yes = False
+    if run_option is not None:
+        if run_option == 'yes':
+            is_yes = True
+        elif run_option == 'local':
+            is_yes = True
+            env.is_local = True
+            query += CONF.host
+
+    for task in env.tasks:
+        if task.find('setup') == 0:
+            env.is_setup = True
+        elif task.find('check') == 0:
+            env.is_check = True
+        elif task.find('manage') == 0:
+            env.is_manage = True
+        elif task.find('datamap') == 0:
+            env.is_datamap = True
+
+    if fubruns is None:
+        util.load_runs(query)
+    else:
+        util.load_runs(query, use_tmp_node=True, fubruns=fubruns, cluster_data=cluster_data)
+    util.print_runs()
+
+    if len(env.tasks) > 1:
+        if is_yes or util.confirm(
+                'Are you sure you want to run task on above nodes?', 'Canceled'):
+            if (env.is_setup or env.is_check or env.is_manage) \
+                    and (not env.password or env.password == ''):
+                print 'Enter your password.\n'
+                if platform.system().find('CYGWIN') == 0:
+                    env.password = getpass.getpass()
+                else:
+                    sudo('hostname', shell=False)
+
+            util.decode_cluster_map()
+            util.dump_status()
+
+        else:
+            exit()

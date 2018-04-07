@@ -205,6 +205,7 @@ def init(repo_dir=None, log_file=None):
     CONF._tmp_dir = os.path.join(CONF._storage_dir, 'tmp')
     CONF._log_dir = os.path.join(CONF._storage_dir, 'log')
     CONF._node_dir = complement_path(CONF.node_dir)
+    CONF._tmp_node_dir = complement_path(CONF.node_dir + '.tmp')
     CONF._job_yml = os.path.join(CONF._conf_dir, 'job.yml')
     CONF._fabscript_module_dir = complement_path(CONF.fabscript_module)
     CONF._fablib_module_dir = complement_path(CONF.fablib_module)

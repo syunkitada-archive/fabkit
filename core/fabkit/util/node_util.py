@@ -2,6 +2,7 @@
 
 import os
 import yaml
+import json
 import pickle
 import re
 from copy import deepcopy
@@ -69,7 +70,28 @@ def include_cluster(cluster_name):
     return data
 
 
-def load_runs(query, find_depth=1):
+def _create_tmp_cluster_dir(cluster_dir, hosts, fabruns, cluster_data):
+    if not os.path.exists(cluster_dir):
+        os.makedirs(cluster_dir)
+
+    data = {
+        'node_map': {
+            'tmp_node': {
+                'hosts': [hosts],
+                'fabruns': [fabruns],
+            }
+        }
+    }
+    if cluster_data is not None:
+        tmp_data = json.loads(cluster_data)
+        data.update(tmp_data)
+
+    node_yml = os.path.join(cluster_dir, 'node.yml')
+    with open(node_yml, 'w') as f:
+        f.write(yaml.dump(data))
+
+
+def load_runs(query, find_depth=1, use_tmp_node=False, fubruns=None, cluster_data=None):
     """ queryに基づいて、nodeを読み込む
 
     env.runs にクラスタごとの実行タスクリスト
@@ -93,7 +115,11 @@ def load_runs(query, find_depth=1):
         host_pattern = ''
         candidates = None
 
-    cluster_dir = os.path.join(CONF._node_dir, cluster_name)
+    if use_tmp_node:
+        cluster_dir = os.path.join(CONF._tmp_node_dir, cluster_name)
+        _create_tmp_cluster_dir(cluster_dir, cluster_name, fubruns, cluster_data)
+    else:
+        cluster_dir = os.path.join(CONF._node_dir, cluster_name)
 
     # load cluster data from node dir
     runs = []
