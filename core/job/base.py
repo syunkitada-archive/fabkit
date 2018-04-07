@@ -3,7 +3,7 @@
 import re
 from fabkit import env, api, log, cmd, container
 from oslo_config import cfg
-from setup import setup
+from setup import setup, manage
 
 CONF = cfg.CONF
 
@@ -91,6 +91,13 @@ def exec_command(cluster, run, command, **kwargs):
         CONF.user = CONF.job_user
         CONF.password = CONF.job_password
         setup(**kwargs)
+    elif action[0] == 'manage':
+        env.runs = [run]
+        env.user = CONF.job_user
+        env.password = CONF.job_password
+        CONF.user = CONF.job_user
+        CONF.password = CONF.job_password
+        manage(action[1], **kwargs)
 
     log.info('result_command: {0}({1})'.format(command, result))
     return result
