@@ -3,6 +3,7 @@
 from host_util import *  # noqa
 from node_util import *  # noqa
 from cluster_util import *  # noqa
+from datamap_util import *  # noqa
 from data_util import decode_cluster_map  # noqa
 from time_util import get_timestamp  # noqa
 from terminal import confirm, print_runs, print_cluster  # noqa
