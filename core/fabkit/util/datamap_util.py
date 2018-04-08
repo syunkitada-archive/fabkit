@@ -34,7 +34,7 @@ def print_datamap(key):
         rows = []
         key_row = []
         for key in sorted_keys:
-            key_row.append(key.replace('!!', ''))
+            key_row.append(key.replace('!', ''))
         rows.append(key_row)
 
         for row in datamap['data']:
@@ -82,7 +82,8 @@ def print_datamap(key):
         for data in datamap['data']:
             for key in keys:
                 tmp_row = {
-                    '!!job': data['!!host'] + ':' + key,
+                    '!!host': data['!!host'],
+                    '!job': key,
                 }
                 tmp_row.update(data[key])
                 tmp_data.append(tmp_row)
