@@ -197,6 +197,18 @@ def run_func(func_names=[], *args, **kwargs):
                                     map_data['data'].append(tmp_data)
                                     data_map[map_name] = map_data
 
+                                elif tmp_map_data['type'] == 'multi-table':
+                                    map_data = data_map.get(map_name, {
+                                        'name': map_name,
+                                        'type': 'multi-table',
+                                        'data': [],
+                                    })
+
+                                    tmp_data = {'!!host': host}
+                                    tmp_data.update(tmp_map_data['data'])
+                                    map_data['data'].append(tmp_data)
+                                    data_map[map_name] = map_data
+
                                 elif tmp_map_data['type'] == 'line-chart':
                                     map_data = data_map.get(map_name, {
                                         'name': map_name,
