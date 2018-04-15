@@ -62,6 +62,9 @@ default_opts = [
     cfg.StrOpt('host',
                default='localhost',
                help='host'),
+    cfg.ListOpt('system_output_filter',
+                default=['running', 'stdout'],
+                help='hide system output'),
 ]
 
 cluster_opts = [

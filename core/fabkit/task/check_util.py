@@ -3,6 +3,9 @@
 import re
 import platform
 from fabkit import api, env, run, cmd, status, log
+from oslo_config import cfg
+
+CONF = cfg.CONF
 
 
 re_ubuntu = re.compile('Ubuntu')
@@ -158,7 +161,7 @@ def set_os():
 
         run('env')
 
-    if 'os' in env.node:
-        return True
-    else:
-        return False
+        if 'os' in env.node:
+            return True
+        else:
+            return False

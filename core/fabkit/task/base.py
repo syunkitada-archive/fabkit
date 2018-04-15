@@ -3,7 +3,7 @@
 import sys
 import traceback
 from functools import wraps
-from fabkit import env, filer, status, log
+from fabkit import api, env, filer, status, log
 from check_util import check_basic
 from oslo_config import cfg
 
@@ -22,10 +22,11 @@ def task(function=None, is_bootstrap=True):
             if is_bootstrap:
                 bootstrap_status = env.node_map[env.host]['bootstrap_status']
                 if not bootstrap_status == status.SUCCESS:
-                    result = check_basic()
-                    if result['task_status'] != status.SUCCESS:
-                        result['node'] = env.node
-                        return result
+                    with api.hide(*CONF.system_output_filter):
+                        result = check_basic()
+                        if result['task_status'] != status.SUCCESS:
+                            result['node'] = env.node
+                            return result
 
                     filer.mkdir(CONF._remote_dir, owner='{0}:root'.format(env.user), mode='770')
                     filer.mkdir(CONF._remote_storage_dir, owner='{0}:root'.format(env.user),

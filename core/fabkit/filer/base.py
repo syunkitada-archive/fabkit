@@ -3,7 +3,7 @@
 import time
 import os
 import inspect
-from fabkit import api, env, run, sudo, scp, log, cmd
+from fabkit import api, env, run, sudo, scp, log, cmd, system_task
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from oslo_config import cfg
 
@@ -14,7 +14,7 @@ j2_env = Environment(
     undefined=StrictUndefined)
 
 
-def create_src_file(dest, src_str):
+def __create_src_file(dest, src_str):
     if dest[0] == '/':
         dest = dest[1:]
 
@@ -60,10 +60,11 @@ def __get_src_file(dest, src_dirname, src=None, src_file=None):
         return src_file
 
 
+@system_task
 def file(dest, mode='644', owner='root:root', src=None, src_file=None, src_str=None,
          override=False):
     if src_str is not None:
-        src_file = create_src_file(dest, src_str)
+        src_file = __create_src_file(dest, src_str)
 
     is_updated = False
     with api.warn_only():
@@ -84,6 +85,7 @@ def file(dest, mode='644', owner='root:root', src=None, src_file=None, src_str=N
     return is_updated
 
 
+@system_task
 def template(dest, mode='644', owner='root:root', data={},
              src=None, src_file=None, src_str=None, insert_eol_crlf=True):
     template_data = {}
@@ -93,7 +95,7 @@ def template(dest, mode='644', owner='root:root', data={},
     is_updated = False
 
     if src_str:
-        src_file = create_src_file(dest, src_str)
+        src_file = __create_src_file(dest, src_str)
 
     if not src_file:
         src_file = __get_src_file(dest, src_dirname='templates', src=src)
@@ -153,6 +155,7 @@ def template(dest, mode='644', owner='root:root', data={},
     return is_updated
 
 
+@system_task
 def mkdir(dest, is_local=False, owner='root:root', mode='775', use_sudo=True):
     cmd_mkdir = 't={0} && mkdir -p $t'.format(dest)
     if is_local or env.is_local:
@@ -167,6 +170,7 @@ def mkdir(dest, is_local=False, owner='root:root', mode='775', use_sudo=True):
         run('{0} $t'.format(cmd_mkdir, mode, owner))
 
 
+@system_task
 def touch(dest, is_local=False, owner='root:root', mode='775'):
     cmd_touch = 't={0} && touch $t'.format(dest)
     if is_local or env.is_local:
@@ -175,6 +179,7 @@ def touch(dest, is_local=False, owner='root:root', mode='775'):
         sudo('{0} && chmod {1} $t && chown {2} $t'.format(cmd_touch, mode, owner))
 
 
+@system_task
 def exists(dest, is_local=False):
     cmd_exists = '[ -e {0} ]'.format(dest)
     if is_local or env.is_local:
